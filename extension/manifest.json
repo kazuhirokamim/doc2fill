@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "doc2fill — Autofill Inteligente",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Preenchimento inteligente de notas e certidões em portais governamentais com Zero Retenção de Dados.",
   "permissions": [
     "activeTab",
@@ -12,6 +12,9 @@
   "host_permissions": [
     "<all_urls>"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_title": "Abrir doc2fill"
   },
@@ -23,6 +26,12 @@
       "matches": ["<all_urls>"],
       "js": ["content.js"],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["sidepanel.html", "sidepanel.css", "sidepanel.js"],
+      "matches": ["<all_urls>"]
     }
   ]
 }

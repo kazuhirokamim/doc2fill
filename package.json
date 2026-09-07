@@ -1,12 +1,19 @@
 {
   "name": "doc2fill",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Smart document capture and autofill with zero data retention for government portals",
   "scripts": {
-    "test": "node --test tests/**/*.test.js"
+    "test": "node --test tests/**/*.test.js",
+    "demo": "node server/demo-server.js"
   },
-  "keywords": ["ocr", "autofill", "privacy", "zero-retention", "chrome-extension"],
+  "keywords": [
+    "ocr",
+    "autofill",
+    "privacy",
+    "zero-retention",
+    "chrome-extension"
+  ],
   "author": "Kazuhiro",
   "license": "MIT"
 }
