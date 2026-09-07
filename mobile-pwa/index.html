@@ -3,231 +3,214 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>doc2fill — Mobile Scanner (Neo-Brutalism)</title>
+  <title>doc2fill — Mobile Scanner</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: #F7F7F2;
-      color: #000000;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #F9FAFB;
+      color: #111827;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      padding: 16px;
+      padding: 20px;
       -webkit-font-smoothing: antialiased;
     }
     
     header {
       background: #FFFFFF;
-      border: 2px solid #000000;
-      box-shadow: 4px 4px 0px #000000;
-      padding: 14px;
-      margin-bottom: 18px;
-      text-align: center;
-    }
-    .logo {
-      font-size: 22px;
-      font-weight: 900;
-      letter-spacing: -0.04em;
-      text-transform: uppercase;
+      border: 1px solid #E5E7EB;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
+      padding: 16px;
+      margin-bottom: 20px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
+      justify-content: space-between;
+    }
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     .logo-badge {
-      background: #FFE600;
-      color: #000;
-      border: 2px solid #000;
-      box-shadow: 2px 2px 0px #000;
-      width: 26px;
-      height: 26px;
+      background: #F3F4F6;
+      color: #111827;
+      border-radius: 8px;
+      width: 28px;
+      height: 28px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: 13px;
     }
-    .tagline {
-      font-family: monospace;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      margin-top: 6px;
-      color: #333;
+    .logo-text {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .badge-pill {
+      font-size: 11px;
+      font-weight: 500;
+      background: #ECFDF5;
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+      padding: 3px 10px;
+      border-radius: 9999px;
     }
 
-    .neo-card {
+    .clean-card {
       background: #FFFFFF;
-      border: 2px solid #000000;
-      box-shadow: 4px 4px 0px #000000;
-      padding: 18px;
+      border: 1px solid #E5E7EB;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+      padding: 24px 20px;
       margin-bottom: 16px;
       text-align: center;
     }
 
-    .card-header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 8px;
-      margin-bottom: 12px;
-      border-bottom: 2px solid #000000;
-    }
-    .badge-mono {
-      font-family: monospace;
-      font-size: 10px;
-      font-weight: 800;
+    .card-eyebrow {
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #6B7280;
       text-transform: uppercase;
-      padding: 2px 6px;
-      border: 1px solid #000000;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
     }
-    .badge-yellow { background: #FFE600; }
-    .badge-green { background: #00F59B; }
-
     .card-title {
-      font-size: 16px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: -0.03em;
-      margin: 8px 0 6px;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #111827;
+      margin-bottom: 8px;
     }
     .card-desc {
-      font-size: 12px;
-      color: #333;
-      margin-bottom: 16px;
-      line-height: 1.4;
+      font-size: 13px;
+      color: #4B5563;
+      margin-bottom: 22px;
+      line-height: 1.5;
     }
 
     .camera-btn {
-      background: #FFE600;
-      color: #000000;
-      border: 2px solid #000000;
-      box-shadow: 4px 4px 0px #000000;
+      background: #111827;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(17, 24, 39, 0.12);
       width: 100%;
-      padding: 14px;
+      padding: 14px 18px;
       font-size: 14px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: -0.02em;
+      font-weight: 500;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
       cursor: pointer;
       user-select: none;
-      transition: all 0.1s ease;
+      transition: all 0.15s ease;
     }
     .camera-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0px #000000;
+      transform: scale(0.99);
+      background: #1F2937;
     }
 
     .preview-container {
-      margin-top: 16px;
+      margin-top: 18px;
       display: none;
     }
     .preview-img {
       width: 100%;
       max-height: 240px;
       object-fit: contain;
-      border: 2px solid #000000;
-      box-shadow: 3px 3px 0px #000000;
-      background: #FFF;
+      border: 1px solid #E5E7EB;
+      border-radius: 14px;
+      background: #FAFAFA;
     }
 
     .status-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-family: monospace;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      background: #00F59B;
-      color: #000;
-      border: 2px solid #000;
-      box-shadow: 2px 2px 0px #000;
-      padding: 6px 12px;
-      margin-top: 12px;
+      font-size: 11.5px;
+      font-weight: 500;
+      background: #ECFDF5;
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+      border-radius: 9999px;
+      padding: 6px 14px;
+      margin-top: 14px;
     }
 
     .guarantee-card {
-      background: #FFFDE6;
-      border: 2px solid #000000;
-      box-shadow: 3px 3px 0px #000000;
-      padding: 14px;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      padding: 16px;
       margin-bottom: 16px;
       text-align: left;
     }
     .guarantee-title {
-      font-family: monospace;
-      font-size: 11px;
-      font-weight: 900;
-      text-transform: uppercase;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
       margin-bottom: 4px;
       display: flex;
       align-items: center;
       gap: 6px;
     }
     .guarantee-desc {
-      font-size: 11px;
-      color: #222;
-      line-height: 1.4;
+      font-size: 11.5px;
+      color: #64748B;
+      line-height: 1.5;
     }
 
     footer {
       margin-top: auto;
       text-align: center;
-      padding-top: 10px;
-      font-family: monospace;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
+      padding-top: 12px;
+      font-size: 11.5px;
+      color: #9CA3AF;
     }
   </style>
 </head>
 <body>
   <header>
-    <div class="logo">
+    <div class="logo-row">
       <span class="logo-badge">⚡</span>
-      <span>DOC2FILL</span>
+      <span class="logo-text">doc2fill</span>
     </div>
-    <p class="tagline">[SCANNER P2P // ZERO CLOUD RETENTION]</p>
+    <span class="badge-pill">Zero-Retention</span>
   </header>
 
   <main>
-    <div class="neo-card">
-      <div class="card-header-bar">
-        <span class="badge-mono badge-yellow">CAMERA INPUT</span>
-        <span class="badge-mono badge-green">DISPOSITIVO CONECTADO</span>
-      </div>
-      <span style="font-size: 36px;">📷</span>
-      <h2 class="card-title">ESCANEAR NOTA FISCAL</h2>
-      <p class="card-desc">Aponte a lente para a nota fiscal física. O OCR em memória extrai CNPJ, razão e valores instantaneamente.</p>
+    <div class="clean-card">
+      <div class="card-eyebrow">Scanner Mobile Instantâneo</div>
+      <h2 class="card-title">Capturar Nota Fiscal</h2>
+      <p class="card-desc">Aponte a câmera para a nota fiscal física. A extração ocorre diretamente na memória e transmite os dados para o seu computador.</p>
 
       <label for="camera-input" class="camera-btn">
-        <span>📸 ATIVAR CÂMERA DO CELULAR</span>
+        <span>📸 Abrir Câmera do Smartphone</span>
       </label>
       <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
 
       <div class="preview-container" id="preview-container">
         <img id="preview-img" class="preview-img" alt="Foto capturada">
-        <div class="status-badge">✓ DADOS EXTRAÍDOS EM MEMÓRIA (P2P)</div>
+        <div class="status-badge">✓ Dados extraídos com sucesso na memória</div>
       </div>
     </div>
 
     <div class="guarantee-card">
       <div class="guarantee-title">
-        <span>🛡️</span> GARANTIA ZERO-RETENTION
+        <span>🛡️</span> Garantia de Privacidade e Sigilo Fiscal
       </div>
       <p class="guarantee-desc">
-        Os dados e imagens transitam exclusivamente pela memória RAM via conexão efêmera direta com o computador do Procurador. Nenhum byte é gravado em servidores de nuvem.
+        Os dados e imagens transitam exclusivamente pela memória RAM via conexão efêmera direta com a extensão no computador. Nenhuma foto ou informação é salva em disco ou servidores na nuvem.
       </p>
     </div>
   </main>
 
   <footer>
-    <p>DOC2FILL • PADRÃO MILITAR DE PRIVACIDADE // AGU</p>
+    <p>doc2fill • Segurança Militar & LGPD Compliance</p>
   </footer>
 
   <script>

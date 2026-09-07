@@ -3,128 +3,132 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>doc2fill — Neo-Brutalist Autofill</title>
+  <title>doc2fill — Autofill Inteligente</title>
   <link rel="stylesheet" href="sidepanel.css">
 </head>
 <body>
-  <!-- Cabeçalho Neo-Brutalista com Divisor Preto de Ponta a Ponta -->
+  <!-- Header Minimalista e Sofisticado -->
   <header class="app-header">
     <div class="brand-row">
       <div class="brand">
-        <div class="logo-box">⚡</div>
-        <div class="logo-text">
-          <h1>DOC2FILL</h1>
-          <span class="badge-tag badge-security">🛡️ ZERO-RETENTION</span>
+        <div class="logo-icon-wrap">⚡</div>
+        <div class="brand-details">
+          <h1>doc2fill</h1>
+          <span class="badge-pill badge-security">Zero-Retention</span>
         </div>
       </div>
       <div class="user-tier">
-        <span class="badge-tag badge-vip">★ VIP VITALÍCIO // LUCAS</span>
+        <span class="badge-pill badge-vip">VIP Vitalício</span>
       </div>
     </div>
   </header>
 
   <main class="panel-content">
-    <!-- Seletor de Modo Neo-Brutalista -->
-    <div class="mode-tabs">
-      <button class="tab-btn active" id="tab-demo" data-tab="demo">✦ [1] TESTE RÁPIDO</button>
-      <button class="tab-btn" id="tab-qr" data-tab="qr">✦ [2] CELULAR (QR)</button>
-      <button class="tab-btn" id="tab-file" data-tab="file">✦ [3] PDF / FOTO</button>
+    <!-- Segmented Control (Tabs Suaves) -->
+    <div class="segmented-tabs">
+      <button class="tab-btn active" id="tab-demo" data-tab="demo">Teste Rápido</button>
+      <button class="tab-btn" id="tab-qr" data-tab="qr">Celular (QR)</button>
+      <button class="tab-btn" id="tab-file" data-tab="file">PDF / Foto</button>
     </div>
 
-    <!-- Modo 1: Teste Imediato (Lucas) -->
+    <!-- Modo 1: Demonstração Imediata -->
     <section class="tab-pane active" id="pane-demo">
-      <div class="neo-card card-accent-yellow">
-        <div class="card-header-bar">
-          <span class="card-tag">STATUS // SIMULAÇÃO AGU</span>
-          <span class="terminal-dots">● ● ●</span>
+      <div class="clean-card">
+        <div class="card-header">
+          <span class="card-eyebrow">Simulação AGU / PGFN</span>
         </div>
-        <h4 class="card-title">DEMONSTRAÇÃO DE HONORÁRIOS</h4>
-        <p class="card-desc">Carregue dados fiscais autênticos pré-configurados e injete no portal governamental instantaneamente.</p>
-        <button id="btn-load-sample" class="btn-neo btn-sample">
-          <span>⚡</span> CARREGAR NOTA MODELO
+        <h3 class="card-title">Preenchimento de Honorários</h3>
+        <p class="card-desc">Carregue dados fiscais simulados da AGU com um clique para testar o preenchimento automático no portal.</p>
+        <button id="btn-load-sample" class="btn-secondary">
+          <span>⚡</span> Carregar Dados Modelo
         </button>
       </div>
     </section>
 
     <!-- Modo 2: QR Code Mobile -->
     <section class="tab-pane" id="pane-qr">
-      <div class="neo-card qr-card">
-        <div class="card-header-bar">
-          <span class="card-tag">CONEXÃO P2P // SCANNER</span>
-          <span class="terminal-dots">● ● ●</span>
+      <div class="clean-card qr-card">
+        <div class="card-header">
+          <span class="card-eyebrow">Pareamento Direto P2P</span>
         </div>
-        <div class="qr-box-neo" id="qr-box">
-          <!-- Renderizado via sidepanel.js -->
+        <div class="qr-container" id="qr-box">
+          <!-- Renderizado via JS -->
         </div>
-        <p class="qr-caption">Aponte a câmera do celular. O scanner abrirá direto no navegador sem instalar app.</p>
+        <p class="card-caption">Abra a câmera do smartphone. O scanner web abrirá diretamente no navegador sem instalar aplicativos.</p>
       </div>
     </section>
 
     <!-- Modo 3: Drag & Drop PDF -->
     <section class="tab-pane" id="pane-file">
-      <div class="neo-card drop-card" id="drop-zone">
-        <span class="drop-icon">📥</span>
-        <h4 class="drop-title">ARRASTE NOTA FISCAL (PDF OU IMAGEM)</h4>
-        <span class="badge-tag badge-neutral">OU CLIQUE PARA SELECIONAR ARQUIVO</span>
+      <div class="clean-card drop-zone" id="drop-zone">
+        <div class="drop-icon-wrap">📄</div>
+        <h4 class="drop-title">Arraste a Nota Fiscal aqui</h4>
+        <p class="drop-subtitle">Compatível com PDF, PNG e JPEG</p>
+        <button type="button" class="btn-secondary btn-sm" onclick="document.getElementById('file-input').click()">Selecionar Arquivo</button>
         <input type="file" id="file-input" accept="application/pdf,image/*" style="display:none;">
       </div>
     </section>
 
-    <!-- Seção de Dados Detectados -->
-    <section class="neo-card data-card">
-      <div class="card-header-bar">
-        <h3 class="section-heading">CAMPOS CAPTURADOS</h3>
-        <span class="badge-tag badge-status" id="validation-badge">AGUARDANDO DADOS</span>
-      </div>
-
-      <div class="field-group">
-        <label for="field-cnpj">CNPJ / CPF DO PRESTADOR</label>
-        <input type="text" id="field-cnpj" placeholder="00.000.000/0000-00" spellcheck="false">
-      </div>
-
-      <div class="field-group">
-        <label for="field-razao">RAZÃO SOCIAL / NOME DO PRESTADOR</label>
-        <input type="text" id="field-razao" placeholder="Nome completo da empresa" spellcheck="false">
-      </div>
-
-      <div class="field-row">
-        <div class="field-group flex-1">
-          <label for="field-valor">VALOR BRUTO (R$)</label>
-          <input type="text" id="field-valor" placeholder="R$ 0,00" spellcheck="false">
+    <!-- Formulário com Campos Capturados -->
+    <section class="clean-card form-card">
+      <div class="form-header-row">
+        <div>
+          <h3 class="section-title">Campos Detectados</h3>
+          <p class="section-subtitle">Dados em memória efêmera local</p>
         </div>
-        <div class="field-group flex-1">
-          <label for="field-data">DATA DE EMISSÃO</label>
-          <input type="date" id="field-data">
-        </div>
+        <span class="badge-pill badge-status" id="validation-badge">Aguardando dados</span>
       </div>
 
-      <div class="field-row">
-        <div class="field-group flex-1">
-          <label for="field-servico">CÓDIGO SERVIÇO</label>
-          <input type="text" id="field-servico" placeholder="08.02" spellcheck="false">
+      <div class="fields-container">
+        <div class="field-group">
+          <label for="field-cnpj">CNPJ / CPF do Prestador</label>
+          <input type="text" id="field-cnpj" placeholder="00.000.000/0000-00" spellcheck="false">
         </div>
-        <div class="field-group flex-1">
-          <label for="field-irrf">RETENÇÃO IRRF</label>
-          <input type="text" id="field-irrf" placeholder="R$ 0,00" spellcheck="false">
+
+        <div class="field-group">
+          <label for="field-razao">Razão Social / Nome</label>
+          <input type="text" id="field-razao" placeholder="Nome empresarial do prestador" spellcheck="false">
         </div>
-      </div>
 
-      <div class="field-group">
-        <label for="field-descricao">DISCRIMINAÇÃO DOS SERVIÇOS</label>
-        <textarea id="field-descricao" rows="2" placeholder="Histórico da prestação ou processo judicial..." spellcheck="false"></textarea>
-      </div>
+        <div class="field-row">
+          <div class="field-group flex-1">
+            <label for="field-valor">Valor Bruto (R$)</label>
+            <input type="text" id="field-valor" placeholder="R$ 0,00" spellcheck="false">
+          </div>
+          <div class="field-group flex-1">
+            <label for="field-data">Data de Emissão</label>
+            <input type="date" id="field-data">
+          </div>
+        </div>
 
-      <button id="btn-autofill" class="btn-neo btn-primary-neo" disabled>
-        <span class="btn-bolt">⚡</span> PREENCHER FORMULÁRIO NA PÁGINA
-      </button>
+        <div class="field-row">
+          <div class="field-group flex-1">
+            <label for="field-servico">Código do Serviço</label>
+            <input type="text" id="field-servico" placeholder="08.02" spellcheck="false">
+          </div>
+          <div class="field-group flex-1">
+            <label for="field-irrf">Retenção IRRF (R$)</label>
+            <input type="text" id="field-irrf" placeholder="R$ 0,00" spellcheck="false">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="field-descricao">Discriminação dos Serviços</label>
+          <textarea id="field-descricao" rows="2" placeholder="Histórico da prestação ou processo judicial..." spellcheck="false"></textarea>
+        </div>
+
+        <button id="btn-autofill" class="btn-primary" disabled>
+          <span>⚡</span> Preencher Formulário na Página
+        </button>
+      </div>
     </section>
   </main>
 
   <footer class="app-footer">
-    <div class="footer-line">
-      <span>🔒 CANAL EFÊMERO P2P</span>
-      <span>•</span>
-      <span>ZERO RETENÇÃO CLOUD</span>
+    <div class="footer-info">
+      <span>🔒 Canal efêmero local</span>
+      <span class="dot">•</span>
+      <span>Nenhum dado é salvo na nuvem</span>
     </div>
   </footer>
 

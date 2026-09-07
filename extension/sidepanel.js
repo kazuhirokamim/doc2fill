@@ -1,4 +1,4 @@
-// doc2fill - Sidepanel Controller (Neo-Brutalist Edition)
+// doc2fill - Sidepanel Controller (Clean & Refined Edition)
 document.addEventListener('DOMContentLoaded', () => {
   // Elements
   const tabBtns = document.querySelectorAll('.tab-btn');
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Sample data loader (Demonstração do Lucas)
+  // Sample data loader (Demonstração Lucas)
   btnLoadSample.addEventListener('click', () => {
     fCnpj.value = '33.000.167/0001-01';
     fRazao.value = 'Petróleo Brasileiro S.A. - Petrobras';
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fIrrf.value = 'R$ 221,25';
     fDescricao.value = 'Honorários de sucumbência e assessoria contábil em execução fiscal nº 5001234-88.2026.4.04.7100.';
 
-    validationBadge.textContent = '✓ 6 CAMPOS PRONTOS';
+    validationBadge.textContent = '✓ 6 campos prontos';
     validationBadge.classList.add('valid');
     btnAutofill.disabled = false;
   });
@@ -54,69 +54,67 @@ document.addEventListener('DOMContentLoaded', () => {
       descricao: fDescricao.value.trim()
     };
 
-    btnAutofill.textContent = '⏳ PREENCHENDO FORMULÁRIO...';
+    btnAutofill.textContent = 'Preenchendo formulário...';
     btnAutofill.disabled = true;
 
     try {
-      // Query active tab
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tab || !tab.id) {
         alert('Nenhuma aba ativa encontrada.');
-        btnAutofill.innerHTML = '<span class="btn-bolt">⚡</span> PREENCHER FORMULÁRIO NA PÁGINA';
+        btnAutofill.innerHTML = '<span>⚡</span> Preencher Formulário na Página';
         btnAutofill.disabled = false;
         return;
       }
 
-      // Send message to content script
       const response = await chrome.tabs.sendMessage(tab.id, {
         action: 'DOC2FILL_EXECUTE',
         data: payload
       });
 
       if (response && response.success) {
-        btnAutofill.textContent = '✅ PREENCHIDO COM SUCESSO!';
+        btnAutofill.textContent = '✓ Formulário Preenchido!';
         setTimeout(() => {
-          btnAutofill.innerHTML = '<span class="btn-bolt">⚡</span> PREENCHER FORMULÁRIO NA PÁGINA';
+          btnAutofill.innerHTML = '<span>⚡</span> Preencher Formulário na Página';
           btnAutofill.disabled = false;
-        }, 2500);
+        }, 2200);
       } else {
-        alert('Não foi possível preencher automaticamente. Verifique se a página contém um formulário compatível.');
-        btnAutofill.innerHTML = '<span class="btn-bolt">⚡</span> PREENCHER FORMULÁRIO NA PÁGINA';
+        alert('Não foi possível preencher. Verifique se a página é um formulário compatível.');
+        btnAutofill.innerHTML = '<span>⚡</span> Preencher Formulário na Página';
         btnAutofill.disabled = false;
       }
     } catch (err) {
       console.error('doc2fill error:', err);
-      alert('Erro de comunicação com a página. Certifique-se de atualizar a aba após recarregar a extensão.');
-      btnAutofill.innerHTML = '<span class="btn-bolt">⚡</span> PREENCHER FORMULÁRIO NA PÁGINA';
+      alert('Erro de conexão com a página. Recarregue a aba após atualizar a extensão.');
+      btnAutofill.innerHTML = '<span>⚡</span> Preencher Formulário na Página';
       btnAutofill.disabled = false;
     }
   });
 
-  // Render High-Contrast Neo-Brutalist QR Code Graphic
+  // Render Minimalist QR Code Graphic
   const qrBox = document.getElementById('qr-box');
   if (qrBox) {
     qrBox.innerHTML = `
-      <svg width="110" height="110" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
-        <rect x="10" y="10" width="26" height="26" fill="#000000"/>
-        <rect x="15" y="15" width="16" height="16" fill="#FFFFFF"/>
-        <rect x="19" y="19" width="8" height="8" fill="#000000"/>
+      <svg width="104" height="104" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100" height="100" rx="8" fill="#FFFFFF"/>
+        <rect x="10" y="10" width="24" height="24" rx="4" fill="#111827"/>
+        <rect x="15" y="15" width="14" height="14" rx="2" fill="#FFFFFF"/>
+        <rect x="19" y="19" width="6" height="6" rx="1" fill="#111827"/>
         
-        <rect x="64" y="10" width="26" height="26" fill="#000000"/>
-        <rect x="69" y="15" width="16" height="16" fill="#FFFFFF"/>
-        <rect x="73" y="19" width="8" height="8" fill="#000000"/>
+        <rect x="66" y="10" width="24" height="24" rx="4" fill="#111827"/>
+        <rect x="71" y="15" width="14" height="14" rx="2" fill="#FFFFFF"/>
+        <rect x="75" y="19" width="6" height="6" rx="1" fill="#111827"/>
         
-        <rect x="10" y="64" width="26" height="26" fill="#000000"/>
-        <rect x="15" y="69" width="16" height="16" fill="#FFFFFF"/>
-        <rect x="19" y="73" width="8" height="8" fill="#000000"/>
+        <rect x="10" y="66" width="24" height="24" rx="4" fill="#111827"/>
+        <rect x="15" y="71" width="14" height="14" rx="2" fill="#FFFFFF"/>
+        <rect x="19" y="75" width="6" height="6" rx="1" fill="#111827"/>
         
-        <rect x="44" y="44" width="12" height="12" fill="#FFE600" stroke="#000000" stroke-width="2"/>
-        <rect x="42" y="15" width="16" height="6" fill="#000000"/>
-        <rect x="42" y="78" width="16" height="6" fill="#000000"/>
-        <rect x="68" y="45" width="20" height="8" fill="#000000"/>
-        <rect x="15" y="45" width="18" height="8" fill="#000000"/>
+        <circle cx="50" cy="50" r="5" fill="#10B981"/>
+        <rect x="42" y="14" width="16" height="5" rx="2" fill="#111827"/>
+        <rect x="42" y="81" width="16" height="5" rx="2" fill="#111827"/>
+        <rect x="68" y="47" width="18" height="6" rx="2" fill="#111827"/>
+        <rect x="14" y="47" width="18" height="6" rx="2" fill="#111827"/>
       </svg>
-      <span style="font-family:monospace; font-size:10px; font-weight:800; color:#000000; margin-top:6px; letter-spacing:0.05em;">[P2P PAIR // ZERO-CLOUD]</span>
+      <span style="font-size:10.5px; color:#6B7280; margin-top:8px; font-weight:500;">Pareamento P2P Criptografado</span>
     `;
   }
 });

@@ -1,56 +1,60 @@
-# Design System Neo-Brutalista (Neobrutalism) // doc2fill
+# Design System Minimalista e Sofisticado // doc2fill
 
-Este documento detalha as diretrizes estéticas e padrões de implementação da interface do **doc2fill**, orientadas pelos princípios do **Neo-Brutalismo**.
+Este documento estabelece as diretrizes de interface e usabilidade do **doc2fill**, desenhado para proporcionar foco absoluto, leveza operacional e amplo respiro visual para procuradores e operadores fiscais.
 
 ---
 
-## 📐 1. Bordas e Hard Shadows (0 Blur)
+## 📐 1. Formas, Sombras Suaves e Bordas
 
-* **Bordas Contínuas**: Todo elemento estrutural (containers, cards, botões, campos de entrada de texto e modais) utiliza borda preta sólida contínua de 2px:
-  ```css
-  border: 2px solid #000000;
-  ```
-* **Sombras Rígidas (Hard Shadows)**:
-  - Sombras sem nenhum desfoque (`blur: 0`).
-  - Botões, cards e inputs em foco:
+* **Bordas Arredondadas (Border Radius)**:
+  - Containers e cartões principais: `16px` (`rounded-2xl`):
     ```css
-    box-shadow: 4px 4px 0px #000000;
+    border-radius: 16px;
     ```
-  - Interações táteis mecânicas:
-    - `:hover`: `transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #000000;`
-    - `:active`: `transform: translate(2px, 2px); box-shadow: 2px 2px 0px #000000;`
+  - Inputs de formulário e botões: `10px` (`rounded-md` / `rounded-xl`):
+    ```css
+    border-radius: 10px;
+    ```
+  - Badges e pílulas de status: `9999px` (`rounded-full`).
+
+* **Sombras Suaves e Difusas (Soft Shadows)**:
+  - Sombras de baixíssima opacidade (3% a 5%) com grande raio de desfoque, conferindo elevação e leveza:
+    ```css
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+    ```
+
+* **Bordas Sutis**:
+  - Bordas discretas em cinza claro, delimitando áreas sem pesar visualmente:
+    ```css
+    border: 1px solid #E5E7EB;
+    ```
 
 ---
 
-## 🔤 2. Tipografia de Alto Contraste
+## 🎨 2. Paleta de Cores "Low Contrast"
 
-* **Títulos e Headings**:
-  - Peso ExtraBold / Black (`font-weight: 900`).
-  - Caixa alta obrigatória (`text-transform: uppercase`).
-  - Tracking apertado (`letter-spacing: -0.04em`).
-* **Corpo de Texto (Body)**:
-  - Fonte sem serifa de alta legibilidade, contraste preto puro sobre branco ou cinza técnico.
-* **Badges, Etiquetas e Metadados Técnicos**:
-  - Fonte monoespaçada (`font-family: monospace`).
-  - Simulação visual de terminais e crachás de acesso (`[VIP VITALÍCIO // LUCAS]`, `[ZERO-RETENTION]`).
-  - Borda sólida preta de 1px a 2px com sombra sólida de 2px.
-
----
-
-## 🎨 3. Paleta de Cores de Alta Tensão
-
-| Token | Hex | Aplicação |
+| Elemento | Token / Hex | Propósito |
 |---|---|---|
-| `--neo-white` | `#FFFFFF` | Fundo principal de cartões e áreas ativas |
-| `--neo-black` | `#000000` | Textos, bordas de 2px e hard shadows |
-| `--neo-paper` | `#F7F7F2` | Fundo de painel e base de suporte |
-| `--neo-yellow` | `#FFE600` | Abas ativas, crachá VIP do Lucas e trigger flutuante |
-| `--neo-green` | `#00F59B` | Botão primário de ação (CTA) e campos preenchidos com sucesso |
-| `--neo-orange` | `#FF5500` | Alertas, cancelamentos e estados de atenção |
+| Background Geral | `#F9FAFB` | Fundo suave (off-white) que diminui a fadiga ocular |
+| Cards e Containers | `#FFFFFF` | Branco puro para destaque limpo e natural do conteúdo |
+| Botões Primários (CTAs) | `#111827` | Preto/grafite profundo com texto `#FFFFFF` para alto contraste funcional |
+| Botões Secundários | `#FFFFFF` | Fundo branco com borda fina `#E5E7EB` e hover `#F9FAFB` |
+| Textos Primários | `#111827` | Escuro, peso semibold/medium, ótima legibilidade |
+| Textos Secundários | `#4B5563` / `#6B7280` | Tons de cinza médio para reduzir tensão visual |
+| Status e Sucesso | `#ECFDF5` / `#065F46` | Verde esmeralda suave com borda `#A7F3D0` |
 
 ---
 
-## 🧩 4. Elementos Estruturais e Divisores
+## 🔤 3. Tipografia Elegante e Hierárquica
 
-* **Divisores de Ponta a Ponta**: Linhas divisórias pretas contínuas separando o cabeçalho do corpo (`border-bottom: 2px solid #000000`).
-* **Micro-interações no Preenchimento Automático**: Ao executar o autofill na página governamental, cada campo recebe destaque instantâneo com borda preta sólida, sombra verde neon (`3px 3px 0px #00F59B`) e fundo menta suave (`#E8FFF3`).
+* **Família Tipográfica**: Sans-serif moderna e geométrica (`Inter`, `SF Pro`, `Segoe UI`, `Roboto`).
+* **Hierarquia Visual**:
+  - Títulos: Peso `600` (semibold), cor `#111827`, tracking natural suave.
+  - Rótulos (Labels): Peso `500` (medium), tamanho `11.5px`, cor `#4B5563`.
+  - Corpo e apoios: Peso `400`/`500`, entrelinhas arejada `1.5`.
+
+---
+
+## ⚡ 4. Feedback no Preenchimento Automático
+
+Ao preencher o formulário governamental, os campos mapeados recebem uma transição suave de foco com borda verde esmeralda (`#10B981`) e anel sutil de confirmação (`box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2)`), retornando suavemente ao estado original após 3 segundos.
