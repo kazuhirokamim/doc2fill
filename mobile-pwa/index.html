@@ -195,7 +195,10 @@
 
       <div class="preview-container" id="preview-container">
         <img id="preview-img" class="preview-img" alt="Foto capturada">
-        <div class="status-badge">✓ Dados extraídos com sucesso na memória</div>
+        <div class="status-badge" id="status-badge">✓ Dados extraídos com sucesso na memória</div>
+        <button type="button" id="btn-transmit" class="camera-btn" style="margin-top: 12px; background: #059669;">
+          <span>⚡ Transmitir para o Computador</span>
+        </button>
       </div>
     </div>
 
@@ -217,6 +220,48 @@
     const input = document.getElementById('camera-input');
     const container = document.getElementById('preview-container');
     const img = document.getElementById('preview-img');
+    const statusBadge = document.getElementById('status-badge');
+    const btnTransmit = document.getElementById('btn-transmit');
+
+    const sessionId = new URLSearchParams(window.location.search).get('session');
+
+    async function sendToExtension(customData) {
+      if (!sessionId) {
+        statusBadge.textContent = '⚠️ Abra este link pelo QR Code da extensão';
+        statusBadge.style.background = '#FEF3C7';
+        statusBadge.style.color = '#92400E';
+        return;
+      }
+
+      statusBadge.textContent = '⏳ Transmitindo dados via P2P...';
+      try {
+        const payload = customData || {
+          cnpj: '33.000.167/0001-01',
+          razao: 'Petróleo Brasileiro S.A. - Petrobras',
+          valor: 'R$ 14.750,00',
+          data: '2026-09-06',
+          servico: '08.02',
+          irrf: 'R$ 221,25',
+          descricao: 'Honorários de sucumbência e assessoria contábil em execução fiscal nº 5001234-88.2026.4.04.7100.'
+        };
+
+        const res = await fetch('/api/relay/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session: sessionId, data: payload })
+        });
+        const resJson = await res.json();
+        if (resJson.success) {
+          statusBadge.textContent = '✓ Transmitido para a extensão no computador!';
+          statusBadge.style.background = '#ECFDF5';
+          statusBadge.style.color = '#065F46';
+        }
+      } catch (err) {
+        statusBadge.textContent = '❌ Erro ao conectar com o computador';
+        statusBadge.style.background = '#FEE2E2';
+        statusBadge.style.color = '#991B1B';
+      }
+    }
 
     input.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -225,10 +270,17 @@
         reader.onload = (ev) => {
           img.src = ev.target.result;
           container.style.display = 'block';
+          sendToExtension();
         };
         reader.readAsDataURL(file);
       }
     });
+
+    if (btnTransmit) {
+      btnTransmit.addEventListener('click', () => {
+        sendToExtension();
+      });
+    }
   </script>
 </body>
 </html>

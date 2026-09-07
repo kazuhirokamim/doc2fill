@@ -80,3 +80,4 @@ describe('doc2fill Content Script Autofill Engine (TDD Suite)', () => {
     assert.equal(simulateAutofillCheck([{ id: 'comentario' }], { cnpj: '33.000.167/0001-01' }).success, false);
   });
 });
+

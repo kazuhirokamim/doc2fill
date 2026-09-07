@@ -45,26 +45,33 @@
       </div>
     </section>
 
-    <!-- Modo 2: QR Code Mobile -->
+    <!-- Modo 2: QR Code Mobile Escaneável com Pareamento Real -->
     <section class="tab-pane" id="pane-qr">
       <div class="clean-card qr-card">
         <div class="card-header">
           <span class="card-eyebrow">Pareamento Direto P2P</span>
         </div>
         <div class="qr-container" id="qr-box">
-          <!-- Renderizado via JS -->
+          <div class="qr-loading">⏳ Gerando QR Code escaneável...</div>
         </div>
-        <p class="card-caption">Abra a câmera do smartphone. O scanner web abrirá diretamente no navegador sem instalar aplicativos.</p>
+        <div id="qr-link-container" class="qr-link-container" style="display:none;">
+          <a id="qr-direct-link" href="#" target="_blank" class="qr-url-text">Carregando URL...</a>
+          <button type="button" id="btn-copy-link" class="btn-secondary btn-sm">Copiar Link</button>
+        </div>
+        <p class="card-caption">Aponte a câmera do smartphone para o QR Code acima. Ele abrirá o scanner web na mesma rede Wi-Fi.</p>
+        <div id="qr-relay-status" class="qr-relay-status" style="display:none;">
+          <span class="pulse-dot">●</span> Aguardando captura do smartphone...
+        </div>
       </div>
     </section>
 
-    <!-- Modo 3: Drag & Drop PDF -->
+    <!-- Modo 3: Drag & Drop e Seleção de Arquivo (PDF / Imagem) -->
     <section class="tab-pane" id="pane-file">
       <div class="clean-card drop-zone" id="drop-zone">
-        <div class="drop-icon-wrap">📄</div>
-        <h4 class="drop-title">Arraste a Nota Fiscal aqui</h4>
-        <p class="drop-subtitle">Compatível com PDF, PNG e JPEG</p>
-        <button type="button" class="btn-secondary btn-sm" onclick="document.getElementById('file-input').click()">Selecionar Arquivo</button>
+        <div class="drop-icon-wrap" id="drop-icon-wrap">📄</div>
+        <h4 class="drop-title" id="drop-title">Arraste a Nota Fiscal aqui</h4>
+        <p class="drop-subtitle" id="drop-subtitle">Compatível com PDF, PNG e JPEG</p>
+        <button type="button" id="btn-select-file" class="btn-secondary btn-sm">Selecionar Arquivo</button>
         <input type="file" id="file-input" accept="application/pdf,image/*" style="display:none;">
       </div>
     </section>
