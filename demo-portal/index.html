@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Portal Governamental — Emissão de Notas (AGU / PGFN)</title>
+  <style>
+    :root {
+      --gov-blue: #003399;
+      --gov-dark: #1351B4;
+      --gov-bg: #F8F9FA;
+      --gov-border: #D2D4D7;
+      --gov-text: #212529;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Rawline", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--gov-bg); color: var(--gov-text); padding-bottom: 60px; }
+    
+    .gov-bar { background: #000000; color: #FFF; padding: 6px 24px; font-size: 11px; font-weight: 700; display: flex; justify-content: space-between; }
+    .gov-header { background: #FFFFFF; border-bottom: 2px solid var(--gov-blue); padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .gov-title h1 { font-size: 18px; color: var(--gov-blue); font-weight: 700; }
+    .gov-title p { font-size: 12px; color: #6C757D; }
+
+    .container { max-width: 860px; margin: 28px auto; background: #FFFFFF; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: 1px solid var(--gov-border); overflow: hidden; }
+    .form-header { background: #EEF2F6; padding: 16px 24px; border-bottom: 1px solid var(--gov-border); }
+    .form-header h2 { font-size: 15px; color: var(--gov-dark); }
+    
+    .form-body { padding: 24px; }
+    .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .form-col { flex: 1; }
+    .form-col.flex-2 { flex: 2; }
+    
+    label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #333; }
+    input, textarea, select {
+      width: 100%;
+      padding: 9px 12px;
+      font-size: 13px;
+      border: 1px solid var(--gov-border);
+      border-radius: 4px;
+      outline: none;
+      background: #FFFFFF;
+      transition: all 0.2s;
+    }
+    input:focus, textarea:focus { border-color: var(--gov-blue); box-shadow: 0 0 0 2px rgba(0, 51, 153, 0.2); }
+    
+    .btn-submit {
+      background: var(--gov-blue);
+      color: #FFFFFF;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      float: right;
+    }
+    .btn-submit:hover { background: var(--gov-dark); }
+
+    .simulation-badge {
+      display: inline-block;
+      background: #FFF3CD;
+      color: #856404;
+      border: 1px solid #FFEEBA;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="gov-bar">
+    <span>BRASIL — GOVERNO FEDERAL</span>
+    <span>SISTEMA DE GESTÃO E EMISSÃO FISCAL</span>
+  </div>
+
+  <header class="gov-header">
+    <div class="gov-title">
+      <h1>Portal Eletrônico de Atos & Honorários Fiscais</h1>
+      <p>Advocacia-Geral da União (AGU) • Procuradoria-Geral da Fazenda Nacional (PGFN)</p>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="form-header">
+      <h2>Emissão de Nota / Registro de Prestação de Serviços</h2>
+    </div>
+
+    <div class="form-body">
+      <div class="simulation-badge">
+        💡 <strong>Ambiente de Teste para o Lucas:</strong> Abra a extensão doc2fill pelo menu lateral e clique em "Preencher Formulário na Página" para ver a mágica acontecer!
+      </div>
+
+      <form id="nota-form" onsubmit="event.preventDefault(); alert('Nota submetida com sucesso no simulador!');">
+        <div class="form-row">
+          <div class="form-col">
+            <label for="cnpj">CNPJ / CPF do Emitente / Prestador</label>
+            <input type="text" id="cnpj" name="cnpj_prestador" placeholder="00.000.000/0000-00">
+          </div>
+          <div class="form-col flex-2">
+            <label for="razao_social">Razão Social / Nome do Prestador</label>
+            <input type="text" id="razao_social" name="razao_social" placeholder="Digite a razão social">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col">
+            <label for="valor_bruto">Valor Bruto do Documento (R$)</label>
+            <input type="text" id="valor_bruto" name="valor_bruto" placeholder="R$ 0,00">
+          </div>
+          <div class="form-col">
+            <label for="data_emissao">Data de Emissão / Competência</label>
+            <input type="date" id="data_emissao" name="data_emissao">
+          </div>
+          <div class="form-col">
+            <label for="retencao_irrf">Retenção de IRRF (R$)</label>
+            <input type="text" id="retencao_irrf" name="retencao_irrf" placeholder="R$ 0,00">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col">
+            <label for="codigo_servico">Código do Serviço / Subitem</label>
+            <input type="text" id="codigo_servico" name="cod_servico" placeholder="Ex: 08.02">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col">
+            <label for="discriminacao_servico">Discriminação dos Serviços / Histórico da Operação</label>
+            <textarea id="discriminacao_servico" name="descricao_servico" rows="3" placeholder="Descreva os serviços prestados ou o número do processo..."></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">Gravar & Emitir Documento</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

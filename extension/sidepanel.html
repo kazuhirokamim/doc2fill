@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>doc2fill - Side Panel</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="logo-icon">⚡</span>
+      <div class="logo-text">
+        <h1>doc2fill</h1>
+        <span class="badge-zero-retention">🛡️ Zero-Retention</span>
+      </div>
+    </div>
+    <div class="user-tier">
+      <span class="badge-vip">★ VIP Vitalício</span>
+    </div>
+  </header>
+
+  <main class="panel-content">
+    <!-- Seletor de Modo -->
+    <div class="mode-tabs">
+      <button class="tab-btn active" id="tab-demo" data-tab="demo">🧪 Teste Imediato</button>
+      <button class="tab-btn" id="tab-qr" data-tab="qr">📱 Celular (QR)</button>
+      <button class="tab-btn" id="tab-file" data-tab="file">📄 PDF / Foto</button>
+    </div>
+
+    <!-- Modo 1: Teste Imediato (Lucas) -->
+    <section class="tab-pane active" id="pane-demo">
+      <div class="info-card">
+        <p><strong>Ambiente de Demonstração Rápida:</strong></p>
+        <p class="text-muted">Carregue dados fiscais simulados para ver o preenchimento automático em tempo real no simulador.</p>
+        <button id="btn-load-sample" class="btn-secondary">Carregar Nota Fiscal Modelo</button>
+      </div>
+    </section>
+
+    <!-- Modo 2: QR Code Mobile -->
+    <section class="tab-pane" id="pane-qr">
+      <div class="qr-container">
+        <div class="qr-placeholder" id="qr-box">
+          <!-- QR Code SVG renderizado via JS -->
+          <div class="qr-pulse"></div>
+          <span class="qr-text">Escaneie com a câmera do celular</span>
+        </div>
+        <p class="text-caption">Abra a câmera do iPhone/Android. O scanner web abrirá sem instalar nenhum aplicativo.</p>
+      </div>
+    </section>
+
+    <!-- Modo 3: Drag & Drop PDF -->
+    <section class="tab-pane" id="pane-file">
+      <div class="drop-zone" id="drop-zone">
+        <span class="drop-icon">📥</span>
+        <p>Arraste uma Nota Fiscal em <strong>PDF</strong> ou <strong>Imagem</strong></p>
+        <span class="text-caption">Ou clique para selecionar</span>
+        <input type="file" id="file-input" accept="application/pdf,image/*" style="display:none;">
+      </div>
+    </section>
+
+    <!-- Formulário com os Dados Detectados -->
+    <section class="data-section">
+      <div class="section-title">
+        <h3>Campos Detectados</h3>
+        <span class="badge-status" id="validation-badge">Aguardando dados</span>
+      </div>
+
+      <div class="field-group">
+        <label for="field-cnpj">CNPJ / CPF do Prestador</label>
+        <input type="text" id="field-cnpj" placeholder="00.000.000/0000-00">
+      </div>
+
+      <div class="field-group">
+        <label for="field-razao">Razão Social / Nome Completo</label>
+        <input type="text" id="field-razao" placeholder="Nome do emitente">
+      </div>
+
+      <div class="field-row">
+        <div class="field-group flex-1">
+          <label for="field-valor">Valor Bruto (R$)</label>
+          <input type="text" id="field-valor" placeholder="R$ 0,00">
+        </div>
+        <div class="field-group flex-1">
+          <label for="field-data">Data de Emissão</label>
+          <input type="date" id="field-data">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field-group flex-1">
+          <label for="field-servico">Código do Serviço</label>
+          <input type="text" id="field-servico" placeholder="Ex: 01.07 / 08.02">
+        </div>
+        <div class="field-group flex-1">
+          <label for="field-irrf">Retenção IRRF (R$)</label>
+          <input type="text" id="field-irrf" placeholder="R$ 0,00">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="field-descricao">Discriminação dos Serviços</label>
+        <textarea id="field-descricao" rows="2" placeholder="Descrição do serviço prestado..."></textarea>
+      </div>
+
+      <button id="btn-autofill" class="btn-primary" disabled>
+        <span class="btn-icon">⚡</span> Preencher Formulário na Página
+      </button>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>🔒 Conexão Efêmera P2P • Zero Retenção</span>
+  </footer>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
