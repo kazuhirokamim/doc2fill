@@ -1,11 +1,11 @@
-// doc2fill - Content Script Autofill Engine & In-Page Widget
+// doc2fill - Content Script Autofill Engine (Neo-Brutalist Edition)
 (() => {
   if (window.__doc2fill_initialized) return;
   window.__doc2fill_initialized = true;
 
-  console.log('[doc2fill] Injetor de Autofill ativo na página.');
+  console.log('[doc2fill] Injetor Neo-Brutalista ativo na página.');
 
-  // Mapeamentos padrão para formulários governamentais
+  // Mapeamentos fiscais padrão
   const FISCAL_MAPPINGS = [
     { key: 'cnpj', terms: ['cnpj', 'cpf', 'documento', 'prestador', 'emitente', 'identificacao'] },
     { key: 'razao', terms: ['razao', 'nome', 'fantasia', 'empresa', 'social', 'prestador_nome'] },
@@ -53,7 +53,7 @@
     }
 
     if (filledCount > 0) {
-      showToastNotification(`⚡ doc2fill: ${filledCount} campos preenchidos com sucesso!`);
+      showToastNotification(`⚡ ${filledCount} CAMPOS PREENCHIDOS COM SUCESSO!`);
       return { success: true, count: filledCount };
     }
 
@@ -100,28 +100,30 @@
     input.focus();
     input.value = val;
 
-    // Dispara eventos para suportar frameworks reativos (React, Vue, Angular)
+    // Dispara eventos padrão
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new Event('change', { bubbles: true }));
     input.dispatchEvent(new Event('blur', { bubbles: true }));
   }
 
+  // Destaque tátil Neo-Brutalista com borda preta sólida e fundo verde elétrico
   function highlightSuccessField(el) {
-    const originalBorder = el.style.borderColor;
+    const originalBorder = el.style.border;
     const originalBoxShadow = el.style.boxShadow;
-    const originalTransition = el.style.transition;
+    const originalBackground = el.style.background;
 
-    el.style.transition = 'all 0.3s ease';
-    el.style.borderColor = '#10B981';
-    el.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.35)';
+    el.style.border = '2px solid #000000';
+    el.style.boxShadow = '3px 3px 0px #00F59B';
+    el.style.background = '#E8FFF3';
 
     setTimeout(() => {
-      el.style.borderColor = originalBorder;
+      el.style.border = originalBorder;
       el.style.boxShadow = originalBoxShadow;
-      el.style.transition = originalTransition;
+      el.style.background = originalBackground;
     }, 3500);
   }
 
+  // Toast Neo-Brutalista (0-blur, borda preta 2px, tipografia de alto contraste)
   function showToastNotification(message) {
     let toast = document.getElementById('doc2fill-toast');
     if (!toast) {
@@ -132,24 +134,28 @@
         top: 24px;
         right: 24px;
         z-index: 99999999;
-        background: #0B0F19;
-        color: #F8FAFC;
-        padding: 14px 20px;
-        border-radius: 10px;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px #1E293B;
+        background: #FFFFFF;
+        color: #000000;
+        border: 2px solid #000000;
+        box-shadow: 4px 4px 0px #000000;
+        padding: 12px 18px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: 13px;
-        font-weight: 600;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
         display: flex;
         align-items: center;
         gap: 10px;
-        border-left: 4px solid #10B981;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       `;
       document.body.appendChild(toast);
     }
 
-    toast.textContent = message;
+    toast.innerHTML = `
+      <span style="background:#00F59B; color:#000000; border:2px solid #000000; padding:2px 6px; font-family:monospace; font-size:10px; font-weight:800; box-shadow:1px 1px 0px #000;">✓ STATUS</span>
+      <span>${message}</span>
+    `;
     toast.style.opacity = '1';
     toast.style.transform = 'translateY(0)';
 
@@ -159,7 +165,7 @@
     }, 4000);
   }
 
-  // Injeção do Floating Action Trigger (botão elegante e discreto na página)
+  // Injeção do Floating Action Trigger Neo-Brutalista
   function injectFloatingTrigger() {
     if (document.getElementById('doc2fill-floating-trigger')) return;
 
@@ -173,36 +179,35 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      background: #0B0F19;
-      color: #F8FAFC;
-      border: 1px solid #1E293B;
+      background: #FFE600;
+      color: #000000;
+      border: 2px solid #000000;
+      box-shadow: 4px 4px 0px #000000;
       padding: 8px 14px;
-      border-radius: 30px;
       cursor: pointer;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 12px;
-      font-weight: 600;
-      transition: all 0.25s ease;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: -0.03em;
+      transition: all 0.1s ease;
       user-select: none;
     `;
 
     trigger.innerHTML = `
-      <span style="display:flex; align-items:center; justify-content:center; width:20px; height:20px; background:#10B981; color:#0B0F19; border-radius:50%; font-size:11px; font-weight:800;">⚡</span>
-      <span>doc2fill</span>
-      <span style="font-size:9px; background:rgba(16,185,129,0.15); color:#10B981; padding:2px 6px; border-radius:12px; border:1px solid rgba(16,185,129,0.3);">AGU</span>
+      <span style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; background:#000000; color:#FFE600; font-size:11px; font-weight:900;">⚡</span>
+      <span>DOC2FILL</span>
+      <span style="font-family:monospace; font-size:10px; background:#FFFFFF; color:#000000; padding:2px 6px; border:1px solid #000000; font-weight:700;">AGU // VIP</span>
     `;
 
     trigger.addEventListener('mouseenter', () => {
-      trigger.style.transform = 'translateY(-2px) scale(1.02)';
-      trigger.style.boxShadow = '0 12px 30px rgba(16, 185, 129, 0.2)';
-      trigger.style.borderColor = '#10B981';
+      trigger.style.transform = 'translate(-2px, -2px)';
+      trigger.style.boxShadow = '6px 6px 0px #000000';
     });
 
     trigger.addEventListener('mouseleave', () => {
-      trigger.style.transform = 'translateY(0) scale(1)';
-      trigger.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.35)';
-      trigger.style.borderColor = '#1E293B';
+      trigger.style.transform = 'translate(0, 0)';
+      trigger.style.boxShadow = '4px 4px 0px #000000';
     });
 
     trigger.addEventListener('click', () => {
@@ -212,7 +217,7 @@
     document.body.appendChild(trigger);
   }
 
-  // Gaveta/Modal Flutuante In-Page
+  // Gaveta/Modal Flutuante In-Page Neo-Brutalista
   function toggleInPageDrawer() {
     let drawer = document.getElementById('doc2fill-inpage-drawer');
     if (drawer) {
@@ -226,40 +231,38 @@
       position: fixed;
       bottom: 74px;
       right: 24px;
-      width: 320px;
-      background: #0F172A;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      width: 330px;
+      background: #FFFFFF;
+      border: 2px solid #000000;
+      box-shadow: 6px 6px 0px #000000;
       z-index: 9999999;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #F8FAFC;
+      color: #000000;
       overflow: hidden;
-      animation: doc2fillSlideUp 0.25s ease;
     `;
 
     drawer.innerHTML = `
-      <div style="background:#0B0F19; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1E293B;">
+      <div style="background:#FFE600; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #000000;">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span style="color:#10B981; font-weight:800;">⚡ doc2fill</span>
-          <span style="font-size:10px; background:#10B981; color:#064E3B; padding:2px 6px; border-radius:4px; font-weight:700;">★ VIP Lucas</span>
+          <span style="font-size:14px; font-weight:900; letter-spacing:-0.03em; text-transform:uppercase;">⚡ DOC2FILL</span>
+          <span style="font-family:monospace; font-size:9px; background:#FFFFFF; color:#000000; padding:2px 6px; border:1px solid #000000; font-weight:700;">★ VIP LUCAS</span>
         </div>
-        <button id="doc2fill-close-drawer" style="background:transparent; border:none; color:#94A3B8; font-size:16px; cursor:pointer;">✕</button>
+        <button id="doc2fill-close-drawer" style="background:#FFFFFF; border:2px solid #000000; box-shadow:2px 2px 0px #000000; color:#000000; font-weight:900; font-size:12px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; cursor:pointer;">✕</button>
       </div>
-      <div style="padding:16px;">
-        <p style="font-size:12px; color:#94A3B8; margin-bottom:14px; line-height:1.4;">
-          Autofill inteligente com <strong>Zero Retenção de Dados</strong> em nuvem.
+      <div style="padding:14px; background:#F7F7F2;">
+        <p style="font-size:11px; color:#222; margin-bottom:12px; line-height:1.4; font-weight:500;">
+          Preenchimento automático inteligente com <strong>Zero Retenção de Dados</strong> em nuvem.
         </p>
         <div style="display:flex; flex-direction:column; gap:8px;">
-          <button id="doc2fill-btn-open-sidepanel" style="background:#1E293B; border:1px solid #334155; color:#F8FAFC; padding:10px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; text-align:left; display:flex; align-items:center; gap:8px;">
-            <span>📑</span> Abrir Painel Lateral (Side Panel)
+          <button id="doc2fill-btn-open-sidepanel" style="background:#FFFFFF; border:2px solid #000000; box-shadow:3px 3px 0px #000000; color:#000000; padding:9px; font-size:11px; font-weight:900; text-transform:uppercase; cursor:pointer; text-align:left; display:flex; align-items:center; gap:8px;">
+            <span>📑</span> ABRIR PAINEL LATERAL (SIDE PANEL)
           </button>
-          <button id="doc2fill-btn-test-sample" style="background:#10B981; border:none; color:#064E3B; padding:10px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <span>⚡</span> Preencher com Amostra da AGU
+          <button id="doc2fill-btn-test-sample" style="background:#00F59B; border:2px solid #000000; box-shadow:4px 4px 0px #000000; color:#000000; padding:10px; font-size:12px; font-weight:900; text-transform:uppercase; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <span>⚡</span> PREENCHER COM AMOSTRA DA AGU
           </button>
         </div>
-        <div style="margin-top:14px; padding-top:10px; border-top:1px solid #1E293B; font-size:10px; color:#64748B; text-align:center;">
-          🔒 Conexão P2P Efêmera • Nenhuma informação é gravada
+        <div style="margin-top:12px; padding-top:8px; border-top:1px dashed #000000; font-family:monospace; font-size:9px; font-weight:700; color:#333; text-align:center; text-transform:uppercase;">
+          🔒 CANAL EFÊMERO P2P • ZERO DADOS SALVOS
         </div>
       </div>
     `;
@@ -274,7 +277,7 @@
     document.getElementById('doc2fill-btn-open-sidepanel').addEventListener('click', () => {
       chrome.runtime.sendMessage({ action: 'DOC2FILL_OPEN_PANEL' }, (res) => {
         if (!res || !res.success) {
-          showToastNotification('💡 Use o ícone do doc2fill na barra do Chrome para abrir o painel.');
+          showToastNotification('💡 Use o ícone do doc2fill na barra do Chrome para abrir.');
         }
       });
       drawer.style.display = 'none';

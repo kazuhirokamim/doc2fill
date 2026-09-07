@@ -57,14 +57,26 @@
     .btn-submit:hover { background: var(--gov-dark); }
 
     .simulation-badge {
-      display: inline-block;
-      background: #FFF3CD;
-      color: #856404;
-      border: 1px solid #FFEEBA;
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 4px;
-      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #FFE600;
+      color: #000000;
+      border: 2px solid #000000;
+      box-shadow: 4px 4px 0px #000000;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 16px;
+      margin-bottom: 20px;
+    }
+    .simulation-badge span.tag {
+      font-family: monospace;
+      font-size: 10px;
+      background: #000000;
+      color: #FFE600;
+      padding: 2px 6px;
+      font-weight: 800;
     }
   </style>
 </head>
@@ -88,7 +100,11 @@
 
     <div class="form-body">
       <div class="simulation-badge">
-        💡 <strong>Ambiente de Teste para o Lucas:</strong> Abra a extensão doc2fill pelo menu lateral e clique em "Preencher Formulário na Página" para ver a mágica acontecer!
+        <div>
+          <span class="tag">AGU // DEMO AMBIENTE</span>
+          <strong style="margin-left:8px;">TESTE DO LUCAS:</strong> Abra o <strong>doc2fill</strong> e clique em <em>"Preencher Formulário na Página"</em> para ver o autofill instantâneo!
+        </div>
+        <span class="tag">[ZERO RETENÇÃO]</span>
       </div>
 
       <form id="nota-form" onsubmit="event.preventDefault(); alert('Nota submetida com sucesso no simulador!');">

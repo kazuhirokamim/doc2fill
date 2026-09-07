@@ -68,3 +68,4 @@ server.listen(PORT, () => {
   console.log(`📱 Scanner Web Mobile:   http://localhost:${PORT}/mobile`);
   console.log(`==================================================\n`);
 });
+
