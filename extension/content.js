@@ -5,15 +5,13 @@
 
   console.log('[doc2fill] Injetor minimalista ativo na página.');
 
-  // Limpeza defensiva imediata para eliminar resíduos de versões anteriores
-  const legacyTrigger = document.getElementById('doc2fill-floating-trigger');
-  if (legacyTrigger && legacyTrigger.parentNode) {
-    legacyTrigger.parentNode.removeChild(legacyTrigger);
-  }
-  const legacyDrawer = document.getElementById('doc2fill-inpage-drawer');
-  if (legacyDrawer && legacyDrawer.parentNode) {
-    legacyDrawer.parentNode.removeChild(legacyDrawer);
-  }
+  // Limpeza defensiva total para expurgar resíduos de versões anteriores
+  ['doc2fill-floating-trigger', 'doc2fill-inpage-drawer', 'doc2fill-toast'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el && el.parentNode) {
+      el.parentNode.removeChild(el);
+    }
+  });
 
   // Mapeamentos fiscais padrão
   const FISCAL_MAPPINGS = [
@@ -26,17 +24,11 @@
     { key: 'descricao', terms: ['descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos'] }
   ];
 
-  // Listener para mensagens do background ou do sidepanel
+  // Listener para mensagens do Side Panel (Operação 100% Headless)
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'DOC2FILL_EXECUTE') {
       const result = executeAutofill(request.data);
       sendResponse(result);
-      return true;
-    }
-
-    if (request.action === 'DOC2FILL_TOGGLE_DRAWER') {
-      toggleInPageDrawer();
-      sendResponse({ acknowledged: true });
       return true;
     }
   });
@@ -63,7 +55,6 @@
     }
 
     if (filledCount > 0) {
-      showToastNotification(`⚡ ${filledCount} campos preenchidos com sucesso!`);
       return { success: true, count: filledCount };
     }
 
@@ -132,137 +123,5 @@
     }, 3200);
   }
 
-  // Toast minimalista (branco puro, sombra difusa, cantos suaves)
-  function showToastNotification(message) {
-    let toast = document.getElementById('doc2fill-toast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.id = 'doc2fill-toast';
-      toast.style.cssText = `
-        position: fixed;
-        top: 24px;
-        right: 24px;
-        z-index: 99999999;
-        background: #FFFFFF;
-        color: #111827;
-        border: 1px solid #E5E7EB;
-        border-radius: 12px;
-        box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
-        padding: 12px 18px;
-        font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-        font-size: 13px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      `;
-      document.body.appendChild(toast);
-    }
-
-    toast.innerHTML = `
-      <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; background:#ECFDF5; color:#065F46; border-radius:50%; font-size:12px; font-weight:600;">✓</span>
-      <span>${message}</span>
-    `;
-    toast.style.opacity = '1';
-    toast.style.transform = 'translateY(0)';
-
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateY(-10px)';
-      setTimeout(() => {
-        if (toast && toast.parentNode) {
-          toast.parentNode.removeChild(toast);
-        }
-      }, 400);
-    }, 3200);
-  }
-
-  // Modal Flutuante In-Page (Acionado apenas sob demanda como fallback)
-  function toggleInPageDrawer() {
-    let drawer = document.getElementById('doc2fill-inpage-drawer');
-    if (drawer) {
-      if (drawer.parentNode) drawer.parentNode.removeChild(drawer);
-      return;
-    }
-
-    drawer = document.createElement('div');
-    drawer.id = 'doc2fill-inpage-drawer';
-    drawer.style.cssText = `
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      width: 320px;
-      background: #FFFFFF;
-      border: 1px solid #E5E7EB;
-      border-radius: 18px;
-      box-shadow: 0 20px 40px -4px rgba(0, 0, 0, 0.12), 0 8px 16px -2px rgba(0, 0, 0, 0.04);
-      z-index: 9999999;
-      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-      color: #111827;
-      overflow: hidden;
-      animation: doc2fillFadeUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    `;
-
-    drawer.innerHTML = `
-      <div style="background:#FFFFFF; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #F3F4F6;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:14px; font-weight:600; color:#111827;">doc2fill</span>
-          <span style="font-size:10px; background:#FEF3C7; color:#92400E; padding:2px 7px; border-radius:9999px; font-weight:500;">VIP Lucas</span>
-        </div>
-        <button id="doc2fill-close-drawer" style="background:#F3F4F6; border:none; border-radius:50%; color:#6B7280; width:24px; height:24px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:11px;">✕</button>
-      </div>
-      <div style="padding:18px;">
-        <p style="font-size:12px; color:#4B5563; margin-bottom:16px; line-height:1.5;">
-          Autofill inteligente com <strong>Zero Retenção de Dados</strong> em nuvem.
-        </p>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <button id="doc2fill-btn-open-sidepanel" style="background:#FFFFFF; border:1px solid #E5E7EB; color:#111827; padding:9px 12px; border-radius:10px; font-size:12px; font-weight:500; cursor:pointer; text-align:left; display:flex; align-items:center; gap:8px; transition:background 0.15s;">
-            <span>📑</span> Abrir Painel Lateral (Side Panel)
-          </button>
-          <button id="doc2fill-btn-test-sample" style="background:#111827; border:none; color:#FFFFFF; padding:10px 14px; border-radius:10px; font-size:12px; font-weight:500; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; transition:background 0.15s;">
-            <span>⚡</span> Preencher com Amostra da AGU
-          </button>
-        </div>
-        <div style="margin-top:16px; padding-top:10px; border-top:1px solid #F3F4F6; font-size:10.5px; color:#9CA3AF; text-align:center;">
-          🔒 Conexão efêmera direta • Zero persistência
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(drawer);
-
-    const closeCleanly = () => {
-      if (drawer && drawer.parentNode) {
-        drawer.parentNode.removeChild(drawer);
-      }
-    };
-
-    // Handlers
-    document.getElementById('doc2fill-close-drawer').addEventListener('click', closeCleanly);
-
-    document.getElementById('doc2fill-btn-open-sidepanel').addEventListener('click', () => {
-      chrome.runtime.sendMessage({ action: 'DOC2FILL_OPEN_PANEL' }, (res) => {
-        if (!res || !res.success) {
-          showToastNotification('💡 Use o ícone do doc2fill na barra do navegador.');
-        }
-      });
-      closeCleanly();
-    });
-
-    document.getElementById('doc2fill-btn-test-sample').addEventListener('click', () => {
-      const sampleData = {
-        cnpj: '33.000.167/0001-01',
-        razao: 'Petróleo Brasileiro S.A. - Petrobras',
-        valor: 'R$ 14.750,00',
-        data: '2026-09-06',
-        servico: '08.02',
-        irrf: 'R$ 221,25',
-        descricao: 'Honorários de sucumbência e assessoria contábil em execução fiscal nº 5001234-88.2026.4.04.7100.'
-      };
-      executeAutofill(sampleData);
-      closeCleanly();
-    });
-  }
 })();
 

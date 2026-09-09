@@ -1,6 +1,6 @@
 {
   "name": "doc2fill",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Smart document capture and autofill with zero data retention for government portals",
   "scripts": {

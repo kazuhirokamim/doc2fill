@@ -22,7 +22,7 @@ chrome.runtime.onStartup.addListener(() => {
 // Executa na inicialização do service worker
 configureSidePanelBehavior();
 
-// 2. Listener de clique na ação da barra de ferramentas (Fallback Robusto)
+// 2. Listener de clique na ação da barra de ferramentas (Native Side Panel Only)
 chrome.action.onClicked.addListener(async (tab) => {
   if (!tab || !tab.id) return;
 
@@ -36,15 +36,7 @@ chrome.action.onClicked.addListener(async (tab) => {
     }
   }
 
-  // Fallback 1: Envia mensagem para o content script abrir o widget/drawer flutuante na página
-  try {
-    const res = await chrome.tabs.sendMessage(tab.id, { action: 'DOC2FILL_TOGGLE_DRAWER' });
-    if (res && res.acknowledged) return;
-  } catch (e) {
-    // Página do sistema do navegador (chrome:// ou sem content script)
-  }
-
-  // Fallback 2: Abre a interface do doc2fill em uma nova aba dedicada
+  // Fallback seguro: Abre a interface do doc2fill em uma nova aba dedicada (sem poluir o DOM da página)
   chrome.tabs.create({ url: chrome.runtime.getURL('sidepanel.html') });
 });
 

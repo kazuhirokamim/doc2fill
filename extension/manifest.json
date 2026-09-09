@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "doc2fill — Autofill Inteligente",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Preenchimento inteligente de notas e certidões em portais governamentais com Zero Retenção de Dados.",
   "permissions": [
     "activeTab",

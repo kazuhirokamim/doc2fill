@@ -102,28 +102,25 @@ export function simulateInPageDrawerLifecycle() {
 }
 
 describe('doc2fill Clean DOM Lifecycle & Zero Residual Trigger (TDD Suite)', () => {
-  it('Cenário 1 (Happy Path): inicialização não injeta miniatura ou gatilho flutuante no DOM', () => {
+  it('Cenário 1 (Happy Path): operação 100% headless sem injeção de drawer ou gatilho flutuante no DOM', () => {
     const lifecycle = simulateInPageDrawerLifecycle();
-    // A extensão deve permanecer estritamente silenciosa no carregamento
+    // A extensão opera de forma 100% silenciosa sem injetar nós no DOM
     assert.equal(lifecycle.hasTrigger(), false, 'Não deve existir gatilho flutuante na página');
+    assert.equal(lifecycle.hasDrawer(), false, 'Não deve existir drawer in-page na página');
     assert.equal(lifecycle.totalResidualElements(), 0, 'Total de resíduos deve ser zero');
   });
 
-  it('Cenário 2 (Edge Case): fechar o painel remove completamente qualquer nó do DOM sem deixar resíduos', () => {
+  it('Cenário 2 (Edge Case): tentativa de acionamento in-page é rejeitada em favor do Side Panel nativo', () => {
     const lifecycle = simulateInPageDrawerLifecycle();
-    lifecycle.openDrawer();
-    assert.equal(lifecycle.hasDrawer(), true, 'Drawer aberto com sucesso');
-
-    // Ao fechar, o elemento deve ser sumariamente destruído
+    // O drawer in-page foi formalmente extirpado
     lifecycle.closeDrawerClean();
-    assert.equal(lifecycle.hasDrawer(), false, 'Drawer não deve mais existir no DOM');
+    assert.equal(lifecycle.hasDrawer(), false, 'Drawer não deve existir no DOM');
     assert.equal(lifecycle.hasTrigger(), false, 'Nenhuma miniatura deve permanecer visível');
     assert.equal(lifecycle.totalResidualElements(), 0, 'Nenhum elemento órfão deve restar');
   });
 
-  it('Cenário 3 (Error Path): chamadas repetidas de fechamento são idempotentes e nunca geram nós fantasmas', () => {
+  it('Cenário 3 (Error Path): chamadas de expurgo repetidas são idempotentes e nunca geram nós fantasmas', () => {
     const lifecycle = simulateInPageDrawerLifecycle();
-    // Fechamento sobre estado já vazio
     assert.doesNotThrow(() => {
       lifecycle.closeDrawerClean();
       lifecycle.closeDrawerClean();
@@ -131,17 +128,19 @@ describe('doc2fill Clean DOM Lifecycle & Zero Residual Trigger (TDD Suite)', () 
     assert.equal(lifecycle.totalResidualElements(), 0);
   });
 
-  it('Cenário 4 (Legacy Cleanup): elimina preventivamente gatilhos legados deixados por versões anteriores', () => {
+  it('Cenário 4 (Legacy Cleanup): elimina preventivamente qualquer nó legado remanescente no DOM', () => {
     const elements = new Map();
     elements.set('doc2fill-floating-trigger', { id: 'doc2fill-floating-trigger' });
     elements.set('doc2fill-inpage-drawer', { id: 'doc2fill-inpage-drawer' });
-    assert.equal(elements.size, 2);
+    elements.set('doc2fill-toast', { id: 'doc2fill-toast' });
+    assert.equal(elements.size, 3);
 
     // Executa a rotina de expurgo preventivo
-    if (elements.has('doc2fill-floating-trigger')) elements.delete('doc2fill-floating-trigger');
-    if (elements.has('doc2fill-inpage-drawer')) elements.delete('doc2fill-inpage-drawer');
+    ['doc2fill-floating-trigger', 'doc2fill-inpage-drawer', 'doc2fill-toast'].forEach(id => {
+      if (elements.has(id)) elements.delete(id);
+    });
 
-    assert.equal(elements.size, 0);
+    assert.equal(elements.size, 0, 'Todos os nós legados devem ser expurgados');
   });
 });
 
