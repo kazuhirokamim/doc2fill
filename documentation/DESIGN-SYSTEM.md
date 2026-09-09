@@ -58,3 +58,16 @@ Este documento estabelece as diretrizes de interface e usabilidade do **doc2fill
 ## ⚡ 4. Feedback no Preenchimento Automático
 
 Ao preencher o formulário governamental, os campos mapeados recebem uma transição suave de foco com borda verde esmeralda (`#10B981`) e anel sutil de confirmação (`box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2)`), retornando suavemente ao estado original após 3 segundos.
+
+---
+
+## 🧭 5. Ativação Exclusiva & Política de DOM Limpo (Native Side Panel Only)
+
+* **Ativação sob Demanda**:
+  - A interface principal reside 100% no **Side Panel nativo do Chrome** (`chrome.sidePanel`), ativado pelo clique no ícone da extensão ou via atalho `Alt+Shift+D` (`Option+Shift+D` no macOS).
+* **Zero Intrusão Visual (Clean DOM Policy)**:
+  - Nenhuma caixa, botão ou miniatura flutuante é injetada automaticamente no canto da tela do navegador.
+  - Ao fechar o painel do `doc2fill`, **nenhum elemento visual permanece na página**.
+  - Vídeos em tela cheia (YouTube, reprodutores de mídia) e aplicativos web rodam com 0 interferência ou sobreposição visual.
+  - Toasts transitórios de confirmação de preenchimento são sumariamente destruídos e removidos do DOM (`remove()`) após o fade-out.
+

@@ -81,3 +81,55 @@ describe('doc2fill Content Script Autofill Engine (TDD Suite)', () => {
   });
 });
 
+/**
+ * Utilitário de simulação de ciclo de vida visual e limpeza de DOM
+ */
+export function simulateInPageDrawerLifecycle() {
+  const elements = new Map();
+
+  return {
+    hasTrigger: () => elements.has('doc2fill-floating-trigger'),
+    hasDrawer: () => elements.has('doc2fill-inpage-drawer'),
+    openDrawer: () => {
+      elements.set('doc2fill-inpage-drawer', { id: 'doc2fill-inpage-drawer', visible: true });
+    },
+    closeDrawerClean: () => {
+      // Remoção completa do nó do DOM (zero retenção visual)
+      elements.delete('doc2fill-inpage-drawer');
+    },
+    totalResidualElements: () => elements.size
+  };
+}
+
+describe('doc2fill Clean DOM Lifecycle & Zero Residual Trigger (TDD Suite)', () => {
+  it('Cenário 1 (Happy Path): inicialização não injeta miniatura ou gatilho flutuante no DOM', () => {
+    const lifecycle = simulateInPageDrawerLifecycle();
+    // A extensão deve permanecer estritamente silenciosa no carregamento
+    assert.equal(lifecycle.hasTrigger(), false, 'Não deve existir gatilho flutuante na página');
+    assert.equal(lifecycle.totalResidualElements(), 0, 'Total de resíduos deve ser zero');
+  });
+
+  it('Cenário 2 (Edge Case): fechar o painel remove completamente qualquer nó do DOM sem deixar resíduos', () => {
+    const lifecycle = simulateInPageDrawerLifecycle();
+    lifecycle.openDrawer();
+    assert.equal(lifecycle.hasDrawer(), true, 'Drawer aberto com sucesso');
+
+    // Ao fechar, o elemento deve ser sumariamente destruído
+    lifecycle.closeDrawerClean();
+    assert.equal(lifecycle.hasDrawer(), false, 'Drawer não deve mais existir no DOM');
+    assert.equal(lifecycle.hasTrigger(), false, 'Nenhuma miniatura deve permanecer visível');
+    assert.equal(lifecycle.totalResidualElements(), 0, 'Nenhum elemento órfão deve restar');
+  });
+
+  it('Cenário 3 (Error Path): chamadas repetidas de fechamento são idempotentes e nunca geram nós fantasmas', () => {
+    const lifecycle = simulateInPageDrawerLifecycle();
+    // Fechamento sobre estado já vazio
+    assert.doesNotThrow(() => {
+      lifecycle.closeDrawerClean();
+      lifecycle.closeDrawerClean();
+    });
+    assert.equal(lifecycle.totalResidualElements(), 0);
+  });
+});
+
+

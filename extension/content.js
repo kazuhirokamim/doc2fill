@@ -160,65 +160,19 @@
     setTimeout(() => {
       toast.style.opacity = '0';
       toast.style.transform = 'translateY(-10px)';
-    }, 3500);
+      setTimeout(() => {
+        if (toast && toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+      }, 400);
+    }, 3200);
   }
 
-  // Injeção do Floating Action Trigger (estilo Apple / Linear pill)
-  function injectFloatingTrigger() {
-    if (document.getElementById('doc2fill-floating-trigger')) return;
-
-    const trigger = document.createElement('div');
-    trigger.id = 'doc2fill-floating-trigger';
-    trigger.style.cssText = `
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 9999999;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #FFFFFF;
-      color: #111827;
-      border: 1px solid #E5E7EB;
-      border-radius: 9999px;
-      box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-      padding: 8px 14px;
-      cursor: pointer;
-      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-      font-size: 12.5px;
-      font-weight: 500;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      user-select: none;
-    `;
-
-    trigger.innerHTML = `
-      <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; background:#F3F4F6; color:#111827; border-radius:50%; font-size:11px; font-weight:600;">⚡</span>
-      <span>doc2fill</span>
-      <span style="font-size:10.5px; background:#FEF3C7; color:#92400E; padding:2px 8px; border-radius:9999px; font-weight:500;">VIP Lucas</span>
-    `;
-
-    trigger.addEventListener('mouseenter', () => {
-      trigger.style.transform = 'translateY(-2px)';
-      trigger.style.boxShadow = '0 8px 20px 0 rgba(0, 0, 0, 0.12)';
-    });
-
-    trigger.addEventListener('mouseleave', () => {
-      trigger.style.transform = 'translateY(0)';
-      trigger.style.boxShadow = '0 4px 14px 0 rgba(0, 0, 0, 0.08)';
-    });
-
-    trigger.addEventListener('click', () => {
-      toggleInPageDrawer();
-    });
-
-    document.body.appendChild(trigger);
-  }
-
-  // Modal Flutuante In-Page (Soft / Clean)
+  // Modal Flutuante In-Page (Acionado apenas sob demanda como fallback)
   function toggleInPageDrawer() {
     let drawer = document.getElementById('doc2fill-inpage-drawer');
     if (drawer) {
-      drawer.style.display = drawer.style.display === 'none' ? 'block' : 'none';
+      if (drawer.parentNode) drawer.parentNode.removeChild(drawer);
       return;
     }
 
@@ -226,7 +180,7 @@
     drawer.id = 'doc2fill-inpage-drawer';
     drawer.style.cssText = `
       position: fixed;
-      bottom: 74px;
+      bottom: 24px;
       right: 24px;
       width: 320px;
       background: #FFFFFF;
@@ -268,10 +222,14 @@
 
     document.body.appendChild(drawer);
 
+    const closeCleanly = () => {
+      if (drawer && drawer.parentNode) {
+        drawer.parentNode.removeChild(drawer);
+      }
+    };
+
     // Handlers
-    document.getElementById('doc2fill-close-drawer').addEventListener('click', () => {
-      drawer.style.display = 'none';
-    });
+    document.getElementById('doc2fill-close-drawer').addEventListener('click', closeCleanly);
 
     document.getElementById('doc2fill-btn-open-sidepanel').addEventListener('click', () => {
       chrome.runtime.sendMessage({ action: 'DOC2FILL_OPEN_PANEL' }, (res) => {
@@ -279,7 +237,7 @@
           showToastNotification('💡 Use o ícone do doc2fill na barra do navegador.');
         }
       });
-      drawer.style.display = 'none';
+      closeCleanly();
     });
 
     document.getElementById('doc2fill-btn-test-sample').addEventListener('click', () => {
@@ -293,14 +251,8 @@
         descricao: 'Honorários de sucumbência e assessoria contábil em execução fiscal nº 5001234-88.2026.4.04.7100.'
       };
       executeAutofill(sampleData);
-      drawer.style.display = 'none';
+      closeCleanly();
     });
   }
-
-  // Inicializa o trigger flutuante após carregamento da página
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectFloatingTrigger);
-  } else {
-    injectFloatingTrigger();
-  }
 })();
+
