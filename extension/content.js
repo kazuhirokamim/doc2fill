@@ -5,6 +5,16 @@
 
   console.log('[doc2fill] Injetor minimalista ativo na página.');
 
+  // Limpeza defensiva imediata para eliminar resíduos de versões anteriores
+  const legacyTrigger = document.getElementById('doc2fill-floating-trigger');
+  if (legacyTrigger && legacyTrigger.parentNode) {
+    legacyTrigger.parentNode.removeChild(legacyTrigger);
+  }
+  const legacyDrawer = document.getElementById('doc2fill-inpage-drawer');
+  if (legacyDrawer && legacyDrawer.parentNode) {
+    legacyDrawer.parentNode.removeChild(legacyDrawer);
+  }
+
   // Mapeamentos fiscais padrão
   const FISCAL_MAPPINGS = [
     { key: 'cnpj', terms: ['cnpj', 'cpf', 'documento', 'prestador', 'emitente', 'identificacao'] },

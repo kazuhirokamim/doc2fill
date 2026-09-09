@@ -12,6 +12,7 @@ Eliminar o preenchimento manual, repetitivo e sujeito a erros de dados fiscais e
 4. **Política Zero-Retention**: Nenhum documento, imagem ou dado pessoal é persistido em banco de dados na nuvem ([ADR-001](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/docs/adr/ADR-001-hybrid-p2p-zero-retention.md)).
 5. **Estética Minimalista e Sofisticada**: Interface limpa e leve com cantos arredondados suaves, sombras etéreas de baixíssima opacidade (soft shadows), paleta de baixo contraste e CTAs em preto elegante ([ADR-002](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/docs/adr/ADR-002-minimal-refined-design-system.md)).
 6. **Conformidade Estrita com CSP e Manifest V3**: Código 100% livre de manipuladores inline, prevenindo violações de segurança e ataques XSS ([ADR-003](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/docs/adr/ADR-003-csp-strict-manifest-v3-compliance.md)).
+7. **Ativação sob Demanda e Política de DOM Limpo (v0.2.0)**: O painel opera exclusivamente via Side Panel nativo ou atalho de teclado `Alt+Shift+D`. Ao fechar o painel, nenhum elemento ou miniatura residual permanece visível na tela ([ADR-004](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/docs/adr/ADR-004-user-initiated-clean-activation.md)).
 
 ## 📂 Estrutura do Monorepo
 * `extension/` — Extensão do navegador (Chrome / Edge) com Side Panel e widgets minimalistas

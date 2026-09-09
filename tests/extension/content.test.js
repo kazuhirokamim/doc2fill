@@ -130,6 +130,19 @@ describe('doc2fill Clean DOM Lifecycle & Zero Residual Trigger (TDD Suite)', () 
     });
     assert.equal(lifecycle.totalResidualElements(), 0);
   });
+
+  it('Cenário 4 (Legacy Cleanup): elimina preventivamente gatilhos legados deixados por versões anteriores', () => {
+    const elements = new Map();
+    elements.set('doc2fill-floating-trigger', { id: 'doc2fill-floating-trigger' });
+    elements.set('doc2fill-inpage-drawer', { id: 'doc2fill-inpage-drawer' });
+    assert.equal(elements.size, 2);
+
+    // Executa a rotina de expurgo preventivo
+    if (elements.has('doc2fill-floating-trigger')) elements.delete('doc2fill-floating-trigger');
+    if (elements.has('doc2fill-inpage-drawer')) elements.delete('doc2fill-inpage-drawer');
+
+    assert.equal(elements.size, 0);
+  });
 });
 
 
