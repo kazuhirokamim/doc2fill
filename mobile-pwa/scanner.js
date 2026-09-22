@@ -8,6 +8,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const sessionId = new URLSearchParams(window.location.search).get('session');
 
+  const quickCopySection = document.getElementById('quick-copy-section');
+  const quickCopyButtons = document.getElementById('quick-copy-buttons');
+
+  const defaultHealthData = {
+    tipo_documento: 'recibo',
+    beneficiario: 'titular',
+    natureza: 'nao_cirurgico',
+    cnpj: '33.000.167/0001-01',
+    razao: 'Dr. Roberto Santos Clínico e Dermatologista',
+    valor: 'R$ 1.850,00',
+    data: '2026-09-18',
+    servico: '20.10.101-5',
+    descricao: 'Tratamento de alopecia areata e alopécia cicatricial (TUSS 20.10.101-5)',
+    motivo: 'Controle de processo inflamatório folicular ativo com repercussão dermatofuncional severa.'
+  };
+
+  function renderQuickCopyButtons(data) {
+    if (!quickCopySection || !quickCopyButtons) return;
+    quickCopyButtons.innerHTML = '';
+
+    const fields = [
+      { key: 'cnpj', label: 'Copiar CNPJ / CPF' },
+      { key: 'razao', label: 'Copiar Nome / Razão Social' },
+      { key: 'valor', label: 'Copiar Valor' },
+      { key: 'descricao', label: 'Copiar Descrição Técnica TUSS' },
+      { key: 'motivo', label: 'Copiar Motivo Anti-Glosa' }
+    ];
+
+    fields.forEach(f => {
+      const val = data[f.key];
+      if (!val) return;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.style.cssText = 'display:flex; justify-content:space-between; align-items:center; width:100%; padding:10px 14px; background:#F1F5F9; border:1px solid #CBD5E1; border-radius:10px; font-size:12.5px; color:#1E293B; cursor:pointer; font-weight:500; transition:all 0.15s;';
+      btn.innerHTML = `<span>${f.label}</span><span style="font-size:11px; color:#64748B; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${val}</span>`;
+
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(val);
+          btn.style.background = '#DCFCE7';
+          btn.style.borderColor = '#86EFAC';
+          const original = btn.innerHTML;
+          btn.innerHTML = `<span>✓ Copiado!</span><span style="font-size:11px; color:#166534;">Pronto para colar</span>`;
+          setTimeout(() => {
+            btn.innerHTML = original;
+            btn.style.background = '#F1F5F9';
+            btn.style.borderColor = '#CBD5E1';
+          }, 1500);
+        } catch (e) {
+          console.warn('Falha ao copiar:', e);
+        }
+      });
+
+      quickCopyButtons.appendChild(btn);
+    });
+
+    quickCopySection.style.display = 'block';
+  }
+
+  // Renderiza botões assistidos na inicialização com os dados padrão
+  renderQuickCopyButtons(defaultHealthData);
+
   async function sendToExtension(customData) {
     if (!sessionId) {
       if (statusBadge) {
@@ -23,15 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const payload = customData || {
-        cnpj: '33.000.167/0001-01',
-        razao: 'Petróleo Brasileiro S.A. - Petrobras',
-        valor: 'R$ 14.750,00',
-        data: '2026-09-06',
-        servico: '08.02',
-        irrf: 'R$ 221,25',
-        descricao: 'Honorários de sucumbência e assessoria contábil em execução fiscal nº 5001234-88.2026.4.04.7100.'
-      };
+      const payload = customData || defaultHealthData;
 
       const res = await fetch('/api/relay/upload', {
         method: 'POST',

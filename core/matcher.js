@@ -8,7 +8,11 @@ export const DEFAULT_FISCAL_MAPPINGS = {
   data: ['data', 'emissao', 'competencia', 'dt_emissao'],
   servico: ['servico', 'codigo', 'item', 'cnae', 'atividade', 'cod_servico'],
   irrf: ['irrf', 'retencao', 'retido', 'imposto'],
-  descricao: ['descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos']
+  descricao: ['descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos', 'procedimento'],
+  beneficiario: ['titular', 'dependente', 'beneficiario', 'parentesco', 'paciente', 'segurado', 'usuario'],
+  motivo: ['motivo', 'justificativa', 'indicacao', 'necessidade', 'diagnostico', 'cid'],
+  natureza: ['natureza', 'cirurgico', 'tipo_procedimento', 'carater'],
+  tipo_documento: ['tipo_documento', 'comprovante_tipo', 'especie', 'tipo_comprovante', 'tipo_doc']
 };
 
 /**

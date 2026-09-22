@@ -494,3 +494,44 @@ body {
 .footer-info .dot {
   color: var(--text-placeholder);
 }
+
+/* ==========================================================================
+   Componentes Clínicos & Anti-Glosa (ADR-006)
+   ========================================================================== */
+.label-badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.label-badge-row label {
+  margin-bottom: 0;
+}
+
+.badge-anti-glosa {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+}
+
+.attachment-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.attachment-icon {
+  font-size: 14px;
+}
+

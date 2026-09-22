@@ -25,9 +25,9 @@
     .form-header h2 { font-size: 15px; color: var(--gov-dark); }
     
     .form-body { padding: 24px; }
-    .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
-    .form-col { flex: 1; }
-    .form-col.flex-2 { flex: 2; }
+    .form-row, .gov-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .form-col, .gov-col { flex: 1; }
+    .form-col.flex-2, .gov-col.flex-2 { flex: 2; }
     
     label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #333; }
     input, textarea, select {
@@ -110,43 +110,86 @@
       </div>
 
       <form id="nota-form">
-        <div class="form-row">
-          <div class="form-col">
+        <div class="gov-row">
+          <div class="gov-col">
+            <label for="tipo_documento">Tipo de Comprovante / Documento</label>
+            <select id="tipo_documento" name="tipo_documento">
+              <option value="">Selecione o tipo...</option>
+              <option value="recibo">Recibo de Honorários Médicos/Odontológicos</option>
+              <option value="nota_fiscal">Nota Fiscal de Serviços (NFS-e)</option>
+              <option value="guia_medica">Guia de Encaminhamento / TISS</option>
+              <option value="boleto">Boleto / Comprovante Bancário</option>
+            </select>
+          </div>
+          <div class="gov-col">
+            <label>Beneficiário do Plano / Procedimento</label>
+            <div style="display: flex; gap: 16px; align-items: center; height: 38px;">
+              <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer;">
+                <input type="radio" id="beneficiario_titular" name="beneficiario" value="titular" style="width: auto;"> Titular
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer;">
+                <input type="radio" id="beneficiario_dependente" name="beneficiario" value="dependente" style="width: auto;"> Dependente
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="gov-row">
+          <div class="gov-col">
             <label for="cnpj">CNPJ / CPF do Emitente / Prestador</label>
             <input type="text" id="cnpj" name="cnpj_prestador" placeholder="00.000.000/0000-00">
           </div>
-          <div class="form-col flex-2">
+          <div class="gov-col flex-2">
             <label for="razao_social">Razão Social / Nome do Prestador</label>
             <input type="text" id="razao_social" name="razao_social" placeholder="Digite a razão social">
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-col">
+        <div class="gov-row">
+          <div class="gov-col">
             <label for="valor_bruto">Valor Bruto do Documento (R$)</label>
             <input type="text" id="valor_bruto" name="valor_bruto" placeholder="R$ 0,00">
           </div>
-          <div class="form-col">
+          <div class="gov-col">
             <label for="data_emissao">Data de Emissão / Competência</label>
             <input type="date" id="data_emissao" name="data_emissao">
           </div>
-          <div class="form-col">
-            <label for="retencao_irrf">Retenção de IRRF (R$)</label>
-            <input type="text" id="retencao_irrf" name="retencao_irrf" placeholder="R$ 0,00">
+          <div class="gov-col">
+            <label for="natureza_procedimento">Natureza do Procedimento</label>
+            <select id="natureza_procedimento" name="natureza">
+              <option value="">Selecione a natureza...</option>
+              <option value="nao_cirurgico">Não Cirúrgico / Tratamento Clínico</option>
+              <option value="cirurgico">Cirúrgico / Intervenção Invasiva</option>
+            </select>
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-col">
-            <label for="codigo_servico">Código do Serviço / Subitem</label>
-            <input type="text" id="codigo_servico" name="cod_servico" placeholder="Ex: 08.02">
+        <div class="gov-row">
+          <div class="gov-col">
+            <label for="codigo_servico">Código do Serviço / Subitem / TUSS</label>
+            <input type="text" id="codigo_servico" name="cod_servico" placeholder="Ex: 20.10.101-5 ou 08.02">
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-col">
-            <label for="discriminacao_servico">Discriminação dos Serviços / Histórico da Operação</label>
-            <textarea id="discriminacao_servico" name="descricao_servico" rows="3" placeholder="Descreva os serviços prestados ou o número do processo..."></textarea>
+        <div class="gov-row">
+          <div class="gov-col">
+            <label for="discriminacao_servico">Discriminação dos Serviços / Procedimento Técnico</label>
+            <textarea id="discriminacao_servico" name="descricao_servico" rows="2" placeholder="Descreva os serviços ou procedimento médico realizado..."></textarea>
+          </div>
+        </div>
+
+        <div class="gov-row">
+          <div class="gov-col">
+            <label for="motivo_procedimento">Justificativa / Motivo da Necessidade Médica (Anti-Glosa)</label>
+            <textarea id="motivo_procedimento" name="motivo" rows="2" placeholder="Justificativa clínica / indicação funcional para auditoria do plano..."></textarea>
+          </div>
+        </div>
+
+        <div class="gov-row">
+          <div class="gov-col">
+            <label for="campo_anexo">Comprovante Digitalizado / Anexo do Documento (PDF, PNG, JPEG)</label>
+            <input type="file" id="campo_anexo" name="anexo_documento" accept=".pdf,image/png,image/jpeg">
+            <span style="font-size: 11px; color: #64748B; margin-top: 4px; display: block;">O doc2fill injetará o arquivo automaticamente via DataTransfer se anexado no painel.</span>
           </div>
         </div>
 

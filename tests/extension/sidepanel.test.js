@@ -18,7 +18,11 @@ export function buildFiscalPayload(rawInputs) {
     data: (rawInputs.data || '').trim(),
     servico: (rawInputs.servico || '').trim(),
     irrf: (rawInputs.irrf || '').trim(),
-    descricao: (rawInputs.descricao || '').trim()
+    descricao: (rawInputs.descricao || '').trim(),
+    beneficiario: (rawInputs.beneficiario || 'titular').trim(),
+    tipo_documento: (rawInputs.tipo_documento || 'recibo').trim(),
+    natureza: (rawInputs.natureza || 'Não Cirúrgico (Ambulatorial)').trim(),
+    motivo: (rawInputs.motivo || '').trim()
   };
 
   if (!sanitized.cnpj && !sanitized.razao) {

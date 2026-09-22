@@ -14,13 +14,14 @@ Eliminar o preenchimento manual, repetitivo e sujeito a erros de dados fiscais e
 6. **Conformidade Estrita com CSP e Manifest V3**: Código 100% livre de manipuladores inline, prevenindo violações de segurança e ataques XSS ([ADR-003](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/docs/adr/ADR-003-csp-strict-manifest-v3-compliance.md)).
 7. **Ativação sob Demanda e Política de DOM Limpo (v0.2.0)**: O painel opera exclusivamente via Side Panel nativo ou atalho de teclado `Alt+Shift+D`. Ao fechar o painel, nenhum elemento ou miniatura residual permanece visível na tela ([ADR-004](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/docs/adr/ADR-004-user-initiated-clean-activation.md)).
 8. **Content Script 100% Headless (v0.2.1)**: Eliminação total de canais de fallback in-page e injeções no DOM. Zero caixas ou botões flutuantes gerados em páginas web ([ADR-005](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/docs/adr/ADR-005-headless-content-script.md)).
+9. **Motor Clínico Anti-Glosa & Injeção de Anexos (v0.3.0)**: Tradução ontológica heurística de procedimentos estéticos para códigos/descrições técnicas TUSS/ANS, seleção de titular/dependente, classificação automática de recibo/nota e injeção de arquivos via `DataTransfer` ([ADR-006](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/docs/adr/ADR-006-clinical-translator-and-file-injection.md)).
 
 ## 📂 Estrutura do Monorepo
 * `extension/` — Extensão do navegador (Chrome / Edge) com Side Panel e widgets minimalistas
-* `mobile-pwa/` — Interface mobile para captura de fotos via câmera
-* `demo-portal/` — Simulador de portal governamental (AGU/PGFN) para validação
-* `core/` — Lógica compartilhada de validação de CPF/CNPJ e matcher heurístico com testes TDD
-* `documentation/` — [Guia do Design System](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/documentation/DESIGN-SYSTEM.md) e [Diretrizes de Segurança & CSP](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/documentation/SECURITY-AND-CSP.md)
-* `docs/` — ADRs e documentação viva de arquitetura
+* `mobile-pwa/` — Interface mobile para captura de fotos via câmera e preenchimento assistido 1-touch
+* `demo-portal/` — Simulador de portal governamental e de reembolso de saúde (AGU/PGFN/Planos)
+* `core/` — Lógica compartilhada de validação de CPF/CNPJ, matcher heurístico, classificador de documentos e motor ontológico anti-glosa
+* `documentation/` — [Design System](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/documentation/DESIGN-SYSTEM.md), [Segurança & CSP](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/documentation/SECURITY-AND-CSP.md) e [Motor Clínico Anti-Glosa](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/documentation/CLINICAL-ANTI-GLOSA-ENGINE.md)
+* `docs/` — ADRs, especificações SDD e documentação viva de arquitetura
 
 

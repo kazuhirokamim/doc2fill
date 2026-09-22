@@ -51,12 +51,21 @@ describe('doc2fill Matcher Engine (TDD Suite)', () => {
         razao: 'Petrobras',
         valor: 'R$ 14.750,00',
         data: '2026-09-06',
-        servico: '08.02'
+        servico: '08.02',
+        beneficiario: 'titular',
+        motivo: 'Disfunção mastigatória'
       };
-      const matches = matchFieldsForPayload(sampleInputs, payload);
-      assert.equal(matches.length, 5);
+      const extendedInputs = [
+        ...sampleInputs,
+        { id: 'sel_beneficiario', name: 'beneficiario', label: 'Titular ou Dependente' },
+        { id: 'txt_motivo', name: 'motivo_solicitacao', label: 'Motivo da Necessidade' }
+      ];
+      const matches = matchFieldsForPayload(extendedInputs, payload);
+      assert.equal(matches.length, 7);
       assert.equal(matches.find(m => m.key === 'cnpj').target.id, 'cnpj');
       assert.equal(matches.find(m => m.key === 'valor').target.id, 'valor_bruto');
+      assert.equal(matches.find(m => m.key === 'beneficiario').target.id, 'sel_beneficiario');
+      assert.equal(matches.find(m => m.key === 'motivo').target.id, 'txt_motivo');
     });
 
     it('Cenário 2 (Edge Case): ignora campos vazios no payload ou inexistentes no DOM', () => {

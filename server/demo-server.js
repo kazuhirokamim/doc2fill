@@ -10,9 +10,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
 export const DEFAULT_PORT = process.env.PORT || 8080;
+export const SESSION_TTL_MS = 5 * 60 * 1000; // 5 minutos de vida máxima na RAM
 
 // Memória efêmera de sessões para pareamento P2P (Zero Retenção)
 export const relaySessions = new Map();
+
+/**
+ * Purga ativamente sessões que excederam o tempo de vida na memória RAM
+ * @param {number} [now=Date.now()] Timestamp atual para validação
+ * @param {number} [ttlMs=SESSION_TTL_MS] Tempo de vida máximo em milissegundos
+ * @returns {number} Quantidade de sessões purgadas
+ */
+export function cleanupExpiredSessions(now = Date.now(), ttlMs = SESSION_TTL_MS) {
+  let purgedCount = 0;
+  for (const [sessionId, item] of relaySessions.entries()) {
+    if (now - (item.timestamp || 0) > ttlMs) {
+      relaySessions.delete(sessionId);
+      purgedCount++;
+    }
+  }
+  return purgedCount;
+}
 
 /**
  * Detecta o endereço IP local na rede Wi-Fi / Ethernet para acesso mobile
@@ -84,6 +102,7 @@ export function createAppServer(port = DEFAULT_PORT) {
 
     // 2. API: Upload de Dados Fiscais pelo Celular (Buffer em Memória)
     if (reqPath === '/api/relay/upload' && req.method === 'POST') {
+      cleanupExpiredSessions();
       let body = '';
       req.on('data', chunk => { body += chunk; });
       req.on('end', () => {
@@ -110,6 +129,7 @@ export function createAppServer(port = DEFAULT_PORT) {
 
     // 3. API: Polling de Consumo Único (Zero-Retention Ephemeral Consume)
     if (reqPath === '/api/relay/poll') {
+      cleanupExpiredSessions();
       const session = urlObj.searchParams.get('session');
       if (!session || !relaySessions.has(session)) {
         res.writeHead(200, { 'Content-Type': 'application/json' });

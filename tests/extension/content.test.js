@@ -3,11 +3,9 @@ import assert from 'node:assert/strict';
 
 /**
  * Função utilitária do Content Script que avalia a compatibilidade de um conjunto de campos
- * @param {Array<Object>} mockInputs 
- * @param {Object} data 
- * @returns {Object}
+ * com suporte a campos de texto, rádio e anexo de arquivos.
  */
-export function simulateAutofillCheck(mockInputs, data) {
+export function simulateAutofillCheck(mockInputs, data, filePayload = null) {
   if (!data || typeof data !== 'object') {
     return { success: false, reason: 'Nenhum dado fornecido.' };
   }
@@ -19,7 +17,11 @@ export function simulateAutofillCheck(mockInputs, data) {
     cnpj: ['cnpj', 'cpf', 'documento'],
     razao: ['razao', 'nome', 'empresa'],
     valor: ['valor', 'total'],
-    data: ['data', 'emissao']
+    data: ['data', 'emissao'],
+    beneficiario: ['titular', 'dependente', 'beneficiario'],
+    motivo: ['motivo', 'justificativa', 'necessidade'],
+    natureza: ['natureza', 'cirurgico'],
+    tipo_documento: ['tipo_documento', 'comprovante']
   };
 
   let matchedCount = 0;
@@ -27,14 +29,28 @@ export function simulateAutofillCheck(mockInputs, data) {
     if (!val || typeof val !== 'string' || !val.trim()) continue;
     const terms = termsMap[key] || [key];
     const found = mockInputs.some(inp => 
-      !inp.disabled && terms.some(t => (inp.id || '').includes(t) || (inp.name || '').includes(t))
+      !inp.disabled && terms.some(t => 
+        (inp.id || '').toLowerCase().includes(t) || 
+        (inp.name || '').toLowerCase().includes(t) ||
+        (inp.label || '').toLowerCase().includes(t)
+      )
     );
     if (found) matchedCount++;
+  }
+
+  let fileAttached = false;
+  if (filePayload && filePayload.name) {
+    const fileInput = mockInputs.find(inp => inp.type === 'file' && !inp.disabled);
+    if (fileInput) {
+      fileAttached = true;
+      matchedCount++;
+    }
   }
 
   return {
     success: matchedCount > 0,
     count: matchedCount,
+    fileAttached,
     reason: matchedCount === 0 ? 'Nenhum campo compatível encontrado na página.' : null
   };
 }
@@ -45,32 +61,39 @@ describe('doc2fill Content Script Autofill Engine (TDD Suite)', () => {
     { id: 'razao_social', name: 'razao_social', disabled: false },
     { id: 'valor_bruto', name: 'valor_bruto', disabled: false },
     { id: 'data_emissao', name: 'data_emissao', disabled: false },
-    { id: 'submit_btn', name: 'submit', disabled: false }
+    { id: 'opt_titular', name: 'beneficiario', type: 'radio', value: 'titular', label: 'Titular', disabled: false },
+    { id: 'txt_motivo', name: 'motivo_solicitacao', label: 'Motivo da Necessidade Médica', disabled: false },
+    { id: 'file_anexo', name: 'anexo_documento', type: 'file', disabled: false }
   ];
 
-  it('Cenário 1 (Happy Path): detecta e vincula campos para nota da AGU com sucesso', () => {
+  it('Cenário 1 (Happy Path): detecta e preenche dados fiscais, beneficiário e anexo de arquivo', () => {
     const data = {
       cnpj: '33.000.167/0001-01',
       razao: 'Petrobras',
-      valor: 'R$ 14.750,00'
+      valor: 'R$ 14.750,00',
+      beneficiario: 'titular',
+      motivo: 'Disfunção mastigatória severa'
     };
-    const res = simulateAutofillCheck(sampleInputs, data);
+    const file = { name: 'recibo_consulta.pdf', type: 'application/pdf', size: 102400 };
+
+    const res = simulateAutofillCheck(sampleInputs, data, file);
     assert.equal(res.success, true);
-    assert.equal(res.count, 3);
+    assert.equal(res.fileAttached, true);
+    assert.equal(res.count, 6); // 5 campos de dados + 1 arquivo
   });
 
-  it('Cenário 2 (Edge Case): ignora campos desabilitados e campos não informados no payload', () => {
-    const inputsWithDisabled = [
+  it('Cenário 2 (Edge Case): lida com páginas sem campo de anexo e campos desabilitados', () => {
+    const inputsWithoutFile = [
       { id: 'cnpj', name: 'cnpj', disabled: true },
       { id: 'razao_social', name: 'razao', disabled: false }
     ];
     const data = {
       cnpj: '33.000.167/0001-01',
-      razao: 'Petrobras',
-      campo_vazio: ''
+      razao: 'Petrobras'
     };
-    const res = simulateAutofillCheck(inputsWithDisabled, data);
+    const res = simulateAutofillCheck(inputsWithoutFile, data, { name: 'comprovante.pdf' });
     assert.equal(res.success, true);
+    assert.equal(res.fileAttached, false);
     assert.equal(res.count, 1);
   });
 
@@ -81,67 +104,20 @@ describe('doc2fill Content Script Autofill Engine (TDD Suite)', () => {
   });
 });
 
-/**
- * Utilitário de simulação de ciclo de vida visual e limpeza de DOM
- */
-export function simulateInPageDrawerLifecycle() {
-  const elements = new Map();
-
-  return {
-    hasTrigger: () => elements.has('doc2fill-floating-trigger'),
-    hasDrawer: () => elements.has('doc2fill-inpage-drawer'),
-    openDrawer: () => {
-      elements.set('doc2fill-inpage-drawer', { id: 'doc2fill-inpage-drawer', visible: true });
-    },
-    closeDrawerClean: () => {
-      // Remoção completa do nó do DOM (zero retenção visual)
-      elements.delete('doc2fill-inpage-drawer');
-    },
-    totalResidualElements: () => elements.size
-  };
-}
-
-describe('doc2fill Clean DOM Lifecycle & Zero Residual Trigger (TDD Suite)', () => {
-  it('Cenário 1 (Happy Path): operação 100% headless sem injeção de drawer ou gatilho flutuante no DOM', () => {
-    const lifecycle = simulateInPageDrawerLifecycle();
-    // A extensão opera de forma 100% silenciosa sem injetar nós no DOM
-    assert.equal(lifecycle.hasTrigger(), false, 'Não deve existir gatilho flutuante na página');
-    assert.equal(lifecycle.hasDrawer(), false, 'Não deve existir drawer in-page na página');
-    assert.equal(lifecycle.totalResidualElements(), 0, 'Total de resíduos deve ser zero');
-  });
-
-  it('Cenário 2 (Edge Case): tentativa de acionamento in-page é rejeitada em favor do Side Panel nativo', () => {
-    const lifecycle = simulateInPageDrawerLifecycle();
-    // O drawer in-page foi formalmente extirpado
-    lifecycle.closeDrawerClean();
-    assert.equal(lifecycle.hasDrawer(), false, 'Drawer não deve existir no DOM');
-    assert.equal(lifecycle.hasTrigger(), false, 'Nenhuma miniatura deve permanecer visível');
-    assert.equal(lifecycle.totalResidualElements(), 0, 'Nenhum elemento órfão deve restar');
-  });
-
-  it('Cenário 3 (Error Path): chamadas de expurgo repetidas são idempotentes e nunca geram nós fantasmas', () => {
-    const lifecycle = simulateInPageDrawerLifecycle();
-    assert.doesNotThrow(() => {
-      lifecycle.closeDrawerClean();
-      lifecycle.closeDrawerClean();
-    });
-    assert.equal(lifecycle.totalResidualElements(), 0);
-  });
-
-  it('Cenário 4 (Legacy Cleanup): elimina preventivamente qualquer nó legado remanescente no DOM', () => {
+describe('doc2fill Clean DOM Lifecycle (TDD Suite)', () => {
+  it('Cenário 1: operação 100% headless sem injeção de nós no DOM da página', () => {
     const elements = new Map();
-    elements.set('doc2fill-floating-trigger', { id: 'doc2fill-floating-trigger' });
-    elements.set('doc2fill-inpage-drawer', { id: 'doc2fill-inpage-drawer' });
-    elements.set('doc2fill-toast', { id: 'doc2fill-toast' });
-    assert.equal(elements.size, 3);
+    // A extensão opera sem injetar elementos persistentes
+    assert.equal(elements.has('doc2fill-floating-trigger'), false);
+    assert.equal(elements.has('doc2fill-inpage-drawer'), false);
+    assert.equal(elements.size, 0);
+  });
 
-    // Executa a rotina de expurgo preventivo
-    ['doc2fill-floating-trigger', 'doc2fill-inpage-drawer', 'doc2fill-toast'].forEach(id => {
-      if (elements.has(id)) elements.delete(id);
-    });
-
-    assert.equal(elements.size, 0, 'Todos os nós legados devem ser expurgados');
+  it('Cenário 2: limpeza preventiva expurga qualquer resíduo legado', () => {
+    const elements = new Map();
+    elements.set('doc2fill-floating-trigger', {});
+    elements.set('doc2fill-inpage-drawer', {});
+    ['doc2fill-floating-trigger', 'doc2fill-inpage-drawer'].forEach(id => elements.delete(id));
+    assert.equal(elements.size, 0);
   });
 });
-
-

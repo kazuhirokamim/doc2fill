@@ -18,7 +18,7 @@
         </div>
       </div>
       <div class="user-tier">
-        <span class="badge-pill badge-vip">VIP Vitalício</span>
+        <span class="badge-pill badge-vip">Saúde & Fisco</span>
       </div>
     </div>
   </header>
@@ -35,12 +35,12 @@
     <section class="tab-pane active" id="pane-demo">
       <div class="clean-card">
         <div class="card-header">
-          <span class="card-eyebrow">Simulação AGU / PGFN</span>
+          <span class="card-eyebrow">Simulação de Reembolso & Fisco</span>
         </div>
-        <h3 class="card-title">Preenchimento de Honorários</h3>
-        <p class="card-desc">Carregue dados fiscais simulados da AGU com um clique para testar o preenchimento automático no portal.</p>
+        <h3 class="card-title">Preenchimento com Tradução Clínica</h3>
+        <p class="card-desc">Carregue dados clínicos com justificativa anti-glosa e anexo pronto para testar o preenchimento automático no portal.</p>
         <button id="btn-load-sample" class="btn-secondary">
-          <span>⚡</span> Carregar Dados Modelo
+          <span>⚡</span> Carregar Recibo Médico Modelo
         </button>
       </div>
     </section>
@@ -69,37 +69,57 @@
     <section class="tab-pane" id="pane-file">
       <div class="clean-card drop-zone" id="drop-zone">
         <div class="drop-icon-wrap" id="drop-icon-wrap">📄</div>
-        <h4 class="drop-title" id="drop-title">Arraste a Nota Fiscal aqui</h4>
+        <h4 class="drop-title" id="drop-title">Arraste a Nota Fiscal / Recibo aqui</h4>
         <p class="drop-subtitle" id="drop-subtitle">Compatível com PDF, PNG e JPEG</p>
         <button type="button" id="btn-select-file" class="btn-secondary btn-sm">Selecionar Arquivo</button>
         <input type="file" id="file-input" accept="application/pdf,image/*" style="display:none;">
       </div>
     </section>
 
-    <!-- Formulário com Campos Capturados -->
+    <!-- Formulário com Campos Capturados & Enriquecimento Clínico -->
     <section class="clean-card form-card">
       <div class="form-header-row">
         <div>
-          <h3 class="section-title">Campos Detectados</h3>
-          <p class="section-subtitle">Dados em memória efêmera local</p>
+          <h3 class="section-title">Campos & Reembolso</h3>
+          <p class="section-subtitle">Dados enriquecidos em memória efêmera</p>
         </div>
         <span class="badge-pill badge-status" id="validation-badge">Aguardando dados</span>
       </div>
 
       <div class="fields-container">
+        <!-- Beneficiário & Tipo de Documento -->
+        <div class="field-row">
+          <div class="field-group flex-1">
+            <label for="field-beneficiario">Beneficiário</label>
+            <select id="field-beneficiario">
+              <option value="titular" selected>Titular</option>
+              <option value="dependente">Dependente</option>
+            </select>
+          </div>
+          <div class="field-group flex-1">
+            <label for="field-tipo-doc">Tipo de Comprovante</label>
+            <select id="field-tipo-doc">
+              <option value="recibo">Recibo Profissional</option>
+              <option value="nfse">Nota Fiscal (NFS-e)</option>
+              <option value="guia">Guia Médica (TISS)</option>
+              <option value="boleto">Boleto / Fatura</option>
+            </select>
+          </div>
+        </div>
+
         <div class="field-group">
           <label for="field-cnpj">CNPJ / CPF do Prestador</label>
           <input type="text" id="field-cnpj" placeholder="00.000.000/0000-00" spellcheck="false">
         </div>
 
         <div class="field-group">
-          <label for="field-razao">Razão Social / Nome</label>
-          <input type="text" id="field-razao" placeholder="Nome empresarial do prestador" spellcheck="false">
+          <label for="field-razao">Razão Social / Nome do Profissional</label>
+          <input type="text" id="field-razao" placeholder="Nome do médico, dentista ou clínica" spellcheck="false">
         </div>
 
         <div class="field-row">
           <div class="field-group flex-1">
-            <label for="field-valor">Valor Bruto (R$)</label>
+            <label for="field-valor">Valor Total (R$)</label>
             <input type="text" id="field-valor" placeholder="R$ 0,00" spellcheck="false">
           </div>
           <div class="field-group flex-1">
@@ -110,22 +130,41 @@
 
         <div class="field-row">
           <div class="field-group flex-1">
-            <label for="field-servico">Código do Serviço</label>
-            <input type="text" id="field-servico" placeholder="08.02" spellcheck="false">
+            <label for="field-natureza">Natureza do Procedimento</label>
+            <select id="field-natureza">
+              <option value="Não Cirúrgico (Ambulatorial)">Não Cirúrgico (Ambulatorial)</option>
+              <option value="Cirúrgico">Cirúrgico</option>
+            </select>
           </div>
           <div class="field-group flex-1">
-            <label for="field-irrf">Retenção IRRF (R$)</label>
+            <label for="field-irrf">Retenção IRRF (opcional)</label>
             <input type="text" id="field-irrf" placeholder="R$ 0,00" spellcheck="false">
           </div>
         </div>
 
+        <!-- Descrição Técnica com Tom Científico Anti-Glosa -->
         <div class="field-group">
-          <label for="field-descricao">Discriminação dos Serviços</label>
-          <textarea id="field-descricao" rows="2" placeholder="Histórico da prestação ou processo judicial..." spellcheck="false"></textarea>
+          <div class="label-badge-row">
+            <label for="field-descricao">Descrição do Procedimento (TUSS/ANS)</label>
+            <span class="badge-anti-glosa" id="badge-anti-glosa" style="display:none;">🛡️ Anti-Glosa Ativo</span>
+          </div>
+          <textarea id="field-descricao" rows="2" placeholder="Descrição do procedimento clínico..." spellcheck="false"></textarea>
+        </div>
+
+        <!-- Motivo da Necessidade Médica -->
+        <div class="field-group">
+          <label for="field-motivo">Motivo da Necessidade Médica / Indicação</label>
+          <textarea id="field-motivo" rows="2" placeholder="Justificativa clínica para aprovação do reembolso..." spellcheck="false"></textarea>
+        </div>
+
+        <!-- Status do Anexo de Arquivo -->
+        <div class="attachment-status-row" id="attachment-status-box" style="display:none;">
+          <span class="attachment-icon">📎</span>
+          <span class="attachment-text" id="attachment-text">Arquivo pronto para anexar</span>
         </div>
 
         <button id="btn-autofill" class="btn-primary" disabled>
-          <span>⚡</span> Preencher Formulário na Página
+          <span>⚡</span> Preencher Formulário & Anexar
         </button>
       </div>
     </section>
@@ -139,6 +178,9 @@
     </div>
   </footer>
 
-  <script src="sidepanel.js"></script>
+  <script src="../core/matcher.js" type="module"></script>
+  <script src="../core/clinical-translator.js" type="module"></script>
+  <script src="../core/classifier.js" type="module"></script>
+  <script src="sidepanel.js" type="module"></script>
 </body>
 </html>
