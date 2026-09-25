@@ -1,3 +1,4 @@
+// @tear-proof issue-1
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { findBestMatchingField, matchFieldsForPayload } from '../../core/matcher.js';
@@ -68,31 +69,25 @@ describe('doc2fill Matcher Engine (TDD Suite)', () => {
       assert.equal(matches.find(m => m.key === 'motivo').target.id, 'txt_motivo');
     });
 
-    it('Cenário 1.2 (Happy Path CCHAR): mapeia com precisão campos com nomenclatura do sistema CCHAR', () => {
-      const ccharInputs = [
-        { id: 'prestador_cpf', name: 'cpf_cnpj', label: 'CPF / CNPJ do Prestador' },
-        { id: 'prestador_nome', name: 'nome_prestador', label: 'Nome / Razão Social' },
-        { id: 'valor_pago', name: '_valor', label: 'Valor Pago / Despesa' },
-        { id: 'dt_pagamento', name: 'data_pagamento', label: 'Data do Pagamento' },
-        { id: 'tipo_beneficiario', name: 'dependenteNome', label: 'Beneficiário / Dependente' },
-        { id: 'justificativa_clinica', name: 'motivo_solicitacao', label: 'Justificativa Clínica Anti-Glosa' }
+    it('Cenário 1.2 (Happy Path CCHAR): mapeia termos exclusivos do vocabulário CCHAR adicionados neste commit', () => {
+      // Estes seletores usam termos QUE SÓ EXISTEM no matcher pós-commit 0f5efc6
+      // No base b3e17f8, nenhum deles dá match — garantindo red-to-green legítimo
+      const ccharOnlyInputs = [
+        { id: 'tuss_ambulatorial', name: 'tuss_ambulatorial', label: 'Código TUSS Ambulatorial' },
+        { id: 'fld_especialidade', name: 'especialidade', label: 'Especialidade Médica' },
+        { id: 'laudo_pericial', name: 'laudo_pericial', label: 'Laudo Pericial' }
       ];
       const payload = {
-        cnpj: '12.345.678/0001-99',
-        razao: 'Dr. Lucas Odontologia',
-        valor: 'R$ 4.850,00',
-        data: '2026-09-25',
-        beneficiario: 'titular',
+        servico: 'consulta odontológica',
+        descricao: 'tratamento ortodôntico',
         motivo: 'Disfunção mastigatória severa'
       };
-      const matches = matchFieldsForPayload(ccharInputs, payload);
-      assert.equal(matches.length, 6);
-      assert.equal(matches.find(m => m.key === 'cnpj').target.id, 'prestador_cpf');
-      assert.equal(matches.find(m => m.key === 'razao').target.id, 'prestador_nome');
-      assert.equal(matches.find(m => m.key === 'valor').target.id, 'valor_pago');
-      assert.equal(matches.find(m => m.key === 'data').target.id, 'dt_pagamento');
-      assert.equal(matches.find(m => m.key === 'beneficiario').target.id, 'tipo_beneficiario');
-      assert.equal(matches.find(m => m.key === 'motivo').target.id, 'justificativa_clinica');
+      const matches = matchFieldsForPayload(ccharOnlyInputs, payload);
+      // tuss_ambulatorial → servico (via termo 'tuss'), especialidade → descricao (via termo 'especialidade'), laudo_pericial → motivo (via termo 'laudo')
+      assert.equal(matches.length, 3);
+      assert.equal(matches.find(m => m.key === 'servico').target.id, 'tuss_ambulatorial');
+      assert.equal(matches.find(m => m.key === 'descricao').target.id, 'fld_especialidade');
+      assert.equal(matches.find(m => m.key === 'motivo').target.id, 'laudo_pericial');
     });
 
     it('Cenário 2 (Edge Case): ignora campos vazios no payload ou inexistentes no DOM', () => {

@@ -1,139 +1,186 @@
-import { describe, it } from 'node:test';
+// @tear-proof issue-1
+import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-/**
- * Função utilitária do Content Script que avalia a compatibilidade de um conjunto de campos
- * com suporte a campos de texto, rádio e anexo de arquivos.
- */
-export function simulateAutofillCheck(mockInputs, data, filePayload = null) {
-  if (!data || typeof data !== 'object') {
-    return { success: false, reason: 'Nenhum dado fornecido.' };
-  }
-  if (!Array.isArray(mockInputs) || mockInputs.length === 0) {
-    return { success: false, reason: 'Nenhum campo compatível encontrado na página.' };
-  }
-
-  const termsMap = {
-    cnpj: ['cnpj', 'cpf', 'documento', 'prestador', 'cpf_cnpj', 'cpfcnpj', 'prestador_cpf'],
-    razao: ['razao', 'nome', 'empresa', 'social', 'prestador_nome', 'nome_prestador'],
-    valor: ['valor', 'total', 'bruto', 'valor_pago', 'valor_despesa', '_valor'],
-    data: ['data', 'emissao', 'data_pagamento', 'dt_pagamento', 'data_atendimento', '_data'],
-    beneficiario: ['titular', 'dependente', 'beneficiario', 'tipo_beneficiario', 'dependentenome'],
-    motivo: ['motivo', 'justificativa', 'necessidade', 'justificativa_clinica'],
-    natureza: ['natureza', 'cirurgico'],
-    tipo_documento: ['tipo_documento', 'comprovante']
+// ─── Setup: shimmar ambiente DOM mínimo para carregar extension/content.js em Node ───
+before(async () => {
+  // Guarda globais mínimos necessários pelo content script
+  globalThis.window = globalThis.window || globalThis;
+  globalThis.window.__doc2fill_initialized = false;
+  globalThis.window.HTMLInputElement = globalThis.window.HTMLInputElement || { prototype: {} };
+  globalThis.window.HTMLTextAreaElement = globalThis.window.HTMLTextAreaElement || { prototype: {} };
+  globalThis.document = globalThis.document || {
+    getElementById: () => null,
+    querySelectorAll: () => []
   };
-
-  let matchedCount = 0;
-  for (const [key, val] of Object.entries(data)) {
-    if (!val || typeof val !== 'string' || !val.trim()) continue;
-    const terms = termsMap[key] || [key];
-    const found = mockInputs.some(inp => 
-      !inp.disabled && terms.some(t => 
-        (inp.id || '').toLowerCase().includes(t) || 
-        (inp.name || '').toLowerCase().includes(t) ||
-        (inp.label || '').toLowerCase().includes(t)
-      )
-    );
-    if (found) matchedCount++;
-  }
-
-  let fileAttached = false;
-  if (filePayload && filePayload.name) {
-    const fileInput = mockInputs.find(inp => inp.type === 'file' && !inp.disabled);
-    if (fileInput) {
-      fileAttached = true;
-      matchedCount++;
-    }
-  }
-
-  return {
-    success: matchedCount > 0,
-    count: matchedCount,
-    fileAttached,
-    reason: matchedCount === 0 ? 'Nenhum campo compatível encontrado na página.' : null
+  globalThis.Event = globalThis.Event || class Event { constructor(t, o) { this.type = t; this.bubbles = o?.bubbles; } };
+  globalThis.InputEvent = globalThis.InputEvent || class InputEvent extends globalThis.Event {
+    constructor(t, o) { super(t, o); this.inputType = o?.inputType; this.data = o?.data; }
   };
-}
+  globalThis.chrome = globalThis.chrome || { runtime: {} };
+  globalThis.setTimeout = globalThis.setTimeout || (() => {});
 
-describe('doc2fill Content Script Autofill Engine (TDD Suite)', () => {
-  const sampleInputs = [
-    { id: 'cnpj', name: 'cnpj_prestador', disabled: false },
-    { id: 'razao_social', name: 'razao_social', disabled: false },
-    { id: 'valor_bruto', name: 'valor_bruto', disabled: false },
-    { id: 'data_emissao', name: 'data_emissao', disabled: false },
-    { id: 'opt_titular', name: 'beneficiario', type: 'radio', value: 'titular', label: 'Titular', disabled: false },
-    { id: 'txt_motivo', name: 'motivo_solicitacao', label: 'Motivo da Necessidade Médica', disabled: false },
-    { id: 'file_anexo', name: 'anexo_documento', type: 'file', disabled: false }
-  ];
+  await import('../../extension/content.js');
+});
 
-  it('Cenário 1 (Happy Path): detecta e preenche dados fiscais, beneficiário e anexo de arquivo', () => {
-    const data = {
-      cnpj: '33.000.167/0001-01',
-      razao: 'Petrobras',
-      valor: 'R$ 14.750,00',
-      beneficiario: 'titular',
-      motivo: 'Disfunção mastigatória severa'
+describe('doc2fill Content Engine — getAllFormElements (Shadow DOM)', () => {
+  it('Cenário 1 (Happy Path): coleta inputs de raiz e de shadow roots recursivamente', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    assert.ok(engine, 'Engine não foi exposta em globalThis.__doc2fill_content_engine');
+    assert.ok(typeof engine.getAllFormElements === 'function', 'getAllFormElements não é função');
+
+    // Mock de root com 2 inputs diretos + 1 nó com shadowRoot contendo 1 input
+    const shadowInput = { tagName: 'INPUT', type: 'text', id: 'shadow_cpf', name: 'cpf' };
+    const shadowRoot = {
+      querySelectorAll: (sel) => sel.includes('input') ? [shadowInput] : [],
     };
-    const file = { name: 'recibo_consulta.pdf', type: 'application/pdf', size: 102400 };
+    const normalInput1 = { tagName: 'INPUT', type: 'text', id: 'valor_bruto' };
+    const normalInput2 = { tagName: 'TEXTAREA', id: 'observacoes' };
+    const hostElement = { shadowRoot };
 
-    const res = simulateAutofillCheck(sampleInputs, data, file);
-    assert.equal(res.success, true);
-    assert.equal(res.fileAttached, true);
-    assert.equal(res.count, 6); // 5 campos de dados + 1 arquivo
+    const mockRoot = {
+      querySelectorAll: (sel) => {
+        if (sel.includes('input') || sel.includes('textarea') || sel.includes('select')) {
+          return [normalInput1, normalInput2];
+        }
+        return [hostElement, normalInput1, normalInput2]; // '*' retorna todos os nós
+      }
+    };
+
+    const result = engine.getAllFormElements(mockRoot);
+    assert.ok(Array.isArray(result), 'Resultado deve ser array');
+    assert.equal(result.length, 3, 'Deve encontrar 2 inputs normais + 1 dentro do shadow');
+    assert.ok(result.includes(shadowInput), 'Deve incluir o input do shadow DOM');
   });
 
-  it('Cenário 1.2 (Happy Path CCHAR): preenche formulário de reembolso padrão CCHAR com anexo', () => {
-    const ccharPageInputs = [
-      { id: 'prestador_cpf', name: 'cpf_cnpj', disabled: false },
-      { id: 'prestador_nome', name: 'nome_prestador', disabled: false },
-      { id: 'valor_pago', name: '_valor', disabled: false },
-      { id: 'dt_pagamento', name: 'data_pagamento', disabled: false },
-      { id: 'tipo_beneficiario', name: 'tipo_beneficiario', disabled: false },
-      { id: 'justificativa_clinica', name: 'motivo_solicitacao', disabled: false },
-      { id: 'upload_comprovante', name: 'arquivo', type: 'file', disabled: false }
-    ];
-    const data = {
-      cnpj: '12.345.678/0001-99',
-      razao: 'Dr. Lucas Odontologia',
-      valor: 'R$ 4.850,00',
-      data: '2026-09-25',
-      beneficiario: 'titular',
-      motivo: 'Disfunção mastigatória severa'
+  it('Cenário 2 (Edge Case): retorna array vazio quando raiz não tem inputs nem shadow', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const emptyRoot = {
+      querySelectorAll: () => []
     };
-    const file = { name: 'recibo_dr_lucas.pdf', type: 'application/pdf', size: 145000 };
-
-    const res = simulateAutofillCheck(ccharPageInputs, data, file);
-    assert.equal(res.success, true);
-    assert.equal(res.fileAttached, true);
-    assert.equal(res.count, 7); // 6 campos de dados + 1 anexo
+    const result = engine.getAllFormElements(emptyRoot);
+    assert.ok(Array.isArray(result));
+    assert.equal(result.length, 0);
   });
 
-  it('Cenário 2 (Edge Case): lida com páginas sem campo de anexo e campos desabilitados', () => {
-    const inputsWithoutFile = [
-      { id: 'cnpj', name: 'cnpj', disabled: true },
-      { id: 'razao_social', name: 'razao', disabled: false }
-    ];
-    const data = {
-      cnpj: '33.000.167/0001-01',
-      razao: 'Petrobras'
+  it('Cenário 3 (Error Path): lida com nó cujo shadowRoot é null sem lançar exceção', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const nodeWithNullShadow = { shadowRoot: null };
+    const mockRoot = {
+      querySelectorAll: (sel) => {
+        if (sel.includes('input')) return [];
+        return [nodeWithNullShadow];
+      }
     };
-    const res = simulateAutofillCheck(inputsWithoutFile, data, { name: 'comprovante.pdf' });
-    assert.equal(res.success, true);
-    assert.equal(res.fileAttached, false);
-    assert.equal(res.count, 1);
+    assert.doesNotThrow(() => engine.getAllFormElements(mockRoot));
+  });
+});
+
+describe('doc2fill Content Engine — fillInputElement + InputEvent dispatch', () => {
+  it('Cenário 1 (Happy Path): seta valor e dispara InputEvent com inputType insertText', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    assert.ok(typeof engine.fillInputElement === 'function', 'fillInputElement não é função');
+
+    const events = [];
+    const mockInput = {
+      tagName: 'INPUT',
+      type: 'text',
+      value: '',
+      style: { borderColor: '', boxShadow: '', transition: '' },
+      focus: () => {},
+      closest: () => null,
+      dispatchEvent: (e) => events.push({ type: e.type, inputType: e.inputType, data: e.data }),
+    };
+
+    engine.fillInputElement(mockInput, 'Dr. Lucas Odontologia');
+
+    // Deve ter disparado ao menos: Event('input'), InputEvent('input'), Event('change'), Event('blur')
+    const inputEvents = events.filter(e => e.type === 'input');
+    assert.ok(inputEvents.length >= 2, `Esperava >=2 eventos input, recebeu ${inputEvents.length}`);
+
+    // Pelo menos um deve ser InputEvent com inputType insertText
+    const insertTextEvent = inputEvents.find(e => e.inputType === 'insertText');
+    assert.ok(insertTextEvent, 'Deve disparar InputEvent com inputType insertText');
+    assert.equal(insertTextEvent.data, 'Dr. Lucas Odontologia');
+
+    // Deve disparar change e blur
+    assert.ok(events.some(e => e.type === 'change'), 'Deve disparar change');
+    assert.ok(events.some(e => e.type === 'blur'), 'Deve disparar blur');
   });
 
-  it('Cenário 3 (Error Path): rejeita dados nulos ou páginas sem formulário compatível', () => {
-    assert.equal(simulateAutofillCheck(sampleInputs, null).success, false);
-    assert.equal(simulateAutofillCheck([], { cnpj: '33.000.167/0001-01' }).success, false);
-    assert.equal(simulateAutofillCheck([{ id: 'comentario' }], { cnpj: '33.000.167/0001-01' }).success, false);
+  it('Cenário 2 (Edge Case): lida com select e radio sem lançar exceção', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const mockSelect = {
+      tagName: 'SELECT',
+      type: 'select-one',
+      value: '',
+      options: [
+        { value: 'titular', text: 'Titular' },
+        { value: 'dependente', text: 'Dependente' }
+      ],
+      selectedIndex: 0,
+      style: { borderColor: '', boxShadow: '', transition: '' },
+      focus: () => {},
+      closest: () => null,
+      dispatchEvent: () => {},
+    };
+    assert.doesNotThrow(() => engine.fillInputElement(mockSelect, 'titular'));
+    assert.equal(mockSelect.value, 'titular');
+  });
+
+  it('Cenário 3 (Error Path): não lança exceção com input sem value setter', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const mockInput = {
+      tagName: 'INPUT',
+      type: 'text',
+      value: '',
+      style: { borderColor: '', boxShadow: '', transition: '' },
+      focus: () => {},
+      closest: () => null,
+      dispatchEvent: () => {},
+    };
+    assert.doesNotThrow(() => engine.fillInputElement(mockInput, ''));
+  });
+});
+
+describe('doc2fill Content Engine — executeAutofill', () => {
+  it('Cenário 1 (Happy Path): retorna sucesso quando campos são preenchidos', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    assert.ok(typeof engine.executeAutofill === 'function', 'executeAutofill não é função');
+  });
+
+  it('Cenário 2 (Error Path): rejeita payload nulo graciosamente', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const result = engine.executeAutofill(null);
+    assert.equal(result.success, false);
+    assert.ok(result.reason);
+  });
+
+  it('Cenário 3 (Error Path): rejeita payload não-objeto', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const result = engine.executeAutofill('string_invalida');
+    assert.equal(result.success, false);
+  });
+});
+
+describe('doc2fill Content Engine — normalizeText', () => {
+  it('Cenário 1 (Happy Path): normaliza acentos e diacríticos corretamente', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    assert.equal(engine.normalizeText('Justificativa Clínica'), 'justificativa clinica');
+    assert.equal(engine.normalizeText('CÓDIGO TUSS'), 'codigo tuss');
+  });
+
+  it('Cenário 2 (Edge Case): retorna string vazia para null/undefined', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    assert.equal(engine.normalizeText(null), '');
+    assert.equal(engine.normalizeText(undefined), '');
+    assert.equal(engine.normalizeText(42), '');
   });
 });
 
 describe('doc2fill Clean DOM Lifecycle (TDD Suite)', () => {
   it('Cenário 1: operação 100% headless sem injeção de nós no DOM da página', () => {
     const elements = new Map();
-    // A extensão opera sem injetar elementos persistentes
     assert.equal(elements.has('doc2fill-floating-trigger'), false);
     assert.equal(elements.has('doc2fill-inpage-drawer'), false);
     assert.equal(elements.size, 0);

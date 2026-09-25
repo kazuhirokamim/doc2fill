@@ -1,17 +1,23 @@
 // doc2fill - Content Script Autofill Engine (Clinical & File Attachment Edition)
 (() => {
-  if (window.__doc2fill_initialized) return;
-  window.__doc2fill_initialized = true;
+  const win = typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : null);
+  const doc = typeof document !== 'undefined' ? document : null;
+  if (win && win.__doc2fill_initialized) return;
+  if (win) win.__doc2fill_initialized = true;
 
-  console.log('[doc2fill] Injetor clínico e fiscal ativo na página.');
+  if (typeof console !== 'undefined') {
+    console.log('[doc2fill] Injetor clínico e fiscal ativo na página.');
+  }
 
   // Limpeza defensiva total para expurgar resíduos de versões anteriores
-  ['doc2fill-floating-trigger', 'doc2fill-inpage-drawer', 'doc2fill-toast'].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el && el.parentNode) {
-      el.parentNode.removeChild(el);
-    }
-  });
+  if (doc && typeof doc.getElementById === 'function') {
+    ['doc2fill-floating-trigger', 'doc2fill-inpage-drawer', 'doc2fill-toast'].forEach((id) => {
+      const el = doc.getElementById(id);
+      if (el && el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
+  }
 
   // Normalização de texto livre de acentos e diacríticos
   function normalizeText(str) {
@@ -53,13 +59,15 @@
   }
 
   // Listener para mensagens do Side Panel (Operação 100% Headless)
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'DOC2FILL_EXECUTE') {
-      const result = executeAutofill(request.data, request.file);
-      sendResponse(result);
-      return true;
-    }
-  });
+  if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage?.addListener) {
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (request.action === 'DOC2FILL_EXECUTE') {
+        const result = executeAutofill(request.data, request.file);
+        sendResponse(result);
+        return true;
+      }
+    });
+  }
 
   // Executa o preenchimento automático inteligente
   function executeAutofill(data, fileData) {
@@ -225,6 +233,18 @@
       el.style.boxShadow = originalBoxShadow;
       el.style.transition = originalTransition;
     }, 3200);
+  }
+
+  // Exposição da engine de content script para testes unitários e verificação semântica
+  if (typeof globalThis !== 'undefined') {
+    globalThis.__doc2fill_content_engine = {
+      normalizeText,
+      FISCAL_MAPPINGS,
+      getAllFormElements,
+      fillInputElement,
+      executeAutofill,
+      attachFileToPage
+    };
   }
 
 })();
