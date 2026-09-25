@@ -1,6 +1,6 @@
 // doc2fill - Sidepanel Controller (Clinical Translation & File Injection Edition)
-import { translateClinicalProcedure } from '../core/clinical-translator.js';
-import { classifyDocumentType } from '../core/classifier.js';
+import { translateClinicalProcedure } from './core/clinical-translator.js';
+import { classifyDocumentType } from './core/classifier.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Elements

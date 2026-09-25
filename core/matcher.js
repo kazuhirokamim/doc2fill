@@ -2,17 +2,17 @@
 // Responsável pela heurística inteligente de mapeamento entre dados fiscais e campos de formulário
 
 export const DEFAULT_FISCAL_MAPPINGS = {
-  cnpj: ['cnpj', 'cpf', 'documento', 'prestador', 'emitente', 'identificacao'],
-  razao: ['razao', 'nome', 'fantasia', 'empresa', 'social', 'prestador_nome'],
-  valor: ['valor', 'bruto', 'total', 'quantia', 'servico_valor', 'valor_servico'],
-  data: ['data', 'emissao', 'competencia', 'dt_emissao'],
-  servico: ['servico', 'codigo', 'item', 'cnae', 'atividade', 'cod_servico'],
+  cnpj: ['cnpj', 'cpf', 'documento', 'prestador', 'emitente', 'identificacao', 'cpf_cnpj', 'cpfcnpj', 'prestador_cpf', 'prestador_cnpj'],
+  razao: ['razao', 'nome', 'fantasia', 'empresa', 'social', 'prestador_nome', 'nome_prestador', 'clinica', 'medico'],
+  valor: ['valor', 'bruto', 'total', 'quantia', 'servico_valor', 'valor_servico', 'valor_pago', 'valor_despesa', 'valor_solicitado', '_valor'],
+  data: ['data', 'emissao', 'competencia', 'dt_emissao', 'data_pagamento', 'dt_pagamento', 'data_atendimento', 'data_realizacao', '_data'],
+  servico: ['servico', 'codigo', 'item', 'cnae', 'atividade', 'cod_servico', 'codigo_tuss', 'tuss', 'tuss_codigo'],
   irrf: ['irrf', 'retencao', 'retido', 'imposto'],
-  descricao: ['descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos', 'procedimento'],
-  beneficiario: ['titular', 'dependente', 'beneficiario', 'parentesco', 'paciente', 'segurado', 'usuario'],
-  motivo: ['motivo', 'justificativa', 'indicacao', 'necessidade', 'diagnostico', 'cid'],
+  descricao: ['descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos', 'procedimento', 'despesa', 'especialidade', 'tipo_despesa'],
+  beneficiario: ['titular', 'dependente', 'beneficiario', 'parentesco', 'paciente', 'segurado', 'usuario', 'cpfTitular', 'dependenteCpf', 'dependenteNome', 'tipo_beneficiario'],
+  motivo: ['motivo', 'justificativa', 'indicacao', 'necessidade', 'diagnostico', 'cid', 'justificativa_clinica', 'indicacao_clinica', 'relatorio_medico', 'laudo'],
   natureza: ['natureza', 'cirurgico', 'tipo_procedimento', 'carater'],
-  tipo_documento: ['tipo_documento', 'comprovante_tipo', 'especie', 'tipo_comprovante', 'tipo_doc']
+  tipo_documento: ['tipo_documento', 'comprovante_tipo', 'especie', 'tipo_comprovante', 'tipo_doc', 'comprovante', 'tipo_despesa']
 };
 
 /**

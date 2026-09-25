@@ -23,20 +23,34 @@
       .trim();
   }
 
-  // Mapeamentos fiscais e clínicos padrão
+  // Mapeamentos fiscais e clínicos padrão com suporte ampliado a portais como CCHAR
   const FISCAL_MAPPINGS = [
-    { key: 'cnpj', terms: ['cnpj', 'cpf', 'documento', 'prestador', 'emitente', 'identificacao'] },
-    { key: 'razao', terms: ['razao', 'nome', 'fantasia', 'empresa', 'social', 'prestador_nome'] },
-    { key: 'valor', terms: ['valor', 'bruto', 'total', 'quantia', 'servico_valor', 'valor_servico'] },
-    { key: 'data', terms: ['data', 'emissao', 'competencia', 'dt_emissao'] },
-    { key: 'servico', terms: ['servico', 'codigo', 'item', 'cnae', 'atividade', 'cod_servico'] },
+    { key: 'cnpj', terms: ['cnpj', 'cpf', 'documento', 'prestador', 'emitente', 'identificacao', 'cpf_cnpj', 'cpfcnpj', 'prestador_cpf', 'prestador_cnpj'] },
+    { key: 'razao', terms: ['razao', 'nome', 'fantasia', 'empresa', 'social', 'prestador_nome', 'nome_prestador', 'clinica', 'medico'] },
+    { key: 'valor', terms: ['valor', 'bruto', 'total', 'quantia', 'servico_valor', 'valor_servico', 'valor_pago', 'valor_despesa', 'valor_solicitado', '_valor'] },
+    { key: 'data', terms: ['data', 'emissao', 'competencia', 'dt_emissao', 'data_pagamento', 'dt_pagamento', 'data_atendimento', 'data_realizacao', '_data'] },
+    { key: 'servico', terms: ['servico', 'codigo', 'item', 'cnae', 'atividade', 'cod_servico', 'codigo_tuss', 'tuss', 'tuss_codigo'] },
     { key: 'irrf', terms: ['irrf', 'retencao', 'retido', 'imposto'] },
-    { key: 'descricao', terms: ['descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos', 'procedimento'] },
-    { key: 'beneficiario', terms: ['titular', 'dependente', 'beneficiario', 'parentesco', 'paciente', 'segurado', 'usuario'] },
-    { key: 'motivo', terms: ['motivo', 'justificativa', 'indicacao', 'necessidade', 'diagnostico', 'cid'] },
+    { key: 'descricao', terms: ['descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos', 'procedimento', 'despesa', 'especialidade', 'tipo_despesa'] },
+    { key: 'beneficiario', terms: ['titular', 'dependente', 'beneficiario', 'parentesco', 'paciente', 'segurado', 'usuario', 'cpfTitular', 'dependenteCpf', 'dependenteNome', 'tipo_beneficiario'] },
+    { key: 'motivo', terms: ['motivo', 'justificativa', 'indicacao', 'necessidade', 'diagnostico', 'cid', 'justificativa_clinica', 'indicacao_clinica', 'relatorio_medico', 'laudo'] },
     { key: 'natureza', terms: ['natureza', 'cirurgico', 'tipo_procedimento', 'carater'] },
-    { key: 'tipo_documento', terms: ['tipo_documento', 'comprovante_tipo', 'especie', 'tipo_comprovante', 'tipo_doc'] }
+    { key: 'tipo_documento', terms: ['tipo_documento', 'comprovante_tipo', 'especie', 'tipo_comprovante', 'tipo_doc', 'comprovante', 'tipo_despesa'] }
   ];
+
+  // Coleta profunda de elementos de formulário, incluindo suporte a Shadow DOM
+  function getAllFormElements(root = document) {
+    const selector = 'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([disabled]), textarea:not([disabled]), select:not([disabled])';
+    let elements = Array.from(root.querySelectorAll(selector));
+
+    const allNodes = root.querySelectorAll('*');
+    for (const node of allNodes) {
+      if (node.shadowRoot) {
+        elements = elements.concat(getAllFormElements(node.shadowRoot));
+      }
+    }
+    return elements;
+  }
 
   // Listener para mensagens do Side Panel (Operação 100% Headless)
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -54,7 +68,7 @@
     }
 
     let filledCount = 0;
-    const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([disabled]), textarea:not([disabled]), select:not([disabled])'));
+    const inputs = getAllFormElements(document);
 
     for (const m of FISCAL_MAPPINGS) {
       const val = data[m.key];
@@ -156,9 +170,14 @@
       }
     }
 
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-    input.dispatchEvent(new Event('blur', { bubbles: true }));
+    input.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+    try {
+      input.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: val }));
+    } catch (_) {
+      // Ignora ambientes sem suporte a construtor InputEvent
+    }
+    input.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+    input.dispatchEvent(new Event('blur', { bubbles: true, cancelable: true }));
   }
 
   // Converte base64 para Blob e anexa via DataTransfer nativo

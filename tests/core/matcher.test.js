@@ -68,6 +68,33 @@ describe('doc2fill Matcher Engine (TDD Suite)', () => {
       assert.equal(matches.find(m => m.key === 'motivo').target.id, 'txt_motivo');
     });
 
+    it('Cenário 1.2 (Happy Path CCHAR): mapeia com precisão campos com nomenclatura do sistema CCHAR', () => {
+      const ccharInputs = [
+        { id: 'prestador_cpf', name: 'cpf_cnpj', label: 'CPF / CNPJ do Prestador' },
+        { id: 'prestador_nome', name: 'nome_prestador', label: 'Nome / Razão Social' },
+        { id: 'valor_pago', name: '_valor', label: 'Valor Pago / Despesa' },
+        { id: 'dt_pagamento', name: 'data_pagamento', label: 'Data do Pagamento' },
+        { id: 'tipo_beneficiario', name: 'dependenteNome', label: 'Beneficiário / Dependente' },
+        { id: 'justificativa_clinica', name: 'motivo_solicitacao', label: 'Justificativa Clínica Anti-Glosa' }
+      ];
+      const payload = {
+        cnpj: '12.345.678/0001-99',
+        razao: 'Dr. Lucas Odontologia',
+        valor: 'R$ 4.850,00',
+        data: '2026-09-25',
+        beneficiario: 'titular',
+        motivo: 'Disfunção mastigatória severa'
+      };
+      const matches = matchFieldsForPayload(ccharInputs, payload);
+      assert.equal(matches.length, 6);
+      assert.equal(matches.find(m => m.key === 'cnpj').target.id, 'prestador_cpf');
+      assert.equal(matches.find(m => m.key === 'razao').target.id, 'prestador_nome');
+      assert.equal(matches.find(m => m.key === 'valor').target.id, 'valor_pago');
+      assert.equal(matches.find(m => m.key === 'data').target.id, 'dt_pagamento');
+      assert.equal(matches.find(m => m.key === 'beneficiario').target.id, 'tipo_beneficiario');
+      assert.equal(matches.find(m => m.key === 'motivo').target.id, 'justificativa_clinica');
+    });
+
     it('Cenário 2 (Edge Case): ignora campos vazios no payload ou inexistentes no DOM', () => {
       const payload = {
         cnpj: '33.000.167/0001-01',

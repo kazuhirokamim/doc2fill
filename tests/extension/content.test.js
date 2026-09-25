@@ -14,12 +14,12 @@ export function simulateAutofillCheck(mockInputs, data, filePayload = null) {
   }
 
   const termsMap = {
-    cnpj: ['cnpj', 'cpf', 'documento'],
-    razao: ['razao', 'nome', 'empresa'],
-    valor: ['valor', 'total'],
-    data: ['data', 'emissao'],
-    beneficiario: ['titular', 'dependente', 'beneficiario'],
-    motivo: ['motivo', 'justificativa', 'necessidade'],
+    cnpj: ['cnpj', 'cpf', 'documento', 'prestador', 'cpf_cnpj', 'cpfcnpj', 'prestador_cpf'],
+    razao: ['razao', 'nome', 'empresa', 'social', 'prestador_nome', 'nome_prestador'],
+    valor: ['valor', 'total', 'bruto', 'valor_pago', 'valor_despesa', '_valor'],
+    data: ['data', 'emissao', 'data_pagamento', 'dt_pagamento', 'data_atendimento', '_data'],
+    beneficiario: ['titular', 'dependente', 'beneficiario', 'tipo_beneficiario', 'dependentenome'],
+    motivo: ['motivo', 'justificativa', 'necessidade', 'justificativa_clinica'],
     natureza: ['natureza', 'cirurgico'],
     tipo_documento: ['tipo_documento', 'comprovante']
   };
@@ -80,6 +80,32 @@ describe('doc2fill Content Script Autofill Engine (TDD Suite)', () => {
     assert.equal(res.success, true);
     assert.equal(res.fileAttached, true);
     assert.equal(res.count, 6); // 5 campos de dados + 1 arquivo
+  });
+
+  it('Cenário 1.2 (Happy Path CCHAR): preenche formulário de reembolso padrão CCHAR com anexo', () => {
+    const ccharPageInputs = [
+      { id: 'prestador_cpf', name: 'cpf_cnpj', disabled: false },
+      { id: 'prestador_nome', name: 'nome_prestador', disabled: false },
+      { id: 'valor_pago', name: '_valor', disabled: false },
+      { id: 'dt_pagamento', name: 'data_pagamento', disabled: false },
+      { id: 'tipo_beneficiario', name: 'tipo_beneficiario', disabled: false },
+      { id: 'justificativa_clinica', name: 'motivo_solicitacao', disabled: false },
+      { id: 'upload_comprovante', name: 'arquivo', type: 'file', disabled: false }
+    ];
+    const data = {
+      cnpj: '12.345.678/0001-99',
+      razao: 'Dr. Lucas Odontologia',
+      valor: 'R$ 4.850,00',
+      data: '2026-09-25',
+      beneficiario: 'titular',
+      motivo: 'Disfunção mastigatória severa'
+    };
+    const file = { name: 'recibo_dr_lucas.pdf', type: 'application/pdf', size: 145000 };
+
+    const res = simulateAutofillCheck(ccharPageInputs, data, file);
+    assert.equal(res.success, true);
+    assert.equal(res.fileAttached, true);
+    assert.equal(res.count, 7); // 6 campos de dados + 1 anexo
   });
 
   it('Cenário 2 (Edge Case): lida com páginas sem campo de anexo e campos desabilitados', () => {
