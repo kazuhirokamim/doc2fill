@@ -2,17 +2,24 @@
 // Responsável pela heurística inteligente de mapeamento entre dados fiscais e campos de formulário
 
 export const DEFAULT_FISCAL_MAPPINGS = {
-  cnpj: ['cnpj', 'cpf', 'documento', 'prestador', 'emitente', 'identificacao', 'cpf_cnpj', 'cpfcnpj', 'prestador_cpf', 'prestador_cnpj'],
-  razao: ['razao', 'nome', 'fantasia', 'empresa', 'social', 'prestador_nome', 'nome_prestador', 'clinica', 'medico'],
-  valor: ['valor', 'bruto', 'total', 'quantia', 'servico_valor', 'valor_servico', 'valor_pago', 'valor_despesa', 'valor_solicitado', '_valor'],
-  data: ['data', 'emissao', 'competencia', 'dt_emissao', 'data_pagamento', 'dt_pagamento', 'data_atendimento', 'data_realizacao', '_data'],
-  servico: ['servico', 'codigo', 'item', 'cnae', 'atividade', 'cod_servico', 'codigo_tuss', 'tuss', 'tuss_codigo'],
-  irrf: ['irrf', 'retencao', 'retido', 'imposto'],
-  descricao: ['descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos', 'procedimento', 'despesa', 'especialidade', 'tipo_despesa'],
-  beneficiario: ['titular', 'dependente', 'beneficiario', 'parentesco', 'paciente', 'segurado', 'usuario', 'cpfTitular', 'dependenteCpf', 'dependenteNome', 'tipo_beneficiario'],
-  motivo: ['motivo', 'justificativa', 'indicacao', 'necessidade', 'diagnostico', 'cid', 'justificativa_clinica', 'indicacao_clinica', 'relatorio_medico', 'laudo'],
-  natureza: ['natureza', 'cirurgico', 'tipo_procedimento', 'carater'],
-  tipo_documento: ['tipo_documento', 'comprovante_tipo', 'especie', 'tipo_comprovante', 'tipo_doc', 'comprovante', 'tipo_despesa']
+  cnpj: ['cnpj', 'cpf', 'documento', 'prestador', 'emitente', 'identificacao', 'cpf_cnpj', 'cpfcnpj', 'cpf_procurador', 'cpf_beneficiario', 'prestador_cpf', 'prestador_cnpj'],
+  razao: ['razao', 'nome', 'fantasia', 'empresa', 'social', 'prestador_nome', 'nome_prestador', 'nome_procurador', 'nome_advogado', 'clinica', 'medico'],
+  valor: ['valor', 'honorarios', 'valor_honorarios', 'quantia', 'valor_total', 'bruto', 'total', 'servico_valor', 'valor_servico', 'valor_pago', 'valor_despesa', 'valor_solicitado', '_valor'],
+  data: ['data', 'emissao', 'competencia', 'dt_emissao', 'data_requerimento', 'data_pagamento', 'dt_pagamento', 'data_atendimento', 'data_realizacao', '_data'],
+  servico: ['servico', 'codigo', 'item', 'cnae', 'atividade', 'cod_servico', 'codigo_tuss', 'tuss', 'tuss_codigo', 'rubrica', 'rubrica_ccha'],
+  irrf: ['irrf', 'retencao', 'retido', 'imposto', 'tributo'],
+  descricao: ['descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos', 'procedimento', 'despesa', 'especialidade', 'tipo_despesa', 'objeto', 'especificacao', 'honorarios_sucumbenciais'],
+  beneficiario: ['beneficiario', 'procurador', 'advogado', 'nome_beneficiario', 'requerente', 'nome_requerente', 'titular', 'dependente', 'parentesco', 'paciente', 'segurado', 'usuario', 'cpfTitular', 'dependenteCpf', 'dependenteNome', 'tipo_beneficiario'],
+  motivo: ['motivo', 'justificativa', 'fundamentacao', 'indicacao', 'necessidade', 'diagnostico', 'cid', 'justificativa_clinica', 'indicacao_clinica', 'relatorio_medico', 'laudo', 'relatorio', 'observacao'],
+  natureza: ['natureza', 'especie', 'tipo_processo', 'carater', 'cirurgico', 'tipo_procedimento'],
+  tipo_documento: ['tipo_documento', 'comprovante_tipo', 'especie', 'tipo_comprovante', 'tipo_doc', 'comprovante', 'tipo_despesa', 'tipo_requerimento'],
+  matricula: ['matricula', 'siape', 'matricula_siape', 'num_matricula', 'registro_funcional', 'oab'],
+  orgao: ['orgao', 'lotacao', 'carreira', 'cargo', 'unidade', 'agu', 'pgfn', 'pgf', 'pgbc'],
+  banco: ['banco', 'instituicao_bancaria', 'cod_banco', 'nome_banco'],
+  agencia: ['agencia', 'cod_agencia', 'prefixo_agencia'],
+  conta: ['conta', 'conta_corrente', 'num_conta', 'cc', 'conta_bancaria'],
+  pix: ['pix', 'chave_pix', 'tipo_pix', 'chavepix'],
+  processo: ['processo', 'numero_processo', 'num_processo', 'processo_judicial', 'processo_administrativo', 'protocolo']
 };
 
 /**

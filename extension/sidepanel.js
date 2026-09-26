@@ -26,10 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCopyLink = document.getElementById('btn-copy-link');
   const qrRelayStatus = document.getElementById('qr-relay-status');
 
-  // Input Fields & Clinical Controls
+  // Input Fields & CCHA Controls
   const fBeneficiario = document.getElementById('field-beneficiario');
   const fTipoDoc = document.getElementById('field-tipo-doc');
   const fCnpj = document.getElementById('field-cnpj');
+  const fProcesso = document.getElementById('field-processo');
   const fRazao = document.getElementById('field-razao');
   const fValor = document.getElementById('field-valor');
   const fData = document.getElementById('field-data');
@@ -60,30 +61,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 2. Preenchimento de dados e enriquecimento clínico anti-glosa
+  // 2. Preenchimento de dados do CCHA
   function populateFormFields(data, fileData = null) {
     if (data.beneficiario && fBeneficiario) fBeneficiario.value = data.beneficiario;
     if (data.tipo_documento && fTipoDoc) fTipoDoc.value = data.tipo_documento;
-    if (data.cnpj) fCnpj.value = data.cnpj;
-    if (data.razao) fRazao.value = data.razao;
-    if (data.valor) fValor.value = data.valor;
-    if (data.data) fData.value = data.data;
+    if (data.cnpj && fCnpj) fCnpj.value = data.cnpj;
+    if (data.processo && fProcesso) fProcesso.value = data.processo;
+    if (data.razao && fRazao) fRazao.value = data.razao;
+    if (data.valor && fValor) fValor.value = data.valor;
+    if (data.data && fData) fData.value = data.data;
     if (data.natureza && fNatureza) fNatureza.value = data.natureza;
     if (data.irrf && fIrrf) fIrrf.value = data.irrf;
+    if (data.descricao && fDescricao) fDescricao.value = data.descricao;
+    if (data.motivo && fMotivo) fMotivo.value = data.motivo;
 
-    // Aplica o motor clínico ontológico para tradução científica anti-glosa
-    const rawDesc = data.descricao || '';
-    const clinical = translateClinicalProcedure(rawDesc);
-
-    if (clinical.matched) {
-      fDescricao.value = clinical.descricaoTecnica;
-      if (fMotivo) fMotivo.value = clinical.motivoNecessidade;
-      if (fNatureza) fNatureza.value = clinical.natureza;
-      if (badgeAntiGlosa) badgeAntiGlosa.style.display = 'inline-block';
-    } else {
-      fDescricao.value = rawDesc;
-      if (fMotivo && data.motivo) fMotivo.value = data.motivo;
-      if (badgeAntiGlosa) badgeAntiGlosa.style.display = 'none';
+    if (badgeAntiGlosa) {
+      badgeAntiGlosa.textContent = '⚖️ CCHA Validado';
+      badgeAntiGlosa.style.display = 'inline-block';
     }
 
     if (fileData) {
@@ -94,29 +88,32 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    validationBadge.textContent = '✓ Dados & Justificativa Prontos';
+    validationBadge.textContent = '✓ Dados do CCHA Prontos';
     validationBadge.classList.add('valid');
     btnAutofill.disabled = false;
   }
 
-  // Demonstração Rápida (Caso Real de Reembolso Odontológico)
+  // Demonstração Rápida (Caso Real CCHA: Requerimento de Honorários Advocatícios / AGU)
   btnLoadSample.addEventListener('click', () => {
-    // Simula PDF de recibo em base64 minimalista
+    // PDF de comprovante em base64 minimalista
     const samplePdfBase64 = 'data:application/pdf;base64,JVBERi0xLjQKJcTl8uXrp/Og0MTGCjEgMCBvYmoKPDwKL1R5cGUgL0NhdGFsb2cKL1BhZ2VzIDIgMCBS';
 
     populateFormFields({
-      beneficiario: 'titular',
-      tipo_documento: 'recibo',
-      cnpj: '12.345.678/0001-99',
-      razao: 'Instituto Odontológico & Reabilitação Oral Dr. Lucas',
-      valor: 'R$ 4.850,00',
-      data: '2026-09-22',
-      natureza: 'Não Cirúrgico (Ambulatorial)',
-      descricao: 'Instalação de lentes de contato dental nos dentes anteriores'
+      beneficiario: 'Advogado da União (AGU)',
+      tipo_documento: 'Requerimento de Honorários',
+      cnpj: '123.456.789-00',
+      processo: '0045821-44.2026.4.01.3400',
+      razao: 'Dr. Lucas Silva — Advogado da União',
+      valor: 'R$ 14.850,00',
+      data: '2026-09-25',
+      natureza: 'Banco do Brasil (001)',
+      irrf: 'Ag: 3380-4 CC: 45210-9 (PIX: lucas.silva@agu.gov.br)',
+      descricao: 'Honorários advocatícios sucumbenciais devidos em decorrência de êxito em atuação judicial perante o Tribunal Regional Federal.',
+      motivo: 'Art. 29 a 36 da Lei nº 13.327/2016 e deliberações do CCHA. Preenchimento de requisitos de elegibilidade e rateio.'
     }, {
-      name: 'recibo_reembolso_dr_lucas.pdf',
+      name: 'comprovante_honorarios_ccha.pdf',
       type: 'application/pdf',
-      size: 145000,
+      size: 165000,
       base64: samplePdfBase64
     });
   });
@@ -285,15 +282,22 @@ document.addEventListener('DOMContentLoaded', () => {
   btnAutofill.addEventListener('click', async () => {
     const payload = {
       cnpj: fCnpj.value.trim(),
+      cpf: fCnpj.value.trim(),
+      matricula: fCnpj.value.trim(),
       razao: fRazao.value.trim(),
+      nome: fRazao.value.trim(),
+      beneficiario: fBeneficiario ? fBeneficiario.value : '',
+      processo: fProcesso ? fProcesso.value.trim() : '',
       valor: fValor.value.trim(),
       data: fData.value.trim(),
+      banco: fNatureza ? fNatureza.value : '',
+      agencia: fIrrf ? fIrrf.value.trim() : '',
+      conta: fIrrf ? fIrrf.value.trim() : '',
+      pix: fIrrf ? fIrrf.value.trim() : '',
       irrf: fIrrf ? fIrrf.value.trim() : '',
       descricao: fDescricao.value.trim(),
-      beneficiario: fBeneficiario ? fBeneficiario.value : 'titular',
-      tipo_documento: fTipoDoc ? fTipoDoc.value : 'recibo',
-      natureza: fNatureza ? fNatureza.value : 'Não Cirúrgico (Ambulatorial)',
-      motivo: fMotivo ? fMotivo.value.trim() : ''
+      motivo: fMotivo ? fMotivo.value.trim() : '',
+      tipo_documento: fTipoDoc ? fTipoDoc.value : 'Requerimento de Honorários'
     };
 
     btnAutofill.textContent = 'Preenchendo e anexando...';

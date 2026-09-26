@@ -18,7 +18,7 @@
         </div>
       </div>
       <div class="user-tier">
-        <span class="badge-pill badge-vip">Saúde & Fisco</span>
+        <span class="badge-pill badge-vip">CCHA · AGU & Procuradores</span>
       </div>
     </div>
   </header>
@@ -31,16 +31,16 @@
       <button class="tab-btn" id="tab-file" data-tab="file">PDF / Foto</button>
     </div>
 
-    <!-- Modo 1: Demonstração Imediata -->
+    <!-- Modo 1: Demonstração Imediata CCHA -->
     <section class="tab-pane active" id="pane-demo">
       <div class="clean-card">
         <div class="card-header">
-          <span class="card-eyebrow">Simulação de Reembolso & Fisco</span>
+          <span class="card-eyebrow">CCHA · Honorários Advocatícios & AGU</span>
         </div>
-        <h3 class="card-title">Preenchimento com Tradução Clínica</h3>
-        <p class="card-desc">Carregue dados clínicos com justificativa anti-glosa e anexo pronto para testar o preenchimento automático no portal.</p>
+        <h3 class="card-title">Preenchimento de Requerimento CCHA</h3>
+        <p class="card-desc">Carregue dados do Procurador/Advogado Público, processo, honorários e comprovante pronto para preenchimento no portal CCHA.</p>
         <button id="btn-load-sample" class="btn-secondary">
-          <span>⚡</span> Carregar Recibo Médico Modelo
+          <span>⚡</span> Carregar Requerimento CCHA Modelo
         </button>
       </div>
     </section>
@@ -58,7 +58,7 @@
           <a id="qr-direct-link" href="#" target="_blank" class="qr-url-text">Carregando URL...</a>
           <button type="button" id="btn-copy-link" class="btn-secondary btn-sm">Copiar Link</button>
         </div>
-        <p class="card-caption">Aponte a câmera do smartphone para o QR Code acima. Ele abrirá o scanner web na mesma rede Wi-Fi.</p>
+        <p class="card-caption">Aponte a câmera do smartphone para o QR Code acima para enviar o comprovante escaneado.</p>
         <div id="qr-relay-status" class="qr-relay-status" style="display:none;">
           <span class="pulse-dot">●</span> Aguardando captura do smartphone...
         </div>
@@ -69,102 +69,116 @@
     <section class="tab-pane" id="pane-file">
       <div class="clean-card drop-zone" id="drop-zone">
         <div class="drop-icon-wrap" id="drop-icon-wrap">📄</div>
-        <h4 class="drop-title" id="drop-title">Arraste a Nota Fiscal / Recibo aqui</h4>
+        <h4 class="drop-title" id="drop-title">Arraste o Comprovante / Requerimento aqui</h4>
         <p class="drop-subtitle" id="drop-subtitle">Compatível com PDF, PNG e JPEG</p>
         <button type="button" id="btn-select-file" class="btn-secondary btn-sm">Selecionar Arquivo</button>
         <input type="file" id="file-input" accept="application/pdf,image/*" style="display:none;">
       </div>
     </section>
 
-    <!-- Formulário com Campos Capturados & Enriquecimento Clínico -->
+    <!-- Formulário com Campos do CCHA -->
     <section class="clean-card form-card">
       <div class="form-header-row">
         <div>
-          <h3 class="section-title">Campos & Reembolso</h3>
-          <p class="section-subtitle">Dados enriquecidos em memória efêmera</p>
+          <h3 class="section-title">Dados do Requerimento CCHA</h3>
+          <p class="section-subtitle">Área do Beneficiário & Processos</p>
         </div>
         <span class="badge-pill badge-status" id="validation-badge">Aguardando dados</span>
       </div>
 
       <div class="fields-container">
-        <!-- Beneficiário & Tipo de Documento -->
+        <!-- Beneficiário / Carreira & Tipo de Documento -->
         <div class="field-row">
           <div class="field-group flex-1">
-            <label for="field-beneficiario">Beneficiário</label>
+            <label for="field-beneficiario">Carreira / Beneficiário</label>
             <select id="field-beneficiario">
-              <option value="titular" selected>Titular</option>
-              <option value="dependente">Dependente</option>
+              <option value="Advogado da União (AGU)" selected>Advogado da União (AGU)</option>
+              <option value="Procurador Federal (PGF)">Procurador Federal (PGF)</option>
+              <option value="Procurador da Fazenda Nacional (PGFN)">Procurador da Fazenda (PGFN)</option>
+              <option value="Procurador do Banco Central (PGBC)">Procurador do BACEN (PGBC)</option>
+              <option value="Titular">Titular</option>
+              <option value="Herdeiro / Pensionista">Herdeiro / Pensionista</option>
             </select>
           </div>
           <div class="field-group flex-1">
-            <label for="field-tipo-doc">Tipo de Comprovante</label>
+            <label for="field-tipo-doc">Tipo de Requerimento</label>
             <select id="field-tipo-doc">
-              <option value="recibo">Recibo Profissional</option>
-              <option value="nfse">Nota Fiscal (NFS-e)</option>
-              <option value="guia">Guia Médica (TISS)</option>
-              <option value="boleto">Boleto / Fatura</option>
+              <option value="Requerimento de Honorários" selected>Honorários Sucumbenciais</option>
+              <option value="Ressarcimento de Despesas">Ressarcimento de Despesas</option>
+              <option value="Comprovante de Pagamento">Comprovante de Pagamento</option>
+              <option value="Prestação de Contas">Prestação de Contas</option>
+              <option value="Nota Fiscal de Serviços">Nota Fiscal de Serviços</option>
             </select>
           </div>
-        </div>
-
-        <div class="field-group">
-          <label for="field-cnpj">CNPJ / CPF do Prestador</label>
-          <input type="text" id="field-cnpj" placeholder="00.000.000/0000-00" spellcheck="false">
-        </div>
-
-        <div class="field-group">
-          <label for="field-razao">Razão Social / Nome do Profissional</label>
-          <input type="text" id="field-razao" placeholder="Nome do médico, dentista ou clínica" spellcheck="false">
         </div>
 
         <div class="field-row">
           <div class="field-group flex-1">
-            <label for="field-valor">Valor Total (R$)</label>
+            <label for="field-cnpj">CPF / Matrícula SIAPE</label>
+            <input type="text" id="field-cnpj" placeholder="000.000.000-00 ou SIAPE" spellcheck="false">
+          </div>
+          <div class="field-group flex-1">
+            <label for="field-processo">Processo / Protocolo CCHA</label>
+            <input type="text" id="field-processo" placeholder="0000000-00.0000.0.00.0000" spellcheck="false">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="field-razao">Nome do Procurador / Beneficiário</label>
+          <input type="text" id="field-razao" placeholder="Nome completo do procurador ou requerente" spellcheck="false">
+        </div>
+
+        <div class="field-row">
+          <div class="field-group flex-1">
+            <label for="field-valor">Valor dos Honorários (R$)</label>
             <input type="text" id="field-valor" placeholder="R$ 0,00" spellcheck="false">
           </div>
           <div class="field-group flex-1">
-            <label for="field-data">Data de Emissão</label>
+            <label for="field-data">Data do Requerimento</label>
             <input type="date" id="field-data">
           </div>
         </div>
 
         <div class="field-row">
           <div class="field-group flex-1">
-            <label for="field-natureza">Natureza do Procedimento</label>
+            <label for="field-natureza">Banco do Beneficiário</label>
             <select id="field-natureza">
-              <option value="Não Cirúrgico (Ambulatorial)">Não Cirúrgico (Ambulatorial)</option>
-              <option value="Cirúrgico">Cirúrgico</option>
+              <option value="Banco do Brasil (001)" selected>Banco do Brasil (001)</option>
+              <option value="Caixa Econômica (104)">Caixa Econômica (104)</option>
+              <option value="Santander (033)">Santander (033)</option>
+              <option value="Itaú (341)">Itaú (341)</option>
+              <option value="Bradesco (237)">Bradesco (237)</option>
             </select>
           </div>
           <div class="field-group flex-1">
-            <label for="field-irrf">Retenção IRRF (opcional)</label>
-            <input type="text" id="field-irrf" placeholder="R$ 0,00" spellcheck="false">
+            <label for="field-irrf">Agência / Conta / Chave PIX</label>
+            <input type="text" id="field-irrf" placeholder="Ag: 0000 CC: 00000-0 ou PIX" spellcheck="false">
           </div>
         </div>
 
-        <!-- Descrição Técnica com Tom Científico Anti-Glosa -->
+        <!-- Descrição / Histórico do Requerimento CCHA -->
         <div class="field-group">
           <div class="label-badge-row">
-            <label for="field-descricao">Descrição do Procedimento (TUSS/ANS)</label>
-            <span class="badge-anti-glosa" id="badge-anti-glosa" style="display:none;">🛡️ Anti-Glosa Ativo</span>
+            <label for="field-descricao">Histórico / Objeto do Requerimento</label>
+            <span class="badge-anti-glosa" id="badge-anti-glosa" style="display:none; background:#10b981; color:#fff;">⚖️ CCHA Validado</span>
           </div>
-          <textarea id="field-descricao" rows="2" placeholder="Descrição do procedimento clínico..." spellcheck="false"></textarea>
+          <textarea id="field-descricao" rows="2" placeholder="Discriminação da atuação judicial, honorários ou despesas operacionais..." spellcheck="false"></textarea>
         </div>
 
-        <!-- Motivo da Necessidade Médica -->
+        <!-- Justificativa / Fundamentação -->
         <div class="field-group">
-          <label for="field-motivo">Motivo da Necessidade Médica / Indicação</label>
-          <textarea id="field-motivo" rows="2" placeholder="Justificativa clínica para aprovação do reembolso..." spellcheck="false"></textarea>
+          <label for="field-motivo">Justificativa / Fundamentação Legal</label>
+          <textarea id="field-motivo" rows="2" placeholder="Fundamentação legal ou despacho comprobatório..." spellcheck="false"></textarea>
         </div>
 
         <!-- Status do Anexo de Arquivo -->
         <div class="attachment-status-row" id="attachment-status-box" style="display:none;">
           <span class="attachment-icon">📎</span>
-          <span class="attachment-text" id="attachment-text">Arquivo pronto para anexar</span>
+          <span class="attachment-text" id="attachment-text">Comprovante pronto para anexar</span>
         </div>
 
         <button id="btn-autofill" class="btn-primary" disabled>
-          <span>⚡</span> Preencher Formulário & Anexar
+          <span>⚡</span> Preencher Formulário CCHA & Anexar
         </button>
       </div>
     </section>

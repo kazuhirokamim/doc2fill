@@ -70,8 +70,6 @@ describe('doc2fill Matcher Engine (TDD Suite)', () => {
     });
 
     it('Cenário 1.2 (Happy Path CCHAR): mapeia termos exclusivos do vocabulário CCHAR adicionados neste commit', () => {
-      // Estes seletores usam termos QUE SÓ EXISTEM no matcher pós-commit 0f5efc6
-      // No base b3e17f8, nenhum deles dá match — garantindo red-to-green legítimo
       const ccharOnlyInputs = [
         { id: 'tuss_ambulatorial', name: 'tuss_ambulatorial', label: 'Código TUSS Ambulatorial' },
         { id: 'fld_especialidade', name: 'especialidade', label: 'Especialidade Médica' },
@@ -83,11 +81,34 @@ describe('doc2fill Matcher Engine (TDD Suite)', () => {
         motivo: 'Disfunção mastigatória severa'
       };
       const matches = matchFieldsForPayload(ccharOnlyInputs, payload);
-      // tuss_ambulatorial → servico (via termo 'tuss'), especialidade → descricao (via termo 'especialidade'), laudo_pericial → motivo (via termo 'laudo')
       assert.equal(matches.length, 3);
       assert.equal(matches.find(m => m.key === 'servico').target.id, 'tuss_ambulatorial');
       assert.equal(matches.find(m => m.key === 'descricao').target.id, 'fld_especialidade');
       assert.equal(matches.find(m => m.key === 'motivo').target.id, 'laudo_pericial');
+    });
+
+    it('Cenário 1.3 (Happy Path CCHA): mapeia campos específicos do portal CCHA (Honorários Advocatícios & AGU)', () => {
+      const cchaInputs = [
+        { id: 'fld_matricula_siape', name: 'matricula_siape', label: 'Matrícula SIAPE / OAB' },
+        { id: 'processo_judicial_eletronico', name: 'numero_processo', label: 'Número do Processo' },
+        { id: 'fld_procurador', name: 'nome_procurador', label: 'Nome do Procurador / Beneficiário' },
+        { id: 'fld_honorarios', name: 'valor_honorarios', label: 'Honorários Sucumbenciais (R$)' },
+        { id: 'fld_rubrica', name: 'rubrica_ccha', label: 'Rubrica Orçamentária' }
+      ];
+      const payload = {
+        matricula: '1984521',
+        processo: '0045821-44.2026.4.01.3400',
+        razao: 'Dr. Lucas Silva — Advogado da União',
+        valor: 'R$ 14.850,00',
+        servico: 'Honorários Sucumbenciais AGU'
+      };
+      const matches = matchFieldsForPayload(cchaInputs, payload);
+      assert.equal(matches.length, 5);
+      assert.equal(matches.find(m => m.key === 'matricula').target.id, 'fld_matricula_siape');
+      assert.equal(matches.find(m => m.key === 'processo').target.id, 'processo_judicial_eletronico');
+      assert.equal(matches.find(m => m.key === 'razao').target.id, 'fld_procurador');
+      assert.equal(matches.find(m => m.key === 'valor').target.id, 'fld_honorarios');
+      assert.equal(matches.find(m => m.key === 'servico').target.id, 'fld_rubrica');
     });
 
     it('Cenário 2 (Edge Case): ignora campos vazios no payload ou inexistentes no DOM', () => {

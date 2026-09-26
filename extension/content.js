@@ -29,19 +29,26 @@
       .trim();
   }
 
-  // Mapeamentos fiscais e clínicos padrão com suporte ampliado a portais como CCHAR
+  // Mapeamentos fiscais e jurídicos padrão com suporte ampliado ao portal CCHA (Honorários Advocatícios / AGU)
   const FISCAL_MAPPINGS = [
-    { key: 'cnpj', terms: ['cnpj', 'cpf', 'documento', 'prestador', 'emitente', 'identificacao', 'cpf_cnpj', 'cpfcnpj', 'prestador_cpf', 'prestador_cnpj'] },
-    { key: 'razao', terms: ['razao', 'nome', 'fantasia', 'empresa', 'social', 'prestador_nome', 'nome_prestador', 'clinica', 'medico'] },
-    { key: 'valor', terms: ['valor', 'bruto', 'total', 'quantia', 'servico_valor', 'valor_servico', 'valor_pago', 'valor_despesa', 'valor_solicitado', '_valor'] },
-    { key: 'data', terms: ['data', 'emissao', 'competencia', 'dt_emissao', 'data_pagamento', 'dt_pagamento', 'data_atendimento', 'data_realizacao', '_data'] },
-    { key: 'servico', terms: ['servico', 'codigo', 'item', 'cnae', 'atividade', 'cod_servico', 'codigo_tuss', 'tuss', 'tuss_codigo'] },
-    { key: 'irrf', terms: ['irrf', 'retencao', 'retido', 'imposto'] },
-    { key: 'descricao', terms: ['descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos', 'procedimento', 'despesa', 'especialidade', 'tipo_despesa'] },
-    { key: 'beneficiario', terms: ['titular', 'dependente', 'beneficiario', 'parentesco', 'paciente', 'segurado', 'usuario', 'cpfTitular', 'dependenteCpf', 'dependenteNome', 'tipo_beneficiario'] },
-    { key: 'motivo', terms: ['motivo', 'justificativa', 'indicacao', 'necessidade', 'diagnostico', 'cid', 'justificativa_clinica', 'indicacao_clinica', 'relatorio_medico', 'laudo'] },
-    { key: 'natureza', terms: ['natureza', 'cirurgico', 'tipo_procedimento', 'carater'] },
-    { key: 'tipo_documento', terms: ['tipo_documento', 'comprovante_tipo', 'especie', 'tipo_comprovante', 'tipo_doc', 'comprovante', 'tipo_despesa'] }
+    { key: 'cnpj', terms: ['cnpj', 'cpf', 'documento', 'prestador', 'emitente', 'identificacao', 'cpf_cnpj', 'cpfcnpj', 'cpf_procurador', 'cpf_beneficiario', 'prestador_cpf', 'prestador_cnpj'] },
+    { key: 'razao', terms: ['razao', 'nome', 'fantasia', 'empresa', 'social', 'prestador_nome', 'nome_prestador', 'nome_procurador', 'nome_advogado', 'clinica', 'medico'] },
+    { key: 'valor', terms: ['valor', 'honorarios', 'valor_honorarios', 'quantia', 'valor_total', 'bruto', 'total', 'servico_valor', 'valor_servico', 'valor_pago', 'valor_despesa', 'valor_solicitado', '_valor'] },
+    { key: 'data', terms: ['data', 'emissao', 'competencia', 'dt_emissao', 'data_requerimento', 'data_pagamento', 'dt_pagamento', 'data_atendimento', 'data_realizacao', '_data'] },
+    { key: 'servico', terms: ['servico', 'codigo', 'item', 'cnae', 'atividade', 'cod_servico', 'codigo_tuss', 'tuss', 'tuss_codigo', 'rubrica', 'rubrica_ccha'] },
+    { key: 'irrf', terms: ['irrf', 'retencao', 'retido', 'imposto', 'tributo'] },
+    { key: 'descricao', terms: ['descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos', 'procedimento', 'despesa', 'especialidade', 'tipo_despesa', 'objeto', 'especificacao', 'honorarios_sucumbenciais'] },
+    { key: 'beneficiario', terms: ['beneficiario', 'procurador', 'advogado', 'nome_beneficiario', 'requerente', 'nome_requerente', 'titular', 'dependente', 'parentesco', 'paciente', 'segurado', 'usuario', 'cpfTitular', 'dependenteCpf', 'dependenteNome', 'tipo_beneficiario'] },
+    { key: 'motivo', terms: ['motivo', 'justificativa', 'fundamentacao', 'indicacao', 'necessidade', 'diagnostico', 'cid', 'justificativa_clinica', 'indicacao_clinica', 'relatorio_medico', 'laudo', 'relatorio', 'observacao'] },
+    { key: 'natureza', terms: ['natureza', 'especie', 'tipo_processo', 'carater', 'cirurgico', 'tipo_procedimento'] },
+    { key: 'tipo_documento', terms: ['tipo_documento', 'comprovante_tipo', 'especie', 'tipo_comprovante', 'tipo_doc', 'comprovante', 'tipo_despesa', 'tipo_requerimento'] },
+    { key: 'matricula', terms: ['matricula', 'siape', 'matricula_siape', 'num_matricula', 'registro_funcional', 'oab'] },
+    { key: 'orgao', terms: ['orgao', 'lotacao', 'carreira', 'cargo', 'unidade', 'agu', 'pgfn', 'pgf', 'pgbc'] },
+    { key: 'banco', terms: ['banco', 'instituicao_bancaria', 'cod_banco', 'nome_banco'] },
+    { key: 'agencia', terms: ['agencia', 'cod_agencia', 'prefixo_agencia'] },
+    { key: 'conta', terms: ['conta', 'conta_corrente', 'num_conta', 'cc', 'conta_bancaria'] },
+    { key: 'pix', terms: ['pix', 'chave_pix', 'tipo_pix', 'chavepix'] },
+    { key: 'processo', terms: ['processo', 'numero_processo', 'num_processo', 'processo_judicial', 'processo_administrativo', 'protocolo'] }
   ];
 
   // Coleta profunda de elementos de formulário, incluindo suporte a Shadow DOM
