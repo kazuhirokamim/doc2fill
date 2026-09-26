@@ -1,6 +1,7 @@
-// doc2fill - Sidepanel Controller (Clinical Translation & File Injection Edition)
+// doc2fill - Sidepanel Controller (CCHA Honorários & Real File Parsing Edition)
 import { translateClinicalProcedure } from './core/clinical-translator.js';
 import { classifyDocumentType } from './core/classifier.js';
+import { parseDocumentFields, extractTextFromPdfContent } from './core/document-parser.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Elements
@@ -155,15 +156,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function handleFileProcessing(file) {
+  async function handleFileProcessing(file) {
     if (!file) return;
 
-    dropTitle.textContent = `✓ ${file.name}`;
-    dropSubtitle.textContent = `Tamanho: ${(file.size / 1024).toFixed(1)} KB • Em memória volátil`;
+    dropTitle.textContent = `⏳ Lendo ${file.name}...`;
+    dropSubtitle.textContent = `Extraindo texto e campos em memória efêmera...`;
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const base64 = ev.target.result;
+    try {
+      // 1. Converte para base64 para anexo
+      const base64Promise = new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+
+      // 2. Extrai texto bruto (PDF ou texto)
+      let extractedText = '';
+      if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+        const bufferPromise = new Promise((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve(r.result);
+          r.onerror = reject;
+          r.readAsArrayBuffer(file);
+        });
+        const buffer = await bufferPromise;
+        extractedText = extractTextFromPdfContent(buffer);
+      } else if (file.type.startsWith('text/') || file.name.match(/\.(txt|csv|json|xml|html)$/i)) {
+        const textPromise = new Promise((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve(r.result);
+          r.onerror = reject;
+          r.readAsText(file);
+        });
+        extractedText = await textPromise;
+      }
+
+      const base64 = await base64Promise;
       const filePayload = {
         name: file.name,
         type: file.type || 'application/pdf',
@@ -171,21 +200,18 @@ document.addEventListener('DOMContentLoaded', () => {
         base64
       };
 
-      // Classifica o tipo de documento pelo nome do arquivo
-      const docType = classifyDocumentType('', file.name);
+      // 3. Extrai campos estruturados (CCHA / Honorários)
+      const parsed = parseDocumentFields(extractedText, file.name);
 
-      // Preenche com extração em memória
-      populateFormFields({
-        beneficiario: 'titular',
-        tipo_documento: docType.type,
-        cnpj: '00.000.000/0001-91',
-        razao: 'Hospital e Clínica Médica Especializada',
-        valor: 'R$ 3.200,00',
-        data: new Date().toISOString().split('T')[0],
-        descricao: file.name.toLowerCase().includes('capilar') ? 'implante capilar' : 'lente dental'
-      }, filePayload);
-    };
-    reader.readAsDataURL(file);
+      dropTitle.textContent = `✓ ${file.name}`;
+      dropSubtitle.textContent = `Arquivo lido • ${(file.size / 1024).toFixed(1)} KB • Dados extraídos`;
+
+      populateFormFields(parsed, filePayload);
+    } catch (err) {
+      console.error('[doc2fill] Erro ao processar arquivo:', err);
+      dropTitle.textContent = `⚠️ Erro ao ler ${file.name}`;
+      dropSubtitle.textContent = 'Não foi possível ler o arquivo. Tente novamente.';
+    }
   }
 
   // 4. Sessão P2P com QR Code Real e Escaneável via Câmera Mobile

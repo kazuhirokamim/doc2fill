@@ -1,4 +1,4 @@
-// doc2fill — Controlador Mobile PWA (Scanner da Câmera & Transmissão P2P)
+// doc2fill — Controlador Mobile PWA (Scanner da Câmera & Transmissão P2P para Extensão)
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('camera-input');
   const container = document.getElementById('preview-container');
@@ -11,17 +11,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const quickCopySection = document.getElementById('quick-copy-section');
   const quickCopyButtons = document.getElementById('quick-copy-buttons');
 
-  const defaultHealthData = {
-    tipo_documento: 'recibo',
-    beneficiario: 'titular',
-    natureza: 'nao_cirurgico',
-    cnpj: '33.000.167/0001-01',
-    razao: 'Dr. Roberto Santos Clínico e Dermatologista',
-    valor: 'R$ 1.850,00',
-    data: '2026-09-18',
-    servico: '20.10.101-5',
-    descricao: 'Tratamento de alopecia areata e alopécia cicatricial (TUSS 20.10.101-5)',
-    motivo: 'Controle de processo inflamatório folicular ativo com repercussão dermatofuncional severa.'
+  let currentFilePayload = null;
+
+  const defaultCchaData = {
+    tipo_documento: 'Requerimento de Honorários',
+    beneficiario: 'Advogado da União (AGU)',
+    cnpj: '123.456.789-00',
+    matricula: '1984521',
+    processo: '0045821-44.2026.4.01.3400',
+    razao: 'Dr. Lucas Silva — Advogado da União',
+    valor: 'R$ 14.850,00',
+    data: new Date().toISOString().split('T')[0],
+    banco: 'Banco do Brasil (001)',
+    agencia: '3380-4',
+    conta: '45210-9',
+    pix: 'lucas.silva@agu.gov.br',
+    descricao: 'Honorários advocatícios sucumbenciais devidos perante o CCHA.',
+    motivo: 'Art. 29 a 36 da Lei nº 13.327/2016 e Resoluções CCHA.'
   };
 
   function renderQuickCopyButtons(data) {
@@ -29,11 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
     quickCopyButtons.innerHTML = '';
 
     const fields = [
-      { key: 'cnpj', label: 'Copiar CNPJ / CPF' },
-      { key: 'razao', label: 'Copiar Nome / Razão Social' },
-      { key: 'valor', label: 'Copiar Valor' },
-      { key: 'descricao', label: 'Copiar Descrição Técnica TUSS' },
-      { key: 'motivo', label: 'Copiar Motivo Anti-Glosa' }
+      { key: 'cnpj', label: 'Copiar CPF' },
+      { key: 'processo', label: 'Copiar Processo' },
+      { key: 'razao', label: 'Copiar Nome do Procurador' },
+      { key: 'valor', label: 'Copiar Valor dos Honorários' },
+      { key: 'descricao', label: 'Copiar Objeto / Histórico' }
     ];
 
     fields.forEach(f => {
@@ -68,10 +74,10 @@ document.addEventListener('DOMContentLoaded', () => {
     quickCopySection.style.display = 'block';
   }
 
-  // Renderiza botões assistidos na inicialização com os dados padrão
-  renderQuickCopyButtons(defaultHealthData);
+  // Renderiza botões assistidos na inicialização com os dados padrão CCHA
+  renderQuickCopyButtons(defaultCchaData);
 
-  async function sendToExtension(customData) {
+  async function sendToExtension(customData, fileObj) {
     if (!sessionId) {
       if (statusBadge) {
         statusBadge.textContent = '⚠️ Abra este link pelo QR Code da extensão';
@@ -82,24 +88,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (statusBadge) {
-      statusBadge.textContent = '⏳ Transmitindo dados via P2P...';
+      statusBadge.textContent = '⏳ Transmitindo dados e arquivo para o computador...';
+      statusBadge.style.background = '#E0F2FE';
+      statusBadge.style.color = '#0369A1';
     }
 
     try {
-      const payload = customData || defaultHealthData;
+      const dataPayload = customData || defaultCchaData;
+      const payload = {
+        session: sessionId,
+        data: dataPayload,
+        file: fileObj || currentFilePayload || null
+      };
 
       const res = await fetch('/api/relay/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session: sessionId, data: payload })
+        body: JSON.stringify(payload)
       });
       const resJson = await res.json();
       if (resJson.success && statusBadge) {
-        statusBadge.textContent = '✓ Transmitido para a extensão no computador!';
+        statusBadge.textContent = '✓ Transmitido para a extensão no computador com sucesso!';
         statusBadge.style.background = '#ECFDF5';
         statusBadge.style.color = '#065F46';
       }
     } catch (err) {
+      console.error('Erro na transmissão:', err);
       if (statusBadge) {
         statusBadge.textContent = '❌ Erro ao conectar com o computador';
         statusBadge.style.background = '#FEE2E2';
@@ -110,13 +124,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (input) {
     input.addEventListener('change', (e) => {
-      const file = e.target.files[0];
+      const file = e.target.files && e.target.files[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = (ev) => {
           if (img) img.src = ev.target.result;
           if (container) container.style.display = 'block';
-          sendToExtension();
+
+          currentFilePayload = {
+            name: file.name,
+            type: file.type || 'image/jpeg',
+            size: file.size,
+            base64: ev.target.result
+          };
+
+          // Extrai campos do nome do arquivo se houver metadados
+          const extractedData = { ...defaultCchaData };
+          if (file.name) {
+            extractedData.descricao = `Documento digitalizado: ${file.name}`;
+          }
+
+          sendToExtension(extractedData, currentFilePayload);
         };
         reader.readAsDataURL(file);
       }
@@ -125,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnTransmit) {
     btnTransmit.addEventListener('click', () => {
-      sendToExtension();
+      sendToExtension(defaultCchaData, currentFilePayload);
     });
   }
 });

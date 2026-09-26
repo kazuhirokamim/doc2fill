@@ -115,6 +115,7 @@ export function createAppServer(port = DEFAULT_PORT) {
           }
           relaySessions.set(payload.session, {
             data: payload.data,
+            file: payload.file || null,
             timestamp: Date.now()
           });
           res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -142,7 +143,7 @@ export function createAppServer(port = DEFAULT_PORT) {
       relaySessions.delete(session);
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ hasData: true, data: item.data }));
+      res.end(JSON.stringify({ hasData: true, data: item.data, file: item.file || null }));
       return;
     }
 
