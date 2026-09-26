@@ -27,16 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCopyLink = document.getElementById('btn-copy-link');
   const qrRelayStatus = document.getElementById('qr-relay-status');
 
-  // Input Fields & CCHA Controls
-  const fBeneficiario = document.getElementById('field-beneficiario');
+  // Input Fields & CCHA Controls (8 Campos Focados)
   const fTipoDoc = document.getElementById('field-tipo-doc');
   const fCnpj = document.getElementById('field-cnpj');
-  const fProcesso = document.getElementById('field-processo');
   const fRazao = document.getElementById('field-razao');
-  const fValor = document.getElementById('field-valor');
+  const fNumDoc = document.getElementById('field-num-doc');
   const fData = document.getElementById('field-data');
-  const fNatureza = document.getElementById('field-natureza');
-  const fIrrf = document.getElementById('field-irrf');
+  const fValor = document.getElementById('field-valor');
   const fDescricao = document.getElementById('field-descricao');
   const fMotivo = document.getElementById('field-motivo');
   const badgeAntiGlosa = document.getElementById('badge-anti-glosa');
@@ -62,18 +59,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 2. Preenchimento de dados do CCHA
+  // 2. Preenchimento dos 8 campos focados
   function populateFormFields(data, fileData = null) {
-    if (data.beneficiario && fBeneficiario) fBeneficiario.value = data.beneficiario;
     if (data.tipo_documento && fTipoDoc) fTipoDoc.value = data.tipo_documento;
-    if (data.cnpj && fCnpj) fCnpj.value = data.cnpj;
-    if (data.processo && fProcesso) fProcesso.value = data.processo;
-    if (data.razao && fRazao) fRazao.value = data.razao;
-    if (data.valor && fValor) fValor.value = data.valor;
+    if ((data.cpf_cnpj || data.cnpj || data.cpf) && fCnpj) {
+      fCnpj.value = data.cpf_cnpj || data.cnpj || data.cpf;
+    }
+    if ((data.fornecedor || data.razao || data.nome) && fRazao) {
+      fRazao.value = data.fornecedor || data.razao || data.nome;
+    }
+    if ((data.numero_documento || data.processo) && fNumDoc) {
+      fNumDoc.value = data.numero_documento || data.processo;
+    }
     if (data.data && fData) fData.value = data.data;
-    if (data.natureza && fNatureza) fNatureza.value = data.natureza;
-    if (data.irrf && fIrrf) fIrrf.value = data.irrf;
-    if (data.descricao && fDescricao) fDescricao.value = data.descricao;
+    if (data.valor && fValor) fValor.value = data.valor;
+    if ((data.descritivo || data.descricao) && fDescricao) {
+      fDescricao.value = data.descritivo || data.descricao;
+    }
     if (data.motivo && fMotivo) fMotivo.value = data.motivo;
 
     if (badgeAntiGlosa) {
@@ -89,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    validationBadge.textContent = '✓ Dados do CCHA Prontos';
+    validationBadge.textContent = '✓ 8 Campos Prontos';
     validationBadge.classList.add('valid');
     btnAutofill.disabled = false;
   }
@@ -100,16 +102,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const samplePdfBase64 = 'data:application/pdf;base64,JVBERi0xLjQKJcTl8uXrp/Og0MTGCjEgMCBvYmoKPDwKL1R5cGUgL0NhdGFsb2cKL1BhZ2VzIDIgMCBS';
 
     populateFormFields({
-      beneficiario: 'Advogado da União (AGU)',
-      tipo_documento: 'Requerimento de Honorários',
-      cnpj: '123.456.789-00',
-      processo: '0045821-44.2026.4.01.3400',
-      razao: 'Dr. Lucas Silva — Advogado da União',
-      valor: 'R$ 14.850,00',
+      tipo_documento: 'Nota Fiscal de Serviços (NFS-e)',
+      cpf_cnpj: '12.345.678/0001-90',
+      fornecedor: 'Dr. Lucas Silva — Perícias & Consultoria Jurídica',
+      numero_documento: '00045821',
       data: '2026-09-25',
-      natureza: 'Banco do Brasil (001)',
-      irrf: 'Ag: 3380-4 CC: 45210-9 (PIX: lucas.silva@agu.gov.br)',
-      descricao: 'Honorários advocatícios sucumbenciais devidos em decorrência de êxito em atuação judicial perante o Tribunal Regional Federal.',
+      valor: 'R$ 14.850,00',
+      descritivo: 'Honorários advocatícios sucumbenciais devidos perante o CCHA em decorrência de êxito em atuação judicial.',
       motivo: 'Art. 29 a 36 da Lei nº 13.327/2016 e deliberações do CCHA. Preenchimento de requisitos de elegibilidade e rateio.'
     }, {
       name: 'comprovante_honorarios_ccha.pdf',
@@ -336,36 +335,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 6. Autofill trigger para a aba ativa (Preenchimento + Anexação)
+  // 6. Autofill trigger para a aba ativa (Preenchimento dos 8 campos + Anexação)
   btnAutofill.addEventListener('click', async () => {
     const payload = {
-      cnpj: fCnpj.value.trim(),
-      cpf: fCnpj.value.trim(),
-      matricula: fCnpj.value.trim(),
-      razao: fRazao.value.trim(),
-      nome: fRazao.value.trim(),
-      beneficiario: fBeneficiario ? fBeneficiario.value : '',
-      processo: fProcesso ? fProcesso.value.trim() : '',
-      valor: fValor.value.trim(),
-      data: fData.value.trim(),
-      banco: fNatureza ? fNatureza.value : '',
-      agencia: fIrrf ? fIrrf.value.trim() : '',
-      conta: fIrrf ? fIrrf.value.trim() : '',
-      pix: fIrrf ? fIrrf.value.trim() : '',
-      irrf: fIrrf ? fIrrf.value.trim() : '',
-      descricao: fDescricao.value.trim(),
-      motivo: fMotivo ? fMotivo.value.trim() : '',
-      tipo_documento: fTipoDoc ? fTipoDoc.value : 'Requerimento de Honorários'
+      tipo_documento: fTipoDoc ? fTipoDoc.value : 'Nota Fiscal de Serviços (NFS-e)',
+      cpf_cnpj: fCnpj ? fCnpj.value.trim() : '',
+      cnpj: fCnpj ? fCnpj.value.trim() : '',
+      cpf: fCnpj ? fCnpj.value.trim() : '',
+      fornecedor: fRazao ? fRazao.value.trim() : '',
+      razao: fRazao ? fRazao.value.trim() : '',
+      nome: fRazao ? fRazao.value.trim() : '',
+      numero_documento: fNumDoc ? fNumDoc.value.trim() : '',
+      processo: fNumDoc ? fNumDoc.value.trim() : '',
+      data: fData ? fData.value.trim() : '',
+      valor: fValor ? fValor.value.trim() : '',
+      descritivo: fDescricao ? fDescricao.value.trim() : '',
+      descricao: fDescricao ? fDescricao.value.trim() : '',
+      motivo: fMotivo ? fMotivo.value.trim() : ''
     };
 
-    btnAutofill.textContent = 'Preenchendo e anexando...';
+    btnAutofill.textContent = 'Preenchendo no CCHA...';
     btnAutofill.disabled = true;
 
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tab || !tab.id) {
         alert('Nenhuma aba ativa encontrada.');
-        btnAutofill.innerHTML = '<span>⚡</span> Preencher Formulário & Anexar';
+        btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
         btnAutofill.disabled = false;
         return;
       }
@@ -379,18 +375,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (response && response.success) {
         btnAutofill.textContent = `✓ Preenchido (${response.count} campos)!`;
         setTimeout(() => {
-          btnAutofill.innerHTML = '<span>⚡</span> Preencher Formulário & Anexar';
+          btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
           btnAutofill.disabled = false;
         }, 2200);
       } else {
         alert('Não foi possível preencher. Verifique se a página aberta possui um formulário compatível.');
-        btnAutofill.innerHTML = '<span>⚡</span> Preencher Formulário & Anexar';
+        btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
         btnAutofill.disabled = false;
       }
     } catch (err) {
       console.error('doc2fill error:', err);
       alert('Erro de conexão com a página. Recarregue a aba após atualizar a extensão.');
-      btnAutofill.innerHTML = '<span>⚡</span> Preencher Formulário & Anexar';
+      btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
       btnAutofill.disabled = false;
     }
   });

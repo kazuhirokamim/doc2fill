@@ -12,21 +12,27 @@ export function buildFiscalPayload(rawInputs) {
   }
 
   const sanitized = {
-    cnpj: (rawInputs.cnpj || '').trim(),
-    razao: (rawInputs.razao || '').trim(),
-    valor: (rawInputs.valor || '').trim(),
+    tipo_documento: (rawInputs.tipo_documento || 'Nota Fiscal de Serviços (NFS-e)').trim(),
+    cpf_cnpj: (rawInputs.cpf_cnpj || rawInputs.cnpj || rawInputs.cpf || '').trim(),
+    cnpj: (rawInputs.cnpj || rawInputs.cpf_cnpj || '').trim(),
+    cpf: (rawInputs.cpf || rawInputs.cpf_cnpj || '').trim(),
+    fornecedor: (rawInputs.fornecedor || rawInputs.razao || rawInputs.nome || '').trim(),
+    razao: (rawInputs.razao || rawInputs.fornecedor || '').trim(),
+    numero_documento: (rawInputs.numero_documento || rawInputs.processo || '').trim(),
     data: (rawInputs.data || '').trim(),
+    valor: (rawInputs.valor || '').trim(),
+    descritivo: (rawInputs.descritivo || rawInputs.descricao || '').trim(),
+    descricao: (rawInputs.descricao || rawInputs.descritivo || '').trim(),
+    motivo: (rawInputs.motivo || '').trim(),
+    // campos complementares / retrocompatíveis:
     servico: (rawInputs.servico || '').trim(),
     irrf: (rawInputs.irrf || '').trim(),
-    descricao: (rawInputs.descricao || '').trim(),
     beneficiario: (rawInputs.beneficiario || 'titular').trim(),
-    tipo_documento: (rawInputs.tipo_documento || 'recibo').trim(),
-    natureza: (rawInputs.natureza || 'Não Cirúrgico (Ambulatorial)').trim(),
-    motivo: (rawInputs.motivo || '').trim()
+    natureza: (rawInputs.natureza || 'Não Cirúrgico (Ambulatorial)').trim()
   };
 
-  if (!sanitized.cnpj && !sanitized.razao) {
-    return { valid: false, error: 'Nota fiscal precisa de ao menos CNPJ ou Razão Social' };
+  if (!sanitized.cpf_cnpj && !sanitized.fornecedor) {
+    return { valid: false, error: 'Documento precisa de ao menos CPF/CNPJ ou Nome do Fornecedor' };
   }
 
   return { valid: true, data: sanitized };
@@ -58,36 +64,41 @@ export function validateUploadFile(fileObj) {
 }
 
 describe('doc2fill Sidepanel Payload Builder (TDD Suite)', () => {
-  it('Cenário 1 (Happy Path): deve construir e higienizar payload completo de honorários da AGU', () => {
+  it('Cenário 1 (Happy Path): deve construir e higienizar payload completo com os 8 campos focados', () => {
     const raw = {
-      cnpj: ' 33.000.167/0001-01 ',
-      razao: ' Petróleo Brasileiro S.A. - Petrobras ',
-      valor: ' R$ 14.750,00 ',
+      tipo_documento: 'Nota Fiscal de Serviços (NFS-e)',
+      cpf_cnpj: ' 33.000.167/0001-01 ',
+      fornecedor: ' Petróleo Brasileiro S.A. - Petrobras ',
+      numero_documento: ' 00045821 ',
       data: '2026-09-06',
-      servico: '08.02',
-      irrf: ' R$ 221,25 ',
-      descricao: ' Honorários de sucumbência em execução fiscal '
+      valor: ' R$ 14.750,00 ',
+      descritivo: ' Honorários de sucumbência em execução fiscal ',
+      motivo: ' Requerimento CCHA rateio sucumbencial '
     };
 
     const result = buildFiscalPayload(raw);
     assert.equal(result.valid, true);
-    assert.equal(result.data.cnpj, '33.000.167/0001-01');
-    assert.equal(result.data.razao, 'Petróleo Brasileiro S.A. - Petrobras');
+    assert.equal(result.data.tipo_documento, 'Nota Fiscal de Serviços (NFS-e)');
+    assert.equal(result.data.cpf_cnpj, '33.000.167/0001-01');
+    assert.equal(result.data.fornecedor, 'Petróleo Brasileiro S.A. - Petrobras');
+    assert.equal(result.data.numero_documento, '00045821');
+    assert.equal(result.data.data, '2026-09-06');
     assert.equal(result.data.valor, 'R$ 14.750,00');
-    assert.equal(result.data.descricao, 'Honorários de sucumbência em execução fiscal');
+    assert.equal(result.data.descritivo, 'Honorários de sucumbência em execução fiscal');
+    assert.equal(result.data.motivo, 'Requerimento CCHA rateio sucumbencial');
   });
 
   it('Cenário 2 (Edge Case): deve aceitar campos opcionais vazios ou com espaços em branco', () => {
     const raw = {
       cnpj: '33.000.167/0001-01',
-      razao: '',
+      fornecedor: '',
       valor: '',
       irrf: '   '
     };
 
     const result = buildFiscalPayload(raw);
     assert.equal(result.valid, true);
-    assert.equal(result.data.cnpj, '33.000.167/0001-01');
+    assert.equal(result.data.cpf_cnpj, '33.000.167/0001-01');
     assert.equal(result.data.irrf, '');
   });
 

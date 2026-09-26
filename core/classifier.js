@@ -1,6 +1,6 @@
 /**
  * doc2fill - Core Document Type Classifier
- * Classifica automaticamente comprovantes em NFS-e, Recibo Profissional, Boleto, Guia TISS/TUSS.
+ * Classifica automaticamente comprovantes em Nota Fiscal, Cupom Fiscal, Recibo, Boleto, Fatura, Comprovante de Pagamento, Guia Médica e Declaração.
  * Zero dependências, pure JS, client-side execution.
  */
 
@@ -8,17 +8,25 @@ import { normalizeText } from './matcher.js';
 
 export const DOCUMENT_TYPES = {
   NFSE: 'nfse',
+  CUPOM: 'cupom',
   RECIBO: 'recibo',
   BOLETO: 'boleto',
+  FATURA: 'fatura',
+  COMPROVANTE: 'comprovante',
   GUIA: 'guia',
+  DECLARACAO: 'declaracao',
   OUTROS: 'outros'
 };
 
 export const DOCUMENT_LABELS = {
   [DOCUMENT_TYPES.NFSE]: 'Nota Fiscal de Serviços (NFS-e)',
+  [DOCUMENT_TYPES.CUPOM]: 'Cupom Fiscal (NFC-e / SAT)',
   [DOCUMENT_TYPES.RECIBO]: 'Recibo Profissional Liberal',
   [DOCUMENT_TYPES.BOLETO]: 'Boleto / Comprovante Bancário',
+  [DOCUMENT_TYPES.FATURA]: 'Fatura / Concessionária',
+  [DOCUMENT_TYPES.COMPROVANTE]: 'Comprovante de Pagamento',
   [DOCUMENT_TYPES.GUIA]: 'Guia Médica (TISS/TUSS)',
+  [DOCUMENT_TYPES.DECLARACAO]: 'Declaração',
   [DOCUMENT_TYPES.OUTROS]: 'Outro Comprovante'
 };
 
@@ -56,12 +64,30 @@ export function classifyDocumentType(textConteudo, fileName = '') {
     };
   }
 
-  // 2. Padrão Boleto Bancário (avaliado antes de recibo genérico por conta de 'recibo do sacado')
+  // 2. Padrão Comprovante de Pagamento (PIX, TED, Transferência bancária)
+  if (
+    combined.includes('comprovante de pagamento') ||
+    combined.includes('comprovante pix') ||
+    combined.includes('pagamento pix') ||
+    combined.includes('comprovante de transferencia') ||
+    combined.includes('transacao realizada') ||
+    combined.includes('autenticacao bancaria') ||
+    (combined.includes('comprovante') && (combined.includes('pix') || combined.includes('ted') || combined.includes('doc')))
+  ) {
+    return {
+      type: DOCUMENT_TYPES.COMPROVANTE,
+      label: DOCUMENT_LABELS[DOCUMENT_TYPES.COMPROVANTE],
+      confidence: 0.95
+    };
+  }
+
+  // 3. Padrão Boleto Bancário
   if (
     combined.includes('linha digitavel') ||
     combined.includes('recibo do sacado') ||
     combined.includes('recibo do pagador') ||
     combined.includes('boleto') ||
+    combined.includes('ficha de compensacao') ||
     (combined.includes('vencimento') && combined.includes('cedente'))
   ) {
     return {
@@ -71,11 +97,61 @@ export function classifyDocumentType(textConteudo, fileName = '') {
     };
   }
 
-  // 3. Padrão Nota Fiscal de Serviço (NFS-e / DANFE)
+  // 4. Padrão Cupom Fiscal (NFC-e / SAT / ECF)
+  if (
+    combined.includes('cupom fiscal') ||
+    combined.includes('cupom_fiscal') ||
+    combined.includes('nfc-e') ||
+    combined.includes('nfce') ||
+    combined.includes('sat') ||
+    combined.includes('extrato sat') ||
+    combined.includes('danfe nfc-e')
+  ) {
+    return {
+      type: DOCUMENT_TYPES.CUPOM,
+      label: DOCUMENT_LABELS[DOCUMENT_TYPES.CUPOM],
+      confidence: 0.92
+    };
+  }
+
+  // 5. Padrão Fatura (Concessionária, Cartão, Serviços Mensais)
+  if (
+    combined.includes('fatura') ||
+    combined.includes('conta mensal') ||
+    combined.includes('concessionaria') ||
+    combined.includes('telecomunicacoes') ||
+    combined.includes('energia eletrica') ||
+    combined.includes('demonstrativo de fatura')
+  ) {
+    return {
+      type: DOCUMENT_TYPES.FATURA,
+      label: DOCUMENT_LABELS[DOCUMENT_TYPES.FATURA],
+      confidence: 0.9
+    };
+  }
+
+  // 6. Padrão Declaração
+  if (
+    combined.includes('declaracao') ||
+    combined.includes('termo de declaracao') ||
+    combined.includes('declaracao de quitacao') ||
+    combined.includes('atesto de prestacao') ||
+    combined.includes('declaramos para os devidos fins')
+  ) {
+    return {
+      type: DOCUMENT_TYPES.DECLARACAO,
+      label: DOCUMENT_LABELS[DOCUMENT_TYPES.DECLARACAO],
+      confidence: 0.9
+    };
+  }
+
+  // 7. Padrão Nota Fiscal de Serviço / Mercadoria (NFS-e / NF-e / DANFE)
   if (
     combined.includes('nfs-e') ||
     combined.includes('nfse') ||
+    combined.includes('nf-e') ||
     combined.includes('danfe') ||
+    combined.includes('danfse') ||
     combined.includes('nota fiscal') ||
     combined.includes('prefeitura') ||
     combined.includes('issqn') ||
@@ -88,7 +164,7 @@ export function classifyDocumentType(textConteudo, fileName = '') {
     };
   }
 
-  // 4. Padrão Recibo de Profissional Liberal
+  // 8. Padrão Recibo de Profissional Liberal / RPA
   if (
     combined.includes('recibo') ||
     combined.includes('crm') ||

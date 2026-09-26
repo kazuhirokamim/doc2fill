@@ -76,99 +76,76 @@
       </div>
     </section>
 
-    <!-- Formulário com Campos do CCHA -->
+    <!-- Formulário Focado: Apenas os 8 Dados Essenciais -->
     <section class="clean-card form-card">
       <div class="form-header-row">
         <div>
-          <h3 class="section-title">Dados do Requerimento CCHA</h3>
-          <p class="section-subtitle">Área do Beneficiário & Processos</p>
+          <h3 class="section-title">Dados Extraídos do Comprovante</h3>
+          <p class="section-subtitle">Conferência dos 8 campos essenciais para o CCHA</p>
         </div>
         <span class="badge-pill badge-status" id="validation-badge">Aguardando dados</span>
       </div>
 
       <div class="fields-container">
-        <!-- Beneficiário / Carreira & Tipo de Documento -->
+        <!-- 1. Tipo do Documento & 2. CPF/CNPJ -->
         <div class="field-row">
           <div class="field-group flex-1">
-            <label for="field-beneficiario">Carreira / Beneficiário</label>
-            <select id="field-beneficiario">
-              <option value="Advogado da União (AGU)" selected>Advogado da União (AGU)</option>
-              <option value="Procurador Federal (PGF)">Procurador Federal (PGF)</option>
-              <option value="Procurador da Fazenda Nacional (PGFN)">Procurador da Fazenda (PGFN)</option>
-              <option value="Procurador do Banco Central (PGBC)">Procurador do BACEN (PGBC)</option>
-              <option value="Titular">Titular</option>
-              <option value="Herdeiro / Pensionista">Herdeiro / Pensionista</option>
-            </select>
-          </div>
-          <div class="field-group flex-1">
-            <label for="field-tipo-doc">Tipo de Requerimento</label>
+            <label for="field-tipo-doc">Tipo do Documento</label>
             <select id="field-tipo-doc">
-              <option value="Requerimento de Honorários" selected>Honorários Sucumbenciais</option>
-              <option value="Ressarcimento de Despesas">Ressarcimento de Despesas</option>
+              <option value="Nota Fiscal de Serviços (NFS-e)" selected>Nota Fiscal de Serviços (NFS-e)</option>
+              <option value="Cupom Fiscal (NFC-e / SAT)">Cupom Fiscal (NFC-e / SAT)</option>
+              <option value="Recibo Profissional Liberal">Recibo Profissional Liberal</option>
+              <option value="Boleto / Comprovante Bancário">Boleto / Comprovante Bancário</option>
+              <option value="Fatura / Concessionária">Fatura / Concessionária</option>
               <option value="Comprovante de Pagamento">Comprovante de Pagamento</option>
-              <option value="Prestação de Contas">Prestação de Contas</option>
-              <option value="Nota Fiscal de Serviços">Nota Fiscal de Serviços</option>
+              <option value="Guia Médica (TISS/TUSS)">Guia Médica (TISS/TUSS)</option>
+              <option value="Declaração">Declaração</option>
+              <option value="Outro Comprovante">Outro Comprovante</option>
             </select>
           </div>
-        </div>
-
-        <div class="field-row">
           <div class="field-group flex-1">
-            <label for="field-cnpj">CPF / Matrícula SIAPE</label>
-            <input type="text" id="field-cnpj" placeholder="000.000.000-00 ou SIAPE" spellcheck="false">
-          </div>
-          <div class="field-group flex-1">
-            <label for="field-processo">Processo / Protocolo CCHA</label>
-            <input type="text" id="field-processo" placeholder="0000000-00.0000.0.00.0000" spellcheck="false">
+            <label for="field-cnpj">CPF / CNPJ do Fornecedor</label>
+            <input type="text" id="field-cnpj" placeholder="000.000.000-00 ou 00.000.000/0000-00" spellcheck="false">
           </div>
         </div>
 
+        <!-- 3. Nome do Fornecedor / Razão Social -->
         <div class="field-group">
-          <label for="field-razao">Nome do Procurador / Beneficiário</label>
-          <input type="text" id="field-razao" placeholder="Nome completo do procurador ou requerente" spellcheck="false">
+          <label for="field-razao">Nome do Fornecedor / Prestador</label>
+          <input type="text" id="field-razao" placeholder="Razão social ou nome do fornecedor/emissor" spellcheck="false">
         </div>
 
+        <!-- 4. Número do Documento & 5. Data do Documento -->
         <div class="field-row">
           <div class="field-group flex-1">
-            <label for="field-valor">Valor dos Honorários (R$)</label>
-            <input type="text" id="field-valor" placeholder="R$ 0,00" spellcheck="false">
+            <label for="field-num-doc">Número do Documento</label>
+            <input type="text" id="field-num-doc" placeholder="Nº da NF, Cupom, Recibo, Fatura, etc." spellcheck="false">
           </div>
           <div class="field-group flex-1">
-            <label for="field-data">Data do Requerimento</label>
+            <label for="field-data">Data do Documento</label>
             <input type="date" id="field-data">
           </div>
         </div>
 
-        <div class="field-row">
-          <div class="field-group flex-1">
-            <label for="field-natureza">Banco do Beneficiário</label>
-            <select id="field-natureza">
-              <option value="Banco do Brasil (001)" selected>Banco do Brasil (001)</option>
-              <option value="Caixa Econômica (104)">Caixa Econômica (104)</option>
-              <option value="Santander (033)">Santander (033)</option>
-              <option value="Itaú (341)">Itaú (341)</option>
-              <option value="Bradesco (237)">Bradesco (237)</option>
-            </select>
-          </div>
-          <div class="field-group flex-1">
-            <label for="field-irrf">Agência / Conta / Chave PIX</label>
-            <input type="text" id="field-irrf" placeholder="Ag: 0000 CC: 00000-0 ou PIX" spellcheck="false">
-          </div>
+        <!-- 6. Valor do Documento (R$) -->
+        <div class="field-group">
+          <label for="field-valor">Valor do Documento (R$)</label>
+          <input type="text" id="field-valor" placeholder="R$ 0,00" spellcheck="false">
         </div>
 
-        <!-- Descrição / Histórico do Requerimento CCHA -->
+        <!-- 7. Descritivo Resumido -->
         <div class="field-group">
           <div class="label-badge-row">
-            <label for="field-descricao">Histórico / Objeto do Requerimento</label>
+            <label for="field-descricao">Descritivo Resumido</label>
             <span class="badge-anti-glosa" id="badge-anti-glosa" style="display:none; background:#10b981; color:#fff;">⚖️ CCHA Validado</span>
           </div>
-          <textarea id="field-descricao" rows="2" placeholder="Discriminação da atuação judicial, honorários ou despesas operacionais..." spellcheck="false"></textarea>
+          <textarea id="field-descricao" rows="2" placeholder="Síntese concisa do serviço prestado ou produto adquirido..." spellcheck="false"></textarea>
         </div>
 
-        <!-- Justificativa / Fundamentação -->
+        <!-- 8. Motivo da Necessidade -->
         <div class="field-group">
-          <label for="field-motivo">Justificativa / Fundamentação Legal</label>
-          <textarea id="field-motivo" rows="2" placeholder="Fundamentação legal ou despacho comprobatório..." spellcheck="false"></textarea>
+          <label for="field-motivo">Motivo da Necessidade</label>
+          <textarea id="field-motivo" rows="2" placeholder="Justificativa formal ou fundamentação legal perante o CCHA..." spellcheck="false"></textarea>
         </div>
 
         <!-- Status do Anexo de Arquivo -->
@@ -178,7 +155,7 @@
         </div>
 
         <button id="btn-autofill" class="btn-primary" disabled>
-          <span>⚡</span> Preencher Formulário CCHA & Anexar
+          <span>⚡</span> Preencher Automaticamente no CCHA
         </button>
       </div>
     </section>
