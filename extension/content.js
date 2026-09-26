@@ -1,4 +1,4 @@
-// doc2fill - Content Script Autofill Engine (Clinical & File Attachment Edition)
+// doc2fill - Content Script Autofill Engine (CCHA & Angular Material / Reactive Forms Edition)
 (() => {
   const win = typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : null);
   const doc = typeof document !== 'undefined' ? document : null;
@@ -6,7 +6,7 @@
   if (win) win.__doc2fill_initialized = true;
 
   if (typeof console !== 'undefined') {
-    console.log('[doc2fill] Injetor clínico e fiscal ativo na página.');
+    console.log('[doc2fill] Injetor CCHA e Angular Reactive Forms ativo na página.');
   }
 
   // Limpeza defensiva total para expurgar resíduos de versões anteriores
@@ -29,31 +29,35 @@
       .trim();
   }
 
-  // Mapeamentos fiscais e jurídicos padrão com suporte ampliado ao portal CCHA (Honorários Advocatícios / AGU)
+  // Mapeamentos fiscais e jurídicos padrão com suporte ao portal CCHA (Honorários Advocatícios / AGU)
   const FISCAL_MAPPINGS = [
     { key: 'cnpj', terms: ['cnpj', 'cpf', 'documento', 'prestador', 'emitente', 'identificacao', 'cpf_cnpj', 'cpfcnpj', 'cpf_procurador', 'cpf_beneficiario', 'prestador_cpf', 'prestador_cnpj'] },
-    { key: 'razao', terms: ['razao', 'nome', 'fantasia', 'empresa', 'social', 'prestador_nome', 'nome_prestador', 'nome_procurador', 'nome_advogado', 'clinica', 'medico'] },
+    { key: 'cpf', terms: ['cpf', 'cpfcnpj', 'documento', 'identificacao', 'cpfprocurador', 'cpfbeneficiario', 'prestadorcpf', 'dependentecpf'] },
+    { key: 'razao', terms: ['razao', 'nome', 'fantasia', 'empresa', 'social', 'prestador_nome', 'nome_prestador', 'nome_procurador', 'nome_advogado', 'requerente', 'beneficiario', 'dependentenome', 'nomemae', 'nomepai'] },
+    { key: 'nome', terms: ['nome', 'razao', 'prestador_nome', 'nome_procurador', 'nome_advogado', 'requerente', 'beneficiario', 'dependentenome', 'nomemae', 'nomepai'] },
     { key: 'valor', terms: ['valor', 'honorarios', 'valor_honorarios', 'quantia', 'valor_total', 'bruto', 'total', 'servico_valor', 'valor_servico', 'valor_pago', 'valor_despesa', 'valor_solicitado', '_valor'] },
-    { key: 'data', terms: ['data', 'emissao', 'competencia', 'dt_emissao', 'data_requerimento', 'data_pagamento', 'dt_pagamento', 'data_atendimento', 'data_realizacao', '_data'] },
+    { key: 'data', terms: ['data', 'emissao', 'competencia', 'dt_emissao', 'data_requerimento', 'data_pagamento', 'dt_pagamento', 'data_atendimento', 'data_realizacao', 'dataingresso', 'datanascimento', '_data'] },
     { key: 'servico', terms: ['servico', 'codigo', 'item', 'cnae', 'atividade', 'cod_servico', 'codigo_tuss', 'tuss', 'tuss_codigo', 'rubrica', 'rubrica_ccha'] },
     { key: 'irrf', terms: ['irrf', 'retencao', 'retido', 'imposto', 'tributo'] },
     { key: 'descricao', terms: ['descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos', 'procedimento', 'despesa', 'especialidade', 'tipo_despesa', 'objeto', 'especificacao', 'honorarios_sucumbenciais'] },
-    { key: 'beneficiario', terms: ['beneficiario', 'procurador', 'advogado', 'nome_beneficiario', 'requerente', 'nome_requerente', 'titular', 'dependente', 'parentesco', 'paciente', 'segurado', 'usuario', 'cpfTitular', 'dependenteCpf', 'dependenteNome', 'tipo_beneficiario'] },
-    { key: 'motivo', terms: ['motivo', 'justificativa', 'fundamentacao', 'indicacao', 'necessidade', 'diagnostico', 'cid', 'justificativa_clinica', 'indicacao_clinica', 'relatorio_medico', 'laudo', 'relatorio', 'observacao'] },
-    { key: 'natureza', terms: ['natureza', 'especie', 'tipo_processo', 'carater', 'cirurgico', 'tipo_procedimento'] },
+    { key: 'beneficiario', terms: ['beneficiario', 'procurador', 'advogado', 'nome_beneficiario', 'requerente', 'nome_requerente', 'titular', 'dependente', 'parentesco', 'tipo_beneficiario'] },
+    { key: 'motivo', terms: ['motivo', 'justificativa', 'fundamentacao', 'indicacao', 'necessidade', 'relatorio', 'observacao', 'declaracao'] },
+    { key: 'natureza', terms: ['natureza', 'especie', 'tipo_processo', 'carater', 'tipo_procedimento'] },
     { key: 'tipo_documento', terms: ['tipo_documento', 'comprovante_tipo', 'especie', 'tipo_comprovante', 'tipo_doc', 'comprovante', 'tipo_despesa', 'tipo_requerimento'] },
-    { key: 'matricula', terms: ['matricula', 'siape', 'matricula_siape', 'num_matricula', 'registro_funcional', 'oab'] },
-    { key: 'orgao', terms: ['orgao', 'lotacao', 'carreira', 'cargo', 'unidade', 'agu', 'pgfn', 'pgf', 'pgbc'] },
+    { key: 'matricula', terms: ['matricula', 'siape', 'matricula_siape', 'num_matricula', 'registro_funcional', 'oab', 'numerooab', 'ufoab'] },
+    { key: 'orgao', terms: ['orgao', 'lotacao', 'carreira', 'cargo', 'categoria', 'unidade', 'agu', 'pgfn', 'pgf', 'pgbc'] },
     { key: 'banco', terms: ['banco', 'instituicao_bancaria', 'cod_banco', 'nome_banco'] },
     { key: 'agencia', terms: ['agencia', 'cod_agencia', 'prefixo_agencia'] },
     { key: 'conta', terms: ['conta', 'conta_corrente', 'num_conta', 'cc', 'conta_bancaria'] },
     { key: 'pix', terms: ['pix', 'chave_pix', 'tipo_pix', 'chavepix'] },
+    { key: 'email', terms: ['email', 'emailinstitucional', 'emailpessoal'] },
     { key: 'processo', terms: ['processo', 'numero_processo', 'num_processo', 'processo_judicial', 'processo_administrativo', 'protocolo'] }
   ];
 
-  // Coleta profunda de elementos de formulário, incluindo suporte a Shadow DOM
+  // Coleta profunda de elementos de formulário, incluindo Angular Reactive Forms, ng-select e Shadow DOM
   function getAllFormElements(root = document) {
-    const selector = 'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([disabled]), textarea:not([disabled]), select:not([disabled])';
+    if (!root || !root.querySelectorAll) return [];
+    const selector = 'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([disabled]), textarea:not([disabled]), select:not([disabled]), ng-select:not([disabled]), mat-select:not([disabled]), [formcontrolname]:not([disabled])';
     let elements = Array.from(root.querySelectorAll(selector));
 
     const allNodes = root.querySelectorAll('*');
@@ -83,7 +87,8 @@
     }
 
     let filledCount = 0;
-    const inputs = getAllFormElements(document);
+    const rootDoc = typeof document !== 'undefined' ? document : null;
+    const inputs = getAllFormElements(rootDoc);
 
     for (const m of FISCAL_MAPPINGS) {
       const val = data[m.key];
@@ -119,23 +124,46 @@
       const id = normalizeText(input.id || '');
       const name = normalizeText(input.name || '');
       const placeholder = normalizeText(input.placeholder || '');
-      const ariaLabel = normalizeText(input.getAttribute('aria-label') || '');
+      const ariaLabel = normalizeText(input.getAttribute ? (input.getAttribute('aria-label') || '') : '');
+      const fcn = normalizeText(input.getAttribute ? (input.getAttribute('formcontrolname') || '') : '');
+      const ngReflect = normalizeText(input.getAttribute ? (input.getAttribute('ng-reflect-name') || '') : '');
 
       let labelText = '';
-      if (input.id) {
+      if (input.id && document.querySelector) {
         const lbl = document.querySelector(`label[for="${input.id}"]`);
         if (lbl) labelText = normalizeText(lbl.innerText || '');
       }
-      if (!labelText && input.closest('label')) {
-        labelText = normalizeText(input.closest('label').innerText || '');
+      if (!labelText && input.closest) {
+        const lbl = input.closest('label');
+        if (lbl) labelText = normalizeText(lbl.innerText || '');
+      }
+
+      // Suporte a Angular Material: <mat-form-field> e <mat-label>
+      if (!labelText && input.closest) {
+        const matFormField = input.closest('mat-form-field');
+        if (matFormField && matFormField.querySelector) {
+          const matLabel = matFormField.querySelector('mat-label, .mat-mdc-floating-label, label');
+          if (matLabel) labelText = normalizeText(matLabel.innerText || '');
+        }
       }
 
       let score = 0;
       for (const term of normalizedTerms) {
+        // Alta prioridade para formControlName e ng-reflect-name do Angular
+        if (fcn === term) score += 20;
+        else if (fcn.includes(term)) score += 14;
+
+        if (ngReflect === term) score += 15;
+        else if (ngReflect.includes(term)) score += 10;
+
+        // Atributos HTML padrão
         if (id === term || name === term) score += 10;
         else if (id.includes(term) || name.includes(term)) score += 7;
-        if (labelText.includes(term)) score += 5;
-        if (placeholder.includes(term) || ariaLabel.includes(term)) score += 3;
+
+        if (labelText === term) score += 8;
+        else if (labelText.includes(term)) score += 5;
+
+        if (placeholder.includes(term) || ariaLabel.includes(term)) score += 4;
       }
 
       if (score > highestScore) {
@@ -148,36 +176,61 @@
   }
 
   function fillInputElement(input, val) {
-    input.focus();
+    if (typeof input.focus === 'function') {
+      input.focus();
+    }
 
-    // Tratamento específico por tipo de elemento
-    if (input.tagName === 'SELECT') {
+    const tagName = (input.tagName || '').toUpperCase();
+
+    // 1. Suporte a ng-select (Angular)
+    if (tagName === 'NG-SELECT') {
+      const childInput = input.querySelector ? input.querySelector('input') : null;
+      if (childInput) {
+        childInput.value = val;
+        childInput.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+      }
+      input.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+      return;
+    }
+
+    // 2. Suporte a mat-select (Angular Material)
+    if (tagName === 'MAT-SELECT') {
+      input.dispatchEvent(new Event('click', { bubbles: true, cancelable: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+      return;
+    }
+
+    // 3. Suporte a SELECT nativo
+    if (tagName === 'SELECT') {
       const normVal = normalizeText(val);
       let optionMatched = false;
-      for (const opt of input.options) {
-        if (normalizeText(opt.value) === normVal || normalizeText(opt.text).includes(normVal)) {
-          input.value = opt.value;
-          optionMatched = true;
-          break;
+      if (input.options) {
+        for (const opt of input.options) {
+          if (normalizeText(opt.value) === normVal || normalizeText(opt.text).includes(normVal)) {
+            input.value = opt.value;
+            optionMatched = true;
+            break;
+          }
         }
-      }
-      if (!optionMatched && input.options.length > 0) {
-        input.selectedIndex = 0;
+        if (!optionMatched && input.options.length > 0) {
+          input.selectedIndex = 0;
+        }
       }
     } else if (input.type === 'radio' || input.type === 'checkbox') {
       const normVal = normalizeText(val);
       const inputVal = normalizeText(input.value || '');
-      const inputLabel = normalizeText(input.closest('label')?.innerText || '');
+      const inputLabel = normalizeText(input.closest?.('label')?.innerText || '');
 
       if (inputVal === normVal || inputLabel.includes(normVal)) {
         input.checked = true;
       }
     } else {
-      // Input de texto / textarea — compatibilidade universal com React/Vue setters
-      const proto = Object.getOwnPropertyDescriptor(
-        input.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype,
+      // 4. Input de texto / textarea — compatibilidade universal com React/Vue/Angular Reactive Forms
+      const proto = typeof window !== 'undefined' ? Object.getOwnPropertyDescriptor(
+        tagName === 'TEXTAREA' ? window.HTMLTextAreaElement?.prototype : window.HTMLInputElement?.prototype,
         'value'
-      );
+      ) : null;
+
       if (proto && proto.set) {
         proto.set.call(input, val);
       } else {
@@ -185,14 +238,21 @@
       }
     }
 
+    // Disparo da cadeia completa de eventos do ciclo reativo do Angular
     input.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
     try {
-      input.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: val }));
-    } catch (_) {
-      // Ignora ambientes sem suporte a construtor InputEvent
-    }
+      if (typeof InputEvent !== 'undefined') {
+        input.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: val }));
+      }
+    } catch (_) {}
     input.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
     input.dispatchEvent(new Event('blur', { bubbles: true, cancelable: true }));
+
+    // Se estiver em <mat-form-field>, ajusta estado flutuante do label
+    const matField = input.closest ? input.closest('mat-form-field') : null;
+    if (matField && matField.classList && typeof matField.classList.add === 'function') {
+      matField.classList.add('mat-form-field-should-float', 'mat-focused');
+    }
   }
 
   // Converte base64 para Blob e anexa via DataTransfer nativo
@@ -227,6 +287,7 @@
 
   // Destaque suave com anel esmeralda sutil
   function highlightSuccessField(el) {
+    if (!el || !el.style) return;
     const originalBorder = el.style.borderColor;
     const originalBoxShadow = el.style.boxShadow;
     const originalTransition = el.style.transition;
@@ -248,6 +309,7 @@
       normalizeText,
       FISCAL_MAPPINGS,
       getAllFormElements,
+      findBestMatchingInput,
       fillInputElement,
       executeAutofill,
       attachFileToPage

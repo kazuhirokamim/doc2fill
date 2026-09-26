@@ -171,9 +171,25 @@ document.addEventListener('DOMContentLoaded', () => {
         r.readAsDataURL(file);
       });
 
-      // 2. Extrai texto bruto (PDF ou texto)
+      // 2. Extrai texto bruto (Imagens via OCR, PDF ou texto)
       let extractedText = '';
-      if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+      if (file.type.startsWith('image/') || file.name.match(/\.(png|jpe?g|webp|bmp)$/i)) {
+        dropSubtitle.textContent = 'Processando com OCR óptico em português...';
+        try {
+          const b64 = await base64Promise;
+          const ocrRes = await fetch('http://localhost:8080/api/ocr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: b64, name: file.name })
+          });
+          const ocrJson = await ocrRes.json();
+          if (ocrJson.success && ocrJson.text) {
+            extractedText = ocrJson.text;
+          }
+        } catch (ocrErr) {
+          console.warn('[doc2fill sidepanel] OCR fallback:', ocrErr);
+        }
+      } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
         const bufferPromise = new Promise((resolve, reject) => {
           const r = new FileReader();
           r.onload = () => resolve(r.result);
@@ -182,6 +198,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const buffer = await bufferPromise;
         extractedText = extractTextFromPdfContent(buffer);
+
+        // Se o PDF for puramente escaneado (sem texto digital ASCII), tenta OCR
+        if (!extractedText || extractedText.length < 20) {
+          try {
+            const b64 = await base64Promise;
+            const ocrRes = await fetch('http://localhost:8080/api/ocr', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image: b64, name: file.name })
+            });
+            const ocrJson = await ocrRes.json();
+            if (ocrJson.success && ocrJson.text) {
+              extractedText = ocrJson.text;
+            }
+          } catch (_) {}
+        }
       } else if (file.type.startsWith('text/') || file.name.match(/\.(txt|csv|json|xml|html)$/i)) {
         const textPromise = new Promise((resolve, reject) => {
           const r = new FileReader();

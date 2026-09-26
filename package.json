@@ -17,6 +17,7 @@
   "author": "Kazuhiro",
   "license": "MIT",
   "dependencies": {
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "tesseract.js": "^7.0.0"
   }
 }

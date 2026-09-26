@@ -5,6 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import QRCode from 'qrcode';
+import { processOcrText, performOcr } from '../core/ocr-engine.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -100,26 +101,87 @@ export function createAppServer(port = DEFAULT_PORT) {
       return;
     }
 
-    // 2. API: Upload de Dados Fiscais pelo Celular (Buffer em Memória)
+    // 2. API: OCR Local de Imagens / Fotos Mobile (Tesseract.js)
+    if (reqPath === '/api/ocr' && req.method === 'POST') {
+      cleanupExpiredSessions();
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', async () => {
+        try {
+          const payload = JSON.parse(body);
+          if (!payload.image || typeof payload.image !== 'string' || payload.image.trim() === '') {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: 'image base64 é obrigatória' }));
+            return;
+          }
+
+          let ocrText = payload.mockText || '';
+          if (!ocrText) {
+            const ocrRes = await performOcr(payload.image);
+            ocrText = ocrRes.text;
+          }
+
+          const extractedData = processOcrText(ocrText, payload.name || 'foto.jpg');
+
+          // Se sessão foi fornecida, atualiza o relay imediatamente para a extensão consumir
+          if (payload.session) {
+            relaySessions.set(payload.session, {
+              data: extractedData,
+              file: {
+                name: payload.name || 'foto_camera.jpg',
+                type: 'image/jpeg',
+                base64: payload.image
+              },
+              timestamp: Date.now()
+            });
+          }
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            success: true,
+            text: ocrText,
+            data: extractedData
+          }));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'JSON inválido' }));
+        }
+      });
+      return;
+    }
+
+    // 3. API: Upload de Dados Fiscais pelo Celular (Buffer em Memória com Enriquecimento por OCR)
     if (reqPath === '/api/relay/upload' && req.method === 'POST') {
       cleanupExpiredSessions();
       let body = '';
       req.on('data', chunk => { body += chunk; });
-      req.on('end', () => {
+      req.on('end', async () => {
         try {
           const payload = JSON.parse(body);
-          if (!payload.session || !payload.data) {
+          if (!payload.session || (!payload.data && !payload.file)) {
             res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, error: 'session e data são obrigatórios' }));
+            res.end(JSON.stringify({ success: false, error: 'session e (data ou file) são obrigatórios' }));
             return;
           }
+
+          let finalData = payload.data || {};
+
+          // Auto-OCR: se vier arquivo com imagem e autoOcr ou sem dados reais extraídos
+          if (payload.file && payload.file.base64 && payload.autoOcr) {
+            const ocrRes = await performOcr(payload.file.base64);
+            if (ocrRes.text) {
+              const ocrFields = processOcrText(ocrRes.text, payload.file.name);
+              finalData = { ...finalData, ...ocrFields };
+            }
+          }
+
           relaySessions.set(payload.session, {
-            data: payload.data,
+            data: finalData,
             file: payload.file || null,
             timestamp: Date.now()
           });
           res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: true }));
+          res.end(JSON.stringify({ success: true, data: finalData }));
         } catch (e) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: false, error: 'JSON inválido' }));

@@ -135,11 +135,16 @@ export function parseDocumentFields(rawText = '', fileName = '') {
   if (bancoMatch) {
     data.banco = bancoMatch[1].toUpperCase();
   }
-  const agCcMatch = text.match(/ag[eê]ncia[:\s]*([0-9A-Za-z\-]+)[^\d]*conta[:\s]*([0-9A-Za-z\-]+)/i) ||
-                    text.match(/ag[:\s]*([0-9A-Za-z\-]+)[^\d]*cc[:\s]*([0-9A-Za-z\-]+)/i);
+  const agCcMatch = text.match(/ag[eê]ncia[:\s]*([0-9A-Za-z\-]+)[^\d]*conta(?:\s+corrente|\s+poupan[cç]a)?[:\s]*([0-9A-Za-z\-]+)/i) ||
+                    text.match(/ag[:\s]*([0-9A-Za-z\-]+)[^\d]*c\/?c[:\s]*([0-9A-Za-z\-]+)/i);
   if (agCcMatch) {
     data.agencia = agCcMatch[1].trim();
-    data.conta = agCcMatch[2].trim();
+    let rawConta = agCcMatch[2].trim();
+    if (/^corrente$/i.test(rawConta)) {
+      const nextNum = text.match(/conta\s+corrente[:\s]*([0-9A-Za-z\-]+)/i);
+      if (nextNum) rawConta = nextNum[1].trim();
+    }
+    data.conta = rawConta;
   }
 
   const pixMatch = text.match(/pix[:\s]*([a-zA-Z0-9_\.\-@]+)/i);

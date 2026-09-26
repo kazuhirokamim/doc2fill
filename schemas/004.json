@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "id": "004",
+    "titulo": "Motor de OCR Server-Side para Fotos Mobile e Adaptador Angular Reactive Forms para CCHA",
+    "repo": "doc2fill",
+    "issue": 4,
+    "blastRadius": "Médio"
+  },
+  "fase0": [
+    "No teste prático com Lucas no CCHA (Conselho Curador dos Honorários Advocatícios), fotos do celular não eram lidas por ausência de motor de OCR.",
+    "O portal CCHA utiliza Angular Reactive Forms, ng-select e mat-select com campos [formcontrolname].",
+    "O content.js atual não aciona os eventos reativos do Angular e não mapeava ng-select e mat-select."
+  ],
+  "premissasPermanentes": [
+    "Zero Retenção: Imagens e textos do OCR permanecem apenas em memória RAM volátil efêmera durante o preenchimento.",
+    "O processamento de OCR deve ser local no Node.js via Tesseract.js para não onerar o celular do usuário.",
+    "Compatibilidade total com Angular Reactive Forms, ng-select e mat-select."
+  ],
+  "blocos": [
+    {
+      "id": "B1",
+      "titulo": "Visão Computacional e OCR",
+      "perguntas": [
+        {
+          "id": "Q1",
+          "texto": "Onde deve ser executado o OCR das fotos tiradas pelo celular e documentos digitalizados?",
+          "tipo": "radio",
+          "obrigatoria": true,
+          "opcoes": [
+            "No servidor Node.js local via Tesseract.js (rápido, não trava o celular, suporte a alta resolução)",
+            "Client-side no browser do celular via WASM (mais lento e aquece o dispositivo)"
+          ]
+        },
+        {
+          "id": "Q2",
+          "texto": "Como os dados extraídos pelo OCR devem ser mapeados para os campos do CCHA?",
+          "tipo": "radio",
+          "obrigatoria": true,
+          "opcoes": [
+            "Via document-parser.js com extração regex de CPF, OAB, Processo, Nome, Banco, Agência, Conta, Valor e Data",
+            "Via mapeamento manual assistido apenas"
+          ]
+        },
+        {
+          "id": "Q3",
+          "texto": "Como lidar com componentes Angular Reactive Forms, ng-select e mat-select no CCHA?",
+          "tipo": "radio",
+          "obrigatoria": true,
+          "opcoes": [
+            "Inspecionar [formcontrolname], [ng-reflect-name], mat-form-field e disparar eventos InputEvent, change, blur e abertura de seletores",
+            "Apenas inputs HTML padrão"
+          ]
+        }
+      ]
+    }
+  ],
+  "aceitacao": [
+    "Foto tirada pelo celular é submetida ao OCR e tem seus campos textuais extraídos em tempo real.",
+    "Dados extraídos pelo OCR chegam à extensão e preenchem formulários do CCHA automaticamente.",
+    "Inputs com formcontrolname, ng-select e mat-select no CCHA são preenchidos e validados pelo Angular.",
+    "Suíte de testes TDD verde com 3 cenários (caminho feliz, borda e erro)."
+  ]
+}

@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const file = e.target.files && e.target.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = (ev) => {
+        reader.onload = async (ev) => {
           if (img) img.src = ev.target.result;
           if (container) container.style.display = 'block';
 
@@ -138,13 +138,46 @@ document.addEventListener('DOMContentLoaded', () => {
             base64: ev.target.result
           };
 
-          // Extrai campos do nome do arquivo se houver metadados
-          const extractedData = { ...defaultCchaData };
-          if (file.name) {
-            extractedData.descricao = `Documento digitalizado: ${file.name}`;
+          if (statusBadge) {
+            statusBadge.textContent = '⏳ Analisando foto com OCR e extraindo dados...';
+            statusBadge.style.background = '#FEF3C7';
+            statusBadge.style.color = '#92400E';
           }
 
-          sendToExtension(extractedData, currentFilePayload);
+          try {
+            // Invoca o motor de OCR no servidor relay
+            const ocrRes = await fetch('/api/ocr', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image: ev.target.result,
+                name: file.name,
+                session: sessionId
+              })
+            });
+
+            const ocrJson = await ocrRes.json();
+            if (ocrJson.success && ocrJson.data) {
+              const extracted = { ...defaultCchaData, ...ocrJson.data };
+              renderQuickCopyButtons(extracted);
+
+              if (statusBadge) {
+                statusBadge.textContent = '✓ OCR concluído! Dados e foto transmitidos para o CCHA.';
+                statusBadge.style.background = '#ECFDF5';
+                statusBadge.style.color = '#065F46';
+              }
+              return;
+            }
+          } catch (ocrErr) {
+            console.warn('[doc2fill mobile] Fallback de OCR:', ocrErr);
+          }
+
+          // Fallback se o OCR falhar
+          const fallbackData = { ...defaultCchaData };
+          if (file.name) {
+            fallbackData.descricao = `Documento digitalizado: ${file.name}`;
+          }
+          sendToExtension(fallbackData, currentFilePayload);
         };
         reader.readAsDataURL(file);
       }
