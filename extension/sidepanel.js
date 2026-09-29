@@ -219,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Se o PDF for puramente escaneado (sem texto digital ASCII), tenta OCR
         if (!extractedText || extractedText.length < 20) {
+          dropSubtitle.textContent = 'PDF digitalizado detectado: processando com OCR óptico local...';
           try {
             const b64 = await base64Promise;
             const ocrRes = await fetch(`${activeApiBaseUrl}/api/ocr`, {
@@ -227,8 +228,10 @@ document.addEventListener('DOMContentLoaded', () => {
               body: JSON.stringify({ image: b64, name: file.name })
             });
             const ocrJson = await ocrRes.json();
-            if (ocrJson.success && ocrJson.text) {
-              extractedText = ocrJson.text;
+            if (ocrJson.success) {
+              if (ocrJson.text) {
+                extractedText = ocrJson.text;
+              }
             }
           } catch (_) {}
         }

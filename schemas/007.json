@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TearForm 007 — Pipeline Real de OCR para Cupons Fiscais e PDFs Escaneados",
+  "description": "Especificação dos requisitos para conversão de PDFs escaneados para imagem, parser de NFC-e térmica e eliminação de mocks mobile",
+  "type": "object",
+  "required": ["q1_pdf_ocr", "q2_nfce_heuristics", "q3_mobile_mocks"],
+  "properties": {
+    "q1_pdf_ocr": {
+      "type": "string",
+      "title": "Como o pipeline de OCR deve tratar PDFs escaneados (sem camada de texto digital)?",
+      "default": "Converter a primeira página do PDF para PNG transparente em memória/temporário efêmero antes de submeter ao Tesseract.js, evitando o erro fatal 'Pdf reading is not supported'."
+    },
+    "q2_nfce_heuristics": {
+      "type": "string",
+      "title": "Quais regras de extração devem ser aplicadas a Cupons Fiscais / NFC-e térmicos?",
+      "default": "Classificar como 'Cupom Fiscal (NFC-e / SAT)', suportar CNPJ com espaços (40 127 407/0001-30), extrair razão social adjacente (DROGARIA RIBEIRO LTDA), número do cupom/chave, data (DD/MM/AAAA) e valor líquido/total."
+    },
+    "q3_mobile_mocks": {
+      "type": "string",
+      "title": "Como deve ser o comportamento do scanner mobile ao transmitir dados?",
+      "default": "Eliminar o preenchimento fantasma com defaultCchaData ('Dr. Lucas Silva'). Enviar estritamente os campos identificados pelo OCR da foto real, mantendo campos vazios quando não detectados."
+    }
+  }
+}

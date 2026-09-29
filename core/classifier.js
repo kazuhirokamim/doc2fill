@@ -105,7 +105,14 @@ export function classifyDocumentType(textConteudo, fileName = '') {
     combined.includes('nfce') ||
     combined.includes('sat') ||
     combined.includes('extrato sat') ||
-    combined.includes('danfe nfc-e')
+    combined.includes('danfe nfc-e') ||
+    combined.includes('nota fiscal de consumidor') ||
+    combined.includes('consumidor eletronic') ||
+    combined.includes('consumidor eletronica') ||
+    combined.includes('chave de acesso') ||
+    combined.includes('qtd. total de itens') ||
+    combined.includes('qtd total de itens') ||
+    (combined.includes('documento auxiliar') && combined.includes('consumidor'))
   ) {
     return {
       type: DOCUMENT_TYPES.CUPOM,

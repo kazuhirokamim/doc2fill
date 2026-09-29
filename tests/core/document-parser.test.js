@@ -83,6 +83,37 @@ describe('doc2fill Document Parser & Extractor Engine (TDD Suite)', () => {
       assert.ok(parsed.motivo && parsed.motivo.length > 5);
     });
 
+    it('Cenário 1.3.1 (Happy Path - Real Receipt): extrai com fidelidade os 8 campos de cupom fiscal térmico de farmácia (Droga 10 / Drogaria Ribeiro Ltda)', () => {
+      const realReceiptText = `
+        Rede Popular DROGA 10
+        MATRIZ - TAVEIROPOLIS
+        CNPJ: 40 727 407/0001-30 DROGARIA RIBEIRO LTDA
+        RUA ALBERT SABIN, 1024 VILA TAVEIROPOLIS - CAMPO GRANDE - MS 79090-160
+        DOCUMENTO AUXILIAR DA NOTA FISCAL DE CONSUMIDOR ELETRÔNIC
+        # Cód Descrição Qtd Un Vl Unit. Vl Total
+        001 237004 PANT SEC 5 1 UNID X 78,05 78,05
+        Desconto -9,37
+        Valor Líquido 68,68
+        QTD. TOTAL DE ITENS 001
+        VALOR TOTAL R$ 68,68
+        Consulte pela Chave de Acesso em http://www.dfe.ms.gov.br/nfce/consulta
+        5026 0840 7274 0700 0130 6500 2000 1306 1613 7581 2435
+        CONSUMIDOR NÃO IDENTIFICADO
+        NFC-e nº 000190616 Série 002
+        24/09/2026 13:01:46
+      `;
+
+      const parsed = parseDocumentFields(realReceiptText, 'recibo_farmacia.pdf');
+      assert.equal(parsed.tipo_documento, 'Cupom Fiscal (NFC-e / SAT)');
+      assert.equal(parsed.cpf_cnpj, '40.727.407/0001-30');
+      assert.ok(parsed.fornecedor.includes('DROGARIA RIBEIRO') || parsed.fornecedor.includes('DROGA 10'));
+      assert.equal(parsed.numero_documento, '000190616');
+      assert.equal(parsed.data, '2026-09-24');
+      assert.equal(parsed.valor, 'R$ 68,68');
+      assert.ok(parsed.descritivo.includes('PANT SEC 5') || parsed.descritivo.includes('insumos') || parsed.descritivo.includes('farmacêuticos') || parsed.descritivo.includes('consumo'));
+      assert.ok(parsed.motivo.includes('despesa') || parsed.motivo.includes('CCHA') || parsed.motivo.includes('operacional'));
+    });
+
     it('Cenário 1.4 (Happy Path): extrai os 8 campos de Comprovante de Pagamento PIX', () => {
       const pixText = `
         BANCO DIGITAL S.A.

@@ -52,6 +52,19 @@ describe('doc2fill Document Type Classifier (TDD Suite)', () => {
       const resDecl = classifyDocumentType(declaracaoText);
       assert.equal(resDecl.type, DOCUMENT_TYPES.DECLARACAO);
       assert.equal(resDecl.label, DOCUMENT_LABELS[DOCUMENT_TYPES.DECLARACAO]);
+
+      // 9. Cupom Fiscal Térmico (NFC-e de Farmácia / Varejo com OCR ruído)
+      const nfceTermica = `
+        DROGA 10 - DROGARIA RIBEIRO LTDA
+        CNPJ: 40 127 407/0001-30
+        DOCUMENTO AUXILIAR DA NOTA FISCAL DE CONSUMIDOR ELETRÔNIC
+        Consulte pela Chave de Acesso em http://www.dfe.ms.gov.br/nfce/consulta
+        5026 0840 7274 0700 0130 6500 2000 1306 1613 7581 2435
+        NFC-e nº 000190616 Série 002
+      `;
+      const resNfce = classifyDocumentType(nfceTermica);
+      assert.equal(resNfce.type, DOCUMENT_TYPES.CUPOM);
+      assert.equal(resNfce.label, DOCUMENT_LABELS[DOCUMENT_TYPES.CUPOM]);
     });
 
     it('Cenário 2 (Edge Case): identifica documento por metadados de arquivo (nome do arquivo) ou texto reduzido', () => {

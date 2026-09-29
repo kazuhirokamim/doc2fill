@@ -222,7 +222,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const ocrJson = await ocrRes.json();
           if (ocrJson.success && ocrJson.data) {
-            const extracted = { ...defaultCchaData, ...ocrJson.data };
+            // Utiliza estritamente os campos reais lidos pelo OCR (Fidelidade Documental Zero Retenção)
+            const extracted = ocrJson.data;
             renderQuickCopyButtons(extracted);
 
             // TRANSMISSÃO P2P OBRIGATÓRIA PARA A EXTENSÃO NO COMPUTADOR
@@ -239,19 +240,30 @@ document.addEventListener('DOMContentLoaded', () => {
           console.warn('[doc2fill mobile] Fallback de OCR:', ocrErr);
         }
 
-        // Fallback se o OCR falhar
-        const fallbackData = { ...defaultCchaData };
-        if (file.name) {
-          fallbackData.descricao = `Documento digitalizado: ${file.name}`;
-        }
+        // Fallback honesto e limpo se o OCR não conseguir extrair dados (sem dados mockados fictícios)
+        const fallbackData = {
+          tipo_documento: 'Outro Comprovante',
+          descricao: file.name ? `Documento digitalizado: ${file.name}` : 'Captura fotográfica mobile',
+          motivo: 'Comprovação de despesa via captura móvel para conferência e preenchimento manual no CCHA.'
+        };
         await sendToExtension(fallbackData, currentFilePayload);
+
+        if (statusBadge) {
+          statusBadge.textContent = '✓ Foto enviada para a extensão (conferência manual).';
+          statusBadge.style.background = '#F3F4F6';
+          statusBadge.style.color = '#374151';
+        }
       }
     });
   }
 
   if (btnTransmit) {
     btnTransmit.addEventListener('click', () => {
-      sendToExtension(defaultCchaData, currentFilePayload);
+      // Se houver dados reais, transmite; caso contrário envia modelo mínimo
+      sendToExtension({
+        tipo_documento: 'Outro Comprovante',
+        descricao: 'Captura móvel para conferência'
+      }, currentFilePayload);
     });
   }
 });

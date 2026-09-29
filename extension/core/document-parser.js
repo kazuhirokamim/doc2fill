@@ -77,13 +77,17 @@ export function parseDocumentFields(rawText = '', fileName = '') {
 
   // 2. CPF e CNPJ (do Fornecedor, Prestador ou Procurador)
   const cnpjMatch = text.match(/\b(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})\b/) ||
+                    text.match(/cnpj[^\d]*(\d{2}[\.\s]?\d{3}[\.\s]?\d{3}[\/\s]?\d{4}[-\s]?\d{2})/i) ||
                     text.match(/cnpj[^\d]*(\d{14})\b/i);
   if (cnpjMatch) {
-    const rawCnpj = cnpjMatch[1].trim();
-    data.cnpj = rawCnpj.length === 14 && !rawCnpj.includes('/')
-      ? rawCnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
-      : rawCnpj;
-    data.cpf_cnpj = data.cnpj;
+    const rawDigits = cnpjMatch[1].replace(/[^\d]/g, '');
+    if (rawDigits.length === 14) {
+      data.cnpj = rawDigits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+      data.cpf_cnpj = data.cnpj;
+    } else if (cnpjMatch[1].includes('/') && cnpjMatch[1].includes('-')) {
+      data.cnpj = cnpjMatch[1].trim();
+      data.cpf_cnpj = data.cnpj;
+    }
   }
 
   const cpfMatch = text.match(/\b(\d{3}\.\d{3}\.\d{3}-\d{2})\b/) ||
@@ -106,16 +110,33 @@ export function parseDocumentFields(rawText = '', fileName = '') {
   if (razaoMatch && !/^(?:prestador|servicos|cliente)/i.test(razaoMatch[1].trim())) {
     data.fornecedor = razaoMatch[1].trim();
   } else {
+    // 3.1 Busca nome empresarial logo após o CNPJ na mesma linha (padrão de cupons fiscais térmicos)
+    let cnpjAdjacentMatch = null;
+    const cnpjLine = text.match(/cnpj[^\n\r\d]*[\d\.\s\/-]{14,24}[ \t]+([A-ZÁÉÍÓÚÂÊÔÃÕ][A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{2,50}\b(?:LTDA|S\/A|ME|EPP)?)/i);
+    if (cnpjLine) {
+      const candidate = cnpjLine[1].split(/[\n\r]/)[0].trim();
+      if (!/^(?:extrato|chave|consumidor|valor|data|itens|via|cupom|nota|destinatario|prestador)/i.test(candidate) || candidate.includes('LTDA')) {
+        cnpjAdjacentMatch = candidate;
+      }
+    }
+
+    // 3.2 Busca redes farmacêuticas e estabelecimentos comerciais no cabeçalho
+    const pharmacyHeaderMatch = text.match(/\b((?:DROGARIA|FARM[AÁ]CIA|REDE\s+POPULAR\s+DROGA)\s+[A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{2,40}(?:LTDA|S\/A|ME)?)\b/i);
+
     const fornecedorPrefixMatch =
+      cnpjAdjacentMatch ||
+      (pharmacyHeaderMatch ? pharmacyHeaderMatch[1].split(/[\n\r]/)[0].trim() : null) ||
       text.match(/(?:Prestador(?:\s+de\s+Servi[cç]os)?|Emitente|Estabelecimento|Fornecedor|Benefici[aá]rio(?:\s*\/\s*Destinat[aá]rio)?|Destinat[aá]rio|Requerente|Nome)[: \t]*(?:Dr\.|Dra\.)?[ \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i) ||
       text.match(/(?:Dr\.|Dra\.)[ \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+(?:[ \t]+[A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+)+)/) ||
       text.match(/\b([A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{3,40}\s+(?:LTDA|S\/A|S\.A\.|EIRELI|EPP|ME))\b/i);
 
     if (fornecedorPrefixMatch) {
-      let val = fornecedorPrefixMatch[1].trim();
-      // Remove resíduos caso o prefixo tenha capturado 'de servicos'
+      let rawVal = typeof fornecedorPrefixMatch === 'string'
+        ? fornecedorPrefixMatch
+        : (Array.isArray(fornecedorPrefixMatch) ? fornecedorPrefixMatch[1] : null);
+      let val = (rawVal || '').split(/[\n\r]/)[0].trim();
       val = val.replace(/^de\s+servi[cç]os\s*/i, '').trim();
-      if (val) {
+      if (val && val.length >= 2) {
         data.fornecedor = val;
       }
     }
@@ -126,8 +147,9 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     data.nome = data.fornecedor;
   }
 
-  // 4. Número do Documento (NFS-e, Cupom, Recibo, Fatura, Protocolo, Boleto)
+  // 4. Número do Documento (NFS-e, Cupom NFC-e, Recibo, Fatura, Protocolo, Boleto)
   const numDocMatch =
+    text.match(/(?:NFC-e|NFCe)\s*(?:n[º°o]|n\.|n|num)?[:\s]*([0-9]{3,20})/i) ||
     text.match(/(?:N[uú]mero\s+(?:da\s+)?Nota(?:\s+Fiscal)?|N[uú]mero\s+do\s+Documento|N[uú]mero\s+do\s+Extrato|N[uú]mero)[:\s]*([0-9A-Za-z\.\-\/]{2,25})/i) ||
     text.match(/(?:Nota\s+Fiscal|NFS-e|NF-e|DANFE)\s*(?:[A-Za-z\s]+)?(?:N[º°o]|N\.|N[:\s]|N[uú]mero)[:\s]*([0-9A-Za-z\.\-\/]{2,25})/i) ||
     text.match(/(?:Extrato\s*(?:N[º°o]|N\.)?\s*([0-9A-Za-z\.\-\/]{3,20})\s+do\s+Cupom)/i) ||
@@ -139,6 +161,17 @@ export function parseDocumentFields(rawText = '', fileName = '') {
 
   if (numDocMatch) {
     data.numero_documento = numDocMatch[1].trim();
+  } else {
+    // 4.1 Extrai número a partir dos 44 dígitos da Chave de Acesso (posições 25 a 33 na NFC-e)
+    const chaveMatch = text.match(/(?:Chave\s+de\s+Acesso[^\d]*)([0-9\s]{25,60})/i);
+    if (chaveMatch) {
+      const cleanDigits = chaveMatch[1].replace(/[^\d]/g, '');
+      if (cleanDigits.length >= 34) {
+        data.numero_documento = cleanDigits.substring(25, 34);
+      } else if (cleanDigits.length >= 6) {
+        data.numero_documento = cleanDigits.substring(0, 10);
+      }
+    }
   }
 
   // 5. Data do Documento (Emissão / Vencimento / Transação)
@@ -156,7 +189,7 @@ export function parseDocumentFields(rawText = '', fileName = '') {
 
   // 6. Valor Monetário (R$)
   const valorMatch =
-    text.match(/(?:VALOR\s+TOTAL(?:\s+DA\s+NOTA|\s+R\$)?|VALOR\s+PAGO|VALOR\s+BRUTO|TOTAL|VALOR)[^\d\n\r]*R?\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}|[0-9]+,[0-9]{2})/i) ||
+    text.match(/(?:VALOR\s+TOTAL(?:\s+DA\s+NOTA|\s+R\$)?|VALOR\s+L[IÍ]QUIDO|VALOR\s+PAGO|VALOR\s+BRUTO|TOTAL|VALOR)[^\d\n\r]*R?\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}|[0-9]+,[0-9]{2})/i) ||
     text.match(/R\$\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i) ||
     text.match(/valor[:_\s]*R?\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}|[0-9]+,[0-9]{2})/i);
 
@@ -172,6 +205,8 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     data.descritivo = descMatch[1].trim().replace(/\s+/g, ' ');
   } else if (/honorarios|sucumbencia/i.test(text)) {
     data.descritivo = 'Honorários advocatícios sucumbenciais devidos perante o CCHA em decorrência de atuação judicial.';
+  } else if (/drogaria|farm[aá]cia|medicamento|pant\s*sec/i.test(text)) {
+    data.descritivo = 'Aquisição de medicamentos e insumos farmacêuticos de pronto pagamento para suporte às atividades funcionais.';
   } else if (/tiss|tuss|sadt|medica/i.test(text)) {
     data.descritivo = 'Assistência médica e procedimentos de saúde com comprovação diagnóstica e terapêutica.';
   } else if (data.tipo_documento.includes('Nota Fiscal')) {
@@ -196,6 +231,8 @@ export function parseDocumentFields(rawText = '', fileName = '') {
   // 8. Motivo da Necessidade (Justificativa fundamentada para o CCHA)
   if (/honorarios|sucumbencia|rateio/i.test(text)) {
     data.motivo = 'Art. 29 a 36 da Lei nº 13.327/2016 e deliberações do CCHA. Preenchimento de requisitos de elegibilidade e rateio de honorários sucumbenciais.';
+  } else if (/drogaria|farm[aá]cia|medicamento/i.test(text)) {
+    data.motivo = 'Comprovação de despesa miúda e aquisição de insumos farmacêuticos de pronto pagamento vinculados à atividade funcional perante o CCHA.';
   } else if (/tiss|tuss|sadt|medica|saude/i.test(text)) {
     data.motivo = 'Comprovação de despesa de assistência à saúde e atendimento médico/hospitalar para fins de ressarcimento funcional perante o CCHA.';
   } else if (/cupom|suprimentos|miuda/i.test(text)) {

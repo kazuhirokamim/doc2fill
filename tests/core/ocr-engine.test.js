@@ -68,3 +68,20 @@ test('Motor OCR — 3. Tratamento de Erro (Error Path): entradas nulas, tipos in
   // Erro C: cleanOcrText com entrada indefinida
   assert.equal(cleanOcrText(undefined), '');
 });
+
+test('Motor OCR — 4. Resiliência a PDF (Happy Path / Conversion): detecta se entrada é PDF e não falha com erro não tratado', async () => {
+  const { performOcr, isPdfBuffer } = await import('../../core/ocr-engine.js');
+  
+  // Cria um buffer falso com assinatura PDF
+  const fakePdf = Buffer.from('%PDF-1.4\n%Fake PDF content for test');
+  assert.equal(isPdfBuffer(fakePdf), true, 'Deve identificar assinatura %PDF');
+  
+  const fakeImg = Buffer.from('\x89PNG\r\n\x1a\nFake PNG content');
+  assert.equal(isPdfBuffer(fakeImg), false, 'Não deve identificar PNG como PDF');
+
+  // performOcr em buffer vazio ou inválido não deve quebrar o processo
+  const res = await performOcr(Buffer.from(''));
+  assert.equal(res.text, '');
+  assert.equal(res.confidence, 0);
+});
+
