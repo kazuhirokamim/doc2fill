@@ -6,6 +6,7 @@
   "scripts": {
     "sync-core": "cp -r core/* extension/core/",
     "test": "npm run sync-core && node --test tests/**/*.test.js",
+    "dev": "node server/demo-server.js",
     "demo": "node server/demo-server.js"
   },
   "keywords": [

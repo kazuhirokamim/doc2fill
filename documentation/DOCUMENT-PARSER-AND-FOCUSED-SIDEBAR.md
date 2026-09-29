@@ -80,6 +80,7 @@ O módulo `core/document-parser.js` extrai e normaliza os dados nas seguintes pr
 1. **Downscaling de Imagens**: Fotos de smartphones modernos (12MP a 48MP) são redimensionadas em Canvas mantendo a proporção para no máximo 1600px no eixo maior, reduzindo o payload de ~10MB para ~250KB.
 2. **Envio Fidedigno de OCR**: O resultado da extração local/servidor é transmitido imediatamente via `sendToExtension`, eliminando o fallback com dados mockados fixos.
 3. **Resiliência Angular Forms**: O injetor `fillInputElement` lida com inputs `type="date"` (formato `YYYY-MM-DD`), inputs de texto com máscara (`DD/MM/AAAA`) e inputs numéricos (higienização de símbolos `R$`, pontos e vírgulas).
+4. **Isolamento de Portas (3333) & Autodescoberta**: O servidor local e relay opera na porta `3333` por padrão (evitando conflito com apps nas portas 3000/8080), possui auto-recuperação (`tryListen`) em caso de porta ocupada e autodescoberta dinâmica pelo Sidepanel. Execução via `npm run dev` ou `npm run demo`.
 
 ---
 

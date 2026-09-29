@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Fixed
+- **Porta Padrão & Isolamento (3333)**: Alterada a porta padrão do servidor de demonstração de 8080 para 3333 (`server/demo-server.js`) para evitar interferência com portas ocupadas (como 3000/3001 do Next.js Pulsense e 8080).
+- **Auto-recuperação de Porta (EADDRINUSE)**: Adicionada função `tryListen` no servidor para tentar portas consecutivas automaticamente se a porta configurada estiver em uso.
+- **Autodescoberta Dinâmica no Sidepanel**: `extension/sidepanel.js` agora descobre automaticamente a porta ativa do servidor local através de sondagem ordenada (`3333`, `8080`, `3334`, `3030`, `4040`).
+- **package.json**: Adicionado script `"dev": "node server/demo-server.js"` para permitir execução via `npm run dev`.
 - **tests/extension/content.test.js**: Adicionados mocks `focus()` e `closest()` nos objetos de input simulados para compatibilidade com `fillInputElement`, que chama esses métodos nativos do DOM internamente. Corrige 3 testes que falhavam com `TypeError: input.focus is not a function`.
 
 ### Added

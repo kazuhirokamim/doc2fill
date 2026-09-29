@@ -41,6 +41,25 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeSessionId = null;
   let relayPollInterval = null;
   let attachedFile = null;
+  let activeApiBaseUrl = 'http://localhost:3333';
+
+  // Descobre dinamicamente a porta ativa do servidor local (3333, 8080, 3334, 3030...)
+  async function resolveApiBaseUrl() {
+    const candidatePorts = [3333, 8080, 3334, 3030, 4040];
+    for (const port of candidatePorts) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 600);
+        const res = await fetch(`http://localhost:${port}/api/session`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (res && res.ok) {
+          activeApiBaseUrl = `http://localhost:${port}`;
+          return { baseUrl: activeApiBaseUrl, sessionData: await res.json() };
+        }
+      } catch (_) {}
+    }
+    return { baseUrl: activeApiBaseUrl, sessionData: null };
+  }
 
   // 1. Tab switching
   tabBtns.forEach(btn => {
@@ -176,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dropSubtitle.textContent = 'Processando com OCR óptico em português...';
         try {
           const b64 = await base64Promise;
-          const ocrRes = await fetch('http://localhost:8080/api/ocr', {
+          const ocrRes = await fetch(`${activeApiBaseUrl}/api/ocr`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ image: b64, name: file.name })
@@ -202,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!extractedText || extractedText.length < 20) {
           try {
             const b64 = await base64Promise;
-            const ocrRes = await fetch('http://localhost:8080/api/ocr', {
+            const ocrRes = await fetch(`${activeApiBaseUrl}/api/ocr`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ image: b64, name: file.name })
@@ -252,12 +271,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const res = await fetch('http://localhost:8080/api/session').catch(() =>
-        fetch('http://127.0.0.1:8080/api/session')
-      );
+      const { baseUrl, sessionData } = await resolveApiBaseUrl();
+      let data = sessionData;
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      if (!data) {
+        const res = await fetch(`${baseUrl}/api/session`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        data = await res.json();
+      }
 
       activeSessionId = data.sessionId;
 
@@ -284,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         qrBox.innerHTML = `
           <div style="font-size:11.5px; color:#4B5563; padding:10px; line-height:1.4;">
             💡 <strong>Inicie o Servidor Local:</strong><br>
-            Execute <code>npm run demo</code> no terminal para ativar o pareamento P2P e gerar o QR Code.
+            Execute <code>npm run dev</code> no terminal para ativar o pareamento P2P e gerar o QR Code.
           </div>
         `;
       }
@@ -308,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!sessionId) return;
 
       try {
-        const res = await fetch(`http://localhost:8080/api/relay/poll?session=${sessionId}`);
+        const res = await fetch(`${activeApiBaseUrl}/api/relay/poll?session=${sessionId}`);
         if (!res.ok) return;
 
         const payload = await res.json();

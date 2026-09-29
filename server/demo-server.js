@@ -10,7 +10,7 @@ import { processOcrText, performOcr } from '../core/ocr-engine.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
-export const DEFAULT_PORT = process.env.PORT || 8080;
+export const DEFAULT_PORT = Number(process.env.PORT) || 3333;
 export const SESSION_TTL_MS = 5 * 60 * 1000; // 5 minutos de vida máxima na RAM
 
 // Memória efêmera de sessões para pareamento P2P (Zero Retenção)
@@ -250,13 +250,28 @@ export function createAppServer(port = DEFAULT_PORT) {
 // Inicia servidor se executado diretamente
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const localIp = getLocalIpAddress();
-  const server = createAppServer(DEFAULT_PORT);
-  server.listen(DEFAULT_PORT, () => {
-    console.log(`\n======================================================`);
-    console.log(`⚡ doc2fill — Servidor Local & Ephemeral Relay Ativo`);
-    console.log(`======================================================`);
-    console.log(`🏛️  Simulador AGU/PGFN:  http://localhost:${DEFAULT_PORT}/portal`);
-    console.log(`📱 Scanner Mobile:      http://${localIp}:${DEFAULT_PORT}/mobile`);
-    console.log(`======================================================\n`);
-  });
+  const initialPort = DEFAULT_PORT;
+
+  function tryListen(port, attemptsLeft = 5) {
+    const srv = createAppServer(port);
+    srv.once('error', (err) => {
+      if (err.code === 'EADDRINUSE' && attemptsLeft > 0) {
+        console.warn(`[doc2fill] Porta ${port} em uso. Tentando porta alternativa ${port + 1}...`);
+        tryListen(port + 1, attemptsLeft - 1);
+      } else {
+        console.error(`[doc2fill] Falha ao iniciar servidor na porta ${port}:`, err.message);
+      }
+    });
+
+    srv.listen(port, () => {
+      console.log(`\n======================================================`);
+      console.log(`⚡ doc2fill — Servidor Local & Ephemeral Relay Ativo`);
+      console.log(`======================================================`);
+      console.log(`🏛️  Simulador CCHA / AGU:  http://localhost:${port}/portal`);
+      console.log(`📱 Scanner Mobile PWA:    http://${localIp}:${port}/mobile`);
+      console.log(`======================================================\n`);
+    });
+  }
+
+  tryListen(initialPort);
 }

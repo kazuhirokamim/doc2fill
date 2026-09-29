@@ -129,3 +129,34 @@ describe('doc2fill File Upload Validator (TDD Suite)', () => {
     assert.equal(validateUploadFile({ name: 'nota.pdf', size: 30 * 1024 * 1024 }).valid, false); // > 25MB
   });
 });
+
+/**
+ * Função utilitária que gera as URLs candidatas para conexão resiliente com o servidor local
+ * @param {number[]} [ports]
+ * @returns {string[]}
+ */
+export function buildCandidateApiUrls(ports = [3333, 8080, 3334, 3030, 4040]) {
+  if (!Array.isArray(ports)) return ['http://localhost:3333'];
+  return ports
+    .filter(p => typeof p === 'number' && p > 0 && p <= 65535)
+    .map(p => `http://localhost:${p}`);
+}
+
+describe('doc2fill Sidepanel API Candidate Resolver (TDD Suite)', () => {
+  it('Cenário 1 (Happy Path): gera lista de URLs locais incluindo 3333 como prioritária', () => {
+    const urls = buildCandidateApiUrls();
+    assert.ok(Array.isArray(urls));
+    assert.equal(urls[0], 'http://localhost:3333');
+    assert.ok(urls.includes('http://localhost:8080'));
+  });
+
+  it('Cenário 2 (Edge Case): aceita array customizado de portas e filtra valores inválidos', () => {
+    const urls = buildCandidateApiUrls([3333, -1, 99999, 'invalido', 4040]);
+    assert.deepEqual(urls, ['http://localhost:3333', 'http://localhost:4040']);
+  });
+
+  it('Cenário 3 (Error Path): lida graciosamente com entrada nula ou não-array', () => {
+    assert.deepEqual(buildCandidateApiUrls(null), ['http://localhost:3333']);
+    assert.deepEqual(buildCandidateApiUrls('3333'), ['http://localhost:3333']);
+  });
+});

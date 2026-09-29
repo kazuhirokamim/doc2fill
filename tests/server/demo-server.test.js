@@ -1,6 +1,7 @@
+// @tear-proof issue-1
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { createAppServer, cleanupExpiredSessions, relaySessions, SESSION_TTL_MS } from '../../server/demo-server.js';
+import { createAppServer, cleanupExpiredSessions, relaySessions, SESSION_TTL_MS, DEFAULT_PORT } from '../../server/demo-server.js';
 
 describe('doc2fill Demo Server & P2P Relay Suite (TDD)', () => {
   let server;
@@ -142,6 +143,25 @@ describe('doc2fill Demo Server & P2P Relay Suite (TDD)', () => {
       assert.equal(purged, 2);
       assert.equal(relaySessions.has('sess-expirada-1'), false);
       assert.equal(relaySessions.has('sess-expirada-2'), false);
+    });
+  });
+
+  describe('DEFAULT_PORT & Network Configuration', () => {
+    it('Cenário 1 (Happy Path): DEFAULT_PORT é numérico e padrão 3333 para evitar conflitos com React/Next', () => {
+      assert.equal(typeof DEFAULT_PORT, 'number');
+      assert.equal(DEFAULT_PORT, 3333);
+    });
+
+    it('Cenário 2 (Edge Case): createAppServer instancia servidor HTTP válido e funcional', () => {
+      const customServer = createAppServer(3335);
+      assert.ok(customServer);
+      assert.equal(typeof customServer.listen, 'function');
+      assert.equal(typeof customServer.close, 'function');
+    });
+
+    it('Cenário 3 (Error Path): cleanup com timestamp inválido não quebra o servidor', () => {
+      assert.doesNotThrow(() => cleanupExpiredSessions(NaN, SESSION_TTL_MS));
+      assert.doesNotThrow(() => cleanupExpiredSessions(Date.now(), -1));
     });
   });
 });
