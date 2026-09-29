@@ -141,6 +141,12 @@ describe('doc2fill Document Parser & Extractor Engine (TDD Suite)', () => {
       assert.ok(extracted.includes('Texto no buffer'));
     });
 
+    it('Cenário 2.2 (Edge Case): retorna string vazia quando o PDF possui apenas streams compactadas sem texto legível', () => {
+      const compressedBinaryMock = '%PDF-1.4\n1 0 obj\n<< /Filter /FlateDecode /Length 40 >>\nstream\nx\x9c\xcbH\xcd\xc9\xc9\x07\x00\x08e\x02k\nendstream\nendobj';
+      const extracted = extractTextFromPdfContent(compressedBinaryMock);
+      assert.equal(extracted, '');
+    });
+
     it('Cenário 3 (Error Path): retorna string vazia para tipos inválidos', () => {
       assert.equal(extractTextFromPdfContent(null), '');
       assert.equal(extractTextFromPdfContent(undefined), '');

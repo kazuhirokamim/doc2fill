@@ -122,64 +122,129 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Redimensionamento de imagens de alta resolução no HTML5 Canvas para preservar banda e acelerar OCR
+  function calculateTargetDimensions(origWidth, origHeight, maxDimension = 1600) {
+    if (!origWidth || !origHeight || (origWidth <= maxDimension && origHeight <= maxDimension)) {
+      return { width: origWidth, height: origHeight };
+    }
+    if (origWidth > origHeight) {
+      return {
+        width: maxDimension,
+        height: Math.round((origHeight * maxDimension) / origWidth)
+      };
+    } else {
+      return {
+        width: Math.round((origWidth * maxDimension) / origHeight),
+        height: maxDimension
+      };
+    }
+  }
+
+  function resizeImageIfNeeded(file, maxDimension = 1600, quality = 0.85) {
+    return new Promise((resolve) => {
+      if (!file || !file.type || !file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve({ base64: e.target.result, size: file ? file.size : 0 });
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const { width, height } = calculateTargetDimensions(img.width, img.height, maxDimension);
+        if (width === img.width && height === img.height) {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve({ base64: e.target.result, size: file.size });
+          reader.readAsDataURL(file);
+          return;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const base64 = canvas.toDataURL('image/jpeg', quality);
+        const approxSize = Math.round((base64.length - 22) * 3 / 4);
+        resolve({ base64, size: approxSize });
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        const reader = new FileReader();
+        reader.onload = (e) => resolve({ base64: e.target.result, size: file.size });
+        reader.readAsDataURL(file);
+      };
+      img.src = url;
+    });
+  }
+
   if (input) {
-    input.addEventListener('change', (e) => {
+    input.addEventListener('change', async (e) => {
       const file = e.target.files && e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = async (ev) => {
-          if (img) img.src = ev.target.result;
-          if (container) container.style.display = 'block';
+        if (statusBadge) {
+          statusBadge.textContent = '⏳ Otimizando foto e preparando análise...';
+          statusBadge.style.background = '#FEF3C7';
+          statusBadge.style.color = '#92400E';
+        }
 
-          currentFilePayload = {
-            name: file.name,
-            type: file.type || 'image/jpeg',
-            size: file.size,
-            base64: ev.target.result
-          };
+        const { base64, size } = await resizeImageIfNeeded(file);
 
-          if (statusBadge) {
-            statusBadge.textContent = '⏳ Analisando foto com OCR e extraindo dados...';
-            statusBadge.style.background = '#FEF3C7';
-            statusBadge.style.color = '#92400E';
-          }
+        if (img) img.src = base64;
+        if (container) container.style.display = 'block';
 
-          try {
-            // Invoca o motor de OCR no servidor relay
-            const ocrRes = await fetch('/api/ocr', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                image: ev.target.result,
-                name: file.name,
-                session: sessionId
-              })
-            });
-
-            const ocrJson = await ocrRes.json();
-            if (ocrJson.success && ocrJson.data) {
-              const extracted = { ...defaultCchaData, ...ocrJson.data };
-              renderQuickCopyButtons(extracted);
-
-              if (statusBadge) {
-                statusBadge.textContent = '✓ OCR concluído! Dados e foto transmitidos para o CCHA.';
-                statusBadge.style.background = '#ECFDF5';
-                statusBadge.style.color = '#065F46';
-              }
-              return;
-            }
-          } catch (ocrErr) {
-            console.warn('[doc2fill mobile] Fallback de OCR:', ocrErr);
-          }
-
-          // Fallback se o OCR falhar
-          const fallbackData = { ...defaultCchaData };
-          if (file.name) {
-            fallbackData.descricao = `Documento digitalizado: ${file.name}`;
-          }
-          sendToExtension(fallbackData, currentFilePayload);
+        currentFilePayload = {
+          name: file.name,
+          type: 'image/jpeg',
+          size: size,
+          base64: base64
         };
-        reader.readAsDataURL(file);
+
+        if (statusBadge) {
+          statusBadge.textContent = '⏳ Analisando foto com OCR e extraindo dados...';
+          statusBadge.style.background = '#FEF3C7';
+          statusBadge.style.color = '#92400E';
+        }
+
+        try {
+          // Invoca o motor de OCR no servidor relay com a imagem otimizada
+          const ocrRes = await fetch('/api/ocr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              image: base64,
+              name: file.name,
+              session: sessionId
+            })
+          });
+
+          const ocrJson = await ocrRes.json();
+          if (ocrJson.success && ocrJson.data) {
+            const extracted = { ...defaultCchaData, ...ocrJson.data };
+            renderQuickCopyButtons(extracted);
+
+            // TRANSMISSÃO P2P OBRIGATÓRIA PARA A EXTENSÃO NO COMPUTADOR
+            await sendToExtension(extracted, currentFilePayload);
+
+            if (statusBadge) {
+              statusBadge.textContent = '✓ OCR concluído! Dados e foto transmitidos para o CCHA.';
+              statusBadge.style.background = '#ECFDF5';
+              statusBadge.style.color = '#065F46';
+            }
+            return;
+          }
+        } catch (ocrErr) {
+          console.warn('[doc2fill mobile] Fallback de OCR:', ocrErr);
+        }
+
+        // Fallback se o OCR falhar
+        const fallbackData = { ...defaultCchaData };
+        if (file.name) {
+          fallbackData.descricao = `Documento digitalizado: ${file.name}`;
+        }
+        await sendToExtension(fallbackData, currentFilePayload);
       }
     });
   }

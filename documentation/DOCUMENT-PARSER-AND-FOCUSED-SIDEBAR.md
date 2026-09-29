@@ -52,23 +52,34 @@ O módulo `core/document-parser.js` extrai e normaliza os dados nas seguintes pr
 ## ⚡ Fluxo de Preenchimento Automático (CCHA Autofill)
 
 ```
-[ Documento / OCR / PDF / Foto ]
+[ Documento / OCR / PDF / Foto Mobile ]
               │
               ▼
-   [ core/classifier.js ]  ──► Identifica o tipo do documento (NF, Recibo, Boleto, Guia...)
+  [ mobile-pwa/scanner.js ] ──► Downscaling em Canvas (< 1600px) + OCR local/relay
               │
               ▼
- [ core/document-parser.js ] ──► Extrai os 8 campos fundamentais e sintetiza descritivo/motivo
+    [ core/classifier.js ]  ──► Identifica o tipo do documento (NF, Recibo, Boleto, Guia...)
+              │
+              ▼
+ [ core/document-parser.js ] ──► Extrai os 8 campos fundamentais (supressão de binários espúrios)
               │
               ▼
   [ extension/sidepanel.js ] ──► Exibe estritamente os 8 campos no formulário lateral
               │
               ▼ (Clique em "Preencher Automaticamente no CCHA")
-  [ extension/content.js ]   ──► Injeção headless e disparo de eventos reativos Angular
+  [ extension/content.js ]   ──► Injeção headless, máscara de datas/moedas e eventos reativos Angular
               │
               ▼
    [ Portal CCHA / AGU ]     ──► Caixas correspondentes preenchidas instantaneamente
 ```
+
+---
+
+## 📱 Scanner Mobile PWA & Relay P2P
+
+1. **Downscaling de Imagens**: Fotos de smartphones modernos (12MP a 48MP) são redimensionadas em Canvas mantendo a proporção para no máximo 1600px no eixo maior, reduzindo o payload de ~10MB para ~250KB.
+2. **Envio Fidedigno de OCR**: O resultado da extração local/servidor é transmitido imediatamente via `sendToExtension`, eliminando o fallback com dados mockados fixos.
+3. **Resiliência Angular Forms**: O injetor `fillInputElement` lida com inputs `type="date"` (formato `YYYY-MM-DD`), inputs de texto com máscara (`DD/MM/AAAA`) e inputs numéricos (higienização de símbolos `R$`, pontos e vírgulas).
 
 ---
 

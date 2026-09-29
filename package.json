@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Smart document capture and autofill with zero data retention for government portals",
   "scripts": {
-    "test": "node --test tests/**/*.test.js",
+    "sync-core": "cp -r core/* extension/core/",
+    "test": "npm run sync-core && node --test tests/**/*.test.js",
     "demo": "node server/demo-server.js"
   },
   "keywords": [

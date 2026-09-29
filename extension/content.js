@@ -230,17 +230,38 @@
         input.checked = true;
       }
     } else {
-      // 4. Input de texto / textarea — compatibilidade universal com React/Vue/Angular Reactive Forms
+      // 4. Input de texto / date / number / textarea — compatibilidade universal com React/Vue/Angular Reactive Forms
+      let finalVal = val;
+      if (input.type === 'date') {
+        // Converte DD/MM/AAAA ou DD.MM.AAAA para YYYY-MM-DD exigido por input[type="date"]
+        if (/^\d{2}[\/\.]\d{2}[\/\.]\d{4}$/.test(finalVal)) {
+          finalVal = finalVal.replace(/^(\d{2})[\/\.](\d{2})[\/\.](\d{4})$/, '$3-$2-$1');
+        }
+      } else if (input.type === 'text' && /(?:dd[\/\.]mm|data)/i.test(input.placeholder || '')) {
+        // Se o input texto com máscara espera DD/MM/AAAA e recebeu YYYY-MM-DD
+        if (/^\d{4}-\d{2}-\d{2}$/.test(finalVal)) {
+          finalVal = finalVal.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1');
+        }
+      } else if (input.type === 'number') {
+        // Converte R$ 14.850,00 para 14850.00
+        const numClean = finalVal.replace(/[^\d,\.]/g, '').replace(/\./g, '').replace(',', '.');
+        if (numClean && !isNaN(Number(numClean))) {
+          finalVal = numClean;
+        }
+      }
+
       const proto = typeof window !== 'undefined' ? Object.getOwnPropertyDescriptor(
         tagName === 'TEXTAREA' ? window.HTMLTextAreaElement?.prototype : window.HTMLInputElement?.prototype,
         'value'
       ) : null;
 
       if (proto && proto.set) {
-        proto.set.call(input, val);
+        proto.set.call(input, finalVal);
       } else {
-        input.value = val;
+        input.value = finalVal;
       }
+
+      val = finalVal;
     }
 
     // Disparo da cadeia completa de eventos do ciclo reativo do Angular

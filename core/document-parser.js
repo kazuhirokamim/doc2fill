@@ -50,7 +50,7 @@ export function extractTextFromPdfContent(input) {
     }
   }
 
-  return extractedChunks.length > 0 ? extractedChunks.join('\n') : text;
+  return extractedChunks.length > 0 ? extractedChunks.join('\n') : '';
 }
 
 /**

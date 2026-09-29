@@ -38,6 +38,33 @@ export function buildMobileRelayPayload(sessionId, customData) {
 }
 
 /**
+ * Calcula dimensões proporcionais de redimensionamento para fotos de alta resolução
+ * @param {number} origWidth 
+ * @param {number} origHeight 
+ * @param {number} [maxDimension=1600] 
+ * @returns {{ width: number, height: number }}
+ */
+export function calculateTargetDimensions(origWidth, origHeight, maxDimension = 1600) {
+  if (!origWidth || !origHeight || origWidth <= 0 || origHeight <= 0) {
+    return { width: 0, height: 0 };
+  }
+  if (origWidth <= maxDimension && origHeight <= maxDimension) {
+    return { width: origWidth, height: origHeight };
+  }
+  if (origWidth > origHeight) {
+    return {
+      width: maxDimension,
+      height: Math.round((origHeight * maxDimension) / origWidth)
+    };
+  } else {
+    return {
+      width: Math.round((origWidth * maxDimension) / origHeight),
+      height: maxDimension
+    };
+  }
+}
+
+/**
  * Gera botões de 1-touch copy para preenchimento assistido mobile
  * @param {Object} data 
  * @returns {Array<{ id: string, label: string, value: string }>}
@@ -142,6 +169,32 @@ describe('doc2fill Mobile Scanner Controller (TDD Suite)', () => {
       assert.deepEqual(generateQuickCopyActions(undefined), []);
       assert.deepEqual(generateQuickCopyActions('string'), []);
       assert.deepEqual(generateQuickCopyActions({}), []);
+    });
+  });
+
+  describe('calculateTargetDimensions (Canvas Image Downscaling)', () => {
+    it('Cenário 1 (Happy Path): redimensiona fotos em alta resolução (4000x3000) mantendo proporção para o limite de 1600px', () => {
+      const dims = calculateTargetDimensions(4000, 3000, 1600);
+      assert.equal(dims.width, 1600);
+      assert.equal(dims.height, 1200);
+    });
+
+    it('Cenário 1.2 (Happy Path Vertical): redimensiona fotos verticais de smartphones (3000x4000) para 1200x1600', () => {
+      const dims = calculateTargetDimensions(3000, 4000, 1600);
+      assert.equal(dims.width, 1200);
+      assert.equal(dims.height, 1600);
+    });
+
+    it('Cenário 2 (Edge Case): preserva dimensões de imagens que já são menores que o limite de 1600px', () => {
+      const dims = calculateTargetDimensions(800, 600, 1600);
+      assert.equal(dims.width, 800);
+      assert.equal(dims.height, 600);
+    });
+
+    it('Cenário 3 (Error Path): lida com dimensões nulas, negativas ou inválidas com segurança', () => {
+      assert.deepEqual(calculateTargetDimensions(0, 0, 1600), { width: 0, height: 0 });
+      assert.deepEqual(calculateTargetDimensions(-100, 200, 1600), { width: 0, height: 0 });
+      assert.deepEqual(calculateTargetDimensions(null, undefined, 1600), { width: 0, height: 0 });
     });
   });
 });

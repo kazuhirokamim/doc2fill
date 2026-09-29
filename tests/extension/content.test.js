@@ -141,6 +141,49 @@ describe('doc2fill Content Engine — fillInputElement + InputEvent dispatch', (
     };
     assert.doesNotThrow(() => engine.fillInputElement(mockInput, ''));
   });
+
+  it('Cenário 4 (Happy Path): converte data DD/MM/AAAA para YYYY-MM-DD em input[type="date"]', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const mockDateInput = {
+      tagName: 'INPUT',
+      type: 'date',
+      value: '',
+      focus: () => {},
+      closest: () => null,
+      dispatchEvent: () => {},
+    };
+    engine.fillInputElement(mockDateInput, '25/12/2025');
+    assert.equal(mockDateInput.value, '2025-12-25', 'Deve formatar para padrão ISO YYYY-MM-DD');
+  });
+
+  it('Cenário 5 (Edge Case): converte YYYY-MM-DD para DD/MM/AAAA em input[type="text"] com máscara', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const mockTextInput = {
+      tagName: 'INPUT',
+      type: 'text',
+      placeholder: 'Data (DD/MM/AAAA)',
+      value: '',
+      focus: () => {},
+      closest: () => null,
+      dispatchEvent: () => {},
+    };
+    engine.fillInputElement(mockTextInput, '2025-12-25');
+    assert.equal(mockTextInput.value, '25/12/2025', 'Deve formatar para padrão brasileiro');
+  });
+
+  it('Cenário 6 (Edge Case): limpa R$ e converte formato monetário para número em input[type="number"]', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const mockNumberInput = {
+      tagName: 'INPUT',
+      type: 'number',
+      value: '',
+      focus: () => {},
+      closest: () => null,
+      dispatchEvent: () => {},
+    };
+    engine.fillInputElement(mockNumberInput, 'R$ 14.850,50');
+    assert.equal(mockNumberInput.value, '14850.50', 'Deve higienizar para float numérico decimal com ponto');
+  });
 });
 
 describe('doc2fill Content Engine — executeAutofill', () => {
