@@ -142,4 +142,39 @@ WB - boca RAL ACE Bo A. ne
       assert.ok(elapsed < 100, `Tempo total para 200 iterações (${elapsed}ms) deve ser menor que 100ms`);
     });
   });
+
+  describe('Descritivo Resumido Dinâmico e Individualizado CCHA / AGU (TDD)', () => {
+    it('Cenário 1 (Happy Path): gera descritivo contextual com produto, fornecedor e documento para farmácia', () => {
+      const parsed = parseDocumentFields(samplePharmacyOcr, 'cupom.pdf');
+      assert.ok(parsed.descritivo.includes('PANT SEC'), 'Deve conter o nome do medicamento');
+      assert.ok(parsed.descritivo.includes('DROGARIA RIBEIRO'), 'Deve conter o nome da drogaria');
+      assert.ok(parsed.descritivo.includes('Doc nº') || parsed.descritivo.includes('062060130'), 'Deve conter o número do documento');
+      assert.ok(!parsed.descritivo.includes('Gtd Un VI Unit'), 'Não pode conter cabeçalho fiscal de tabela');
+    });
+
+    it('Cenário 2 (Edge Case): para notas de serviços sem itens discriminados, compõe descritivo com fornecedor e NF', () => {
+      const nfText = `
+        PREFEITURA MUNICIPAL DE SÃO PAULO
+        NOTA FISCAL ELETRÔNICA DE SERVIÇOS - NFS-e
+        Número da Nota: 202609012
+        Data de Emissão: 15/09/2026
+        PRESTADOR DE SERVIÇOS:
+        CPF/CNPJ: 11.222.333/0001-44
+        Razão Social: LAB DIAGNOSTICOS MEDICOS LTDA
+        VALOR TOTAL DA NOTA = R$ 450,00
+      `;
+      const parsed = parseDocumentFields(nfText, 'nota_servico.pdf');
+      assert.ok(parsed.descritivo.includes('LAB DIAGNOSTICOS MEDICOS LTDA'), 'Deve conter a razão social');
+      assert.ok(parsed.descritivo.includes('202609012'), 'Deve conter o número da NFS-e');
+      assert.notEqual(parsed.descritivo, 'Comprovante de pagamento e quitação financeira emitido em favor de beneficiário.');
+    });
+
+    it('Cenário 3 (Error Path): lida com texto mínimo ou sem fornecedor gerando descritivo seguro sem lançar erro', () => {
+      const parsed = parseDocumentFields('Comprovante de pagamento Avulso', 'recibo_desconhecido.pdf');
+      assert.ok(parsed.descritivo, 'Descritivo deve ser gerado');
+      assert.ok(typeof parsed.descritivo === 'string', 'Descritivo deve ser string');
+      assert.ok(parsed.descritivo.length >= 10, 'Descritivo deve ter tamanho legível');
+    });
+  });
 });
+

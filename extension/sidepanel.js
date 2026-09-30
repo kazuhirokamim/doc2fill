@@ -60,6 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return { baseUrl: activeApiBaseUrl, sessionData: null };
   }
 
+  // Inicializa a descoberta da porta ativa da API imediatamente no carregamento
+  resolveApiBaseUrl().catch(() => {});
+
   // 1. Tab switching
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -108,21 +111,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     }
-    if ((data.cpf_cnpj || data.cnpj || data.cpf) && fCnpj) {
-      fCnpj.value = data.cpf_cnpj || data.cnpj || data.cpf;
+    if (fCnpj) {
+      fCnpj.value = data.cpf_cnpj || data.cnpj || data.cpf || '';
     }
-    if ((data.fornecedor || data.razao || data.nome) && fRazao) {
-      fRazao.value = data.fornecedor || data.razao || data.nome;
+    if (fRazao) {
+      fRazao.value = data.fornecedor || data.razao || data.nome || '';
     }
-    if ((data.numero_documento || data.processo) && fNumDoc) {
-      fNumDoc.value = data.numero_documento || data.processo;
+    if (fNumDoc) {
+      fNumDoc.value = data.numero_documento || data.processo || '';
     }
-    if (data.data && fData) fData.value = data.data;
-    if (data.valor && fValor) fValor.value = data.valor;
-    if ((data.descritivo || data.descricao) && fDescricao) {
-      fDescricao.value = data.descritivo || data.descricao;
+    if (fData) {
+      fData.value = data.data || '';
     }
-    if (data.motivo && fMotivo) fMotivo.value = data.motivo;
+    if (fValor) {
+      fValor.value = data.valor || '';
+    }
+    if (fDescricao) {
+      fDescricao.value = data.descritivo || data.descricao || '';
+    }
+    if (fMotivo) {
+      fMotivo.value = data.motivo || '';
+    }
 
     if (badgeAntiGlosa) {
       badgeAntiGlosa.textContent = '⚖️ CCHA Validado';
@@ -186,7 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
     dropSubtitle.textContent = `Extraindo texto e campos em memória efêmera...`;
 
     try {
-      // 1. Converte para base64 para anexo
+      // 1. Assegura conexão ativa com a API local
+      await resolveApiBaseUrl();
+
+      // 2. Converte para base64 para anexo e eventual envio ao OCR
       const base64Promise = new Promise((resolve, reject) => {
         const r = new FileReader();
         r.onload = () => resolve(r.result);
@@ -194,8 +206,10 @@ document.addEventListener('DOMContentLoaded', () => {
         r.readAsDataURL(file);
       });
 
-      // 2. Extrai texto bruto (Imagens via OCR, PDF ou texto)
+      // 3. Extrai texto bruto (Imagens via OCR, PDF ou texto)
       let extractedText = '';
+      let ocrStructuredData = null;
+
       if (file.type.startsWith('image/') || file.name.match(/\.(png|jpe?g|webp|bmp)$/i)) {
         dropSubtitle.textContent = 'Processando com OCR óptico em português...';
         try {
@@ -206,8 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify({ image: b64, name: file.name })
           });
           const ocrJson = await ocrRes.json();
-          if (ocrJson.success && ocrJson.text) {
-            extractedText = ocrJson.text;
+          if (ocrJson.success) {
+            if (ocrJson.text) extractedText = ocrJson.text;
+            if (ocrJson.data) ocrStructuredData = ocrJson.data;
           }
         } catch (ocrErr) {
           console.warn('[doc2fill sidepanel] OCR fallback:', ocrErr);
@@ -222,8 +237,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const buffer = await bufferPromise;
         extractedText = extractTextFromPdfContent(buffer);
 
-        // Se o PDF for puramente escaneado (sem texto digital ASCII), tenta OCR
-        if (!extractedText || extractedText.length < 20) {
+        // Avaliação preliminar de integridade do texto digital do PDF
+        const preliminaryParsed = extractedText ? parseDocumentFields(extractedText, file.name) : null;
+        const hasCoreFiscalFields = preliminaryParsed && (
+          preliminaryParsed.cnpj ||
+          preliminaryParsed.cpf ||
+          preliminaryParsed.valor ||
+          preliminaryParsed.numero_documento
+        );
+
+        // Se o PDF for digitalizado/escaneado, sem dados fiscais ou texto insuficiente, chama OCR local
+        if (!hasCoreFiscalFields || !extractedText || extractedText.length < 50) {
           dropSubtitle.textContent = 'PDF digitalizado detectado: processando com OCR óptico local...';
           try {
             const b64 = await base64Promise;
@@ -234,11 +258,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const ocrJson = await ocrRes.json();
             if (ocrJson.success) {
-              if (ocrJson.text) {
-                extractedText = ocrJson.text;
-              }
+              if (ocrJson.text) extractedText = ocrJson.text;
+              if (ocrJson.data) ocrStructuredData = ocrJson.data;
             }
-          } catch (_) {}
+          } catch (ocrErr) {
+            console.warn('[doc2fill sidepanel] OCR fallback no PDF:', ocrErr);
+          }
         }
       } else if (file.type.startsWith('text/') || file.name.match(/\.(txt|csv|json|xml|html)$/i)) {
         const textPromise = new Promise((resolve, reject) => {
@@ -258,13 +283,14 @@ document.addEventListener('DOMContentLoaded', () => {
         base64
       };
 
-      // 3. Extrai campos estruturados (CCHA / Honorários)
+      // 4. Extrai campos estruturados (CCHA / Honorários) e mescla com dados do OCR se houver
       const parsed = parseDocumentFields(extractedText, file.name);
+      const mergedData = { ...(ocrStructuredData || {}), ...parsed };
 
       dropTitle.textContent = `✓ ${file.name}`;
       dropSubtitle.textContent = `Arquivo lido • ${(file.size / 1024).toFixed(1)} KB • Dados extraídos`;
 
-      populateFormFields(parsed, filePayload);
+      populateFormFields(mergedData, filePayload);
     } catch (err) {
       console.error('[doc2fill] Erro ao processar arquivo:', err);
       dropTitle.textContent = `⚠️ Erro ao ler ${file.name}`;

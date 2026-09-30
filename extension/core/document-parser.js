@@ -229,13 +229,26 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     data.valor = `R$ ${valorMatch[1].trim()}`;
   }
 
-  // 7. Descritivo Resumido (Síntese concisa do serviço / objeto)
-  const descMatch =
-    text.match(/(?:Discrimina[cç][aã]o\s+dos\s+Servi[cç]os|Descri[cç][aã]o|Objeto|Hist[oó]rico)[:\s\n]*([^\n\r]+(?:\n[^\n\r]+)?)/i);
+  // 7. Descritivo Resumido (Síntese concisa, individualizada e contextual do serviço / objeto)
+  let extractedItem = null;
 
-  if (descMatch && descMatch[1].trim().length > 8) {
+  // 7.1 Detecção de item específico em cupons fiscais / NFC-e: ex "O01 237004 PANT SEC 5 1 UNID x 78,05"
+  const itemMatch = text.match(/(?:[O0]01|\d{1,3})\s+\d{4,8}\s+(.+?)(?:\s+x\s+[\d,\.]+|\s+TOTAL|\n|$)/i);
+  if (itemMatch && itemMatch[1].trim().length >= 3) {
+    let cleanItem = itemMatch[1].trim()
+      .replace(/^(?:Gtd|Qtd|Un|Vl|Unit|Total|C[oó]d|Descri[cç][aã]o)[,\.\s\:\-\|]*/gi, '')
+      .trim();
+    if (cleanItem.length >= 3) {
+      extractedItem = cleanItem;
+    }
+  }
+
+  // 7.2 Detecção de bloco textual de descrição / discriminação de serviços
+  const descMatch =
+    text.match(/(?:Discrimina[cç][aã]o\s+dos\s+Servi[cç]os|Descri[cç][aã]o\s+dos\s+Servi[cç]os|Objeto|Hist[oó]rico)[:\s\n]*([^\n\r]+(?:\n[^\n\r]+)?)/i);
+
+  if (descMatch && descMatch[1].trim().length > 6) {
     let cleanDesc = descMatch[1].trim().replace(/\s+/g, ' ');
-    // Remove cabeçalhos de tabela de cupons fiscais
     cleanDesc = cleanDesc
       .replace(/^(?:Gtd|Qtd|Un|Vl|Unit|Total|C[oó]d|Descri[cç][aã]o|Itens|Pre[cç]o)[,\.\s\:\-\|]*/gi, '')
       .replace(/^(?:O01|001|\d{1,3})\s+\d{4,8}\s+/i, '')
@@ -243,33 +256,43 @@ export function parseDocumentFields(rawText = '', fileName = '') {
       .trim();
 
     if (cleanDesc.length >= 3) {
-      data.descritivo = cleanDesc;
+      extractedItem = extractedItem || cleanDesc;
     }
   }
 
-  if (!data.descritivo) {
-    if (/honorarios|sucumbencia/i.test(text)) {
-      data.descritivo = 'Honorários advocatícios sucumbenciais devidos perante o CCHA em decorrência de atuação judicial.';
-    } else if (/drogaria|farm[aá]cia|medicamento|pant\s*sec/i.test(text)) {
-      data.descritivo = 'Aquisição de medicamentos e insumos farmacêuticos de pronto pagamento para suporte às atividades funcionais.';
-    } else if (/tiss|tuss|sadt|medica/i.test(text)) {
-      data.descritivo = 'Assistência médica e procedimentos de saúde com comprovação diagnóstica e terapêutica.';
+  // 7.3 Composição Dinâmica e Personalizada do Descritivo CCHA
+  if (extractedItem) {
+    if (/drogaria|farm[aá]cia|medicamento|pant\s*sec/i.test(text) || (data.fornecedor && /drogaria|farm[aá]cia/i.test(data.fornecedor))) {
+      data.descritivo = `Aquisição de medicamentos/insumos farmacêuticos (${extractedItem}) - ${data.fornecedor || 'Drogaria'}${data.numero_documento ? ' (Doc nº ' + data.numero_documento + ')' : ''}.`;
     } else if (data.tipo_documento.includes('Nota Fiscal')) {
-      data.descritivo = `Prestação de serviços técnicos/operacionais discriminados em Nota Fiscal emitida por ${data.fornecedor || 'prestador'}.`;
-    } else if (data.tipo_documento.includes('Cupom Fiscal')) {
-      data.descritivo = 'Aquisição de insumos operacionais e materiais de consumo para expediente funcional.';
-    } else if (data.tipo_documento.includes('Comprovante')) {
-      data.descritivo = `Comprovante de pagamento e quitação financeira emitido em favor de ${data.fornecedor || 'beneficiário'}.`;
-    } else if (data.tipo_documento.includes('Boleto')) {
-      data.descritivo = 'Quitação de obrigação bancária e títulos devidos para prestação de contas.';
-    } else if (data.tipo_documento.includes('Fatura')) {
-      data.descritivo = 'Despesas de consumo e faturas de serviços continuados essenciais ao exercício profissional.';
-    } else if (data.tipo_documento.includes('Declaração')) {
-      data.descritivo = 'Declaração comprobatória de regularidade documental e ateste de serviços.';
-    } else if (fileName) {
-      data.descritivo = `Documento comprobatório: ${fileName}`;
+      data.descritivo = `Prestação de serviços / produtos (${extractedItem}) - ${data.fornecedor || 'Fornecedor'}${data.numero_documento ? ' (NF nº ' + data.numero_documento + ')' : ''}.`;
     } else {
-      data.descritivo = 'Comprovação documental de serviços e atos administrativos.';
+      data.descritivo = `Aquisição de insumo operacional (${extractedItem}) junto a ${data.fornecedor || 'fornecedor'}${data.numero_documento ? ' (Doc nº ' + data.numero_documento + ')' : ''}.`;
+    }
+  } else {
+    // Composição contextual individualizada quando não há linha explícita de item
+    if (/honorarios|sucumbencia/i.test(text)) {
+      data.descritivo = `Honorários advocatícios sucumbenciais devidos perante o CCHA em decorrência de atuação judicial${data.processo ? ' no Processo ' + data.processo : ''}.`;
+    } else if (/drogaria|farm[aá]cia|medicamento|pant\s*sec/i.test(text) || (data.fornecedor && /drogaria|farm[aá]cia/i.test(data.fornecedor))) {
+      data.descritivo = `Aquisição de medicamentos e insumos farmacêuticos de pronto pagamento junto a ${data.fornecedor || 'fornecedor'}${data.numero_documento ? ' (Doc nº ' + data.numero_documento + ')' : ''}.`;
+    } else if (/tiss|tuss|sadt|medica/i.test(text)) {
+      data.descritivo = `Assistência médica e procedimentos de saúde com comprovação diagnóstica junto a ${data.fornecedor || 'prestador'}${data.numero_documento ? ' (Doc nº ' + data.numero_documento + ')' : ''}.`;
+    } else if (data.tipo_documento.includes('Nota Fiscal')) {
+      data.descritivo = `Prestação de serviços técnicos/operacionais discriminados em Nota Fiscal emitida por ${data.fornecedor || 'prestador'}${data.numero_documento ? ' (NF nº ' + data.numero_documento + ')' : ''}.`;
+    } else if (data.tipo_documento.includes('Cupom Fiscal')) {
+      data.descritivo = `Aquisição de insumos operacionais e materiais de consumo junto a ${data.fornecedor || 'fornecedor'}${data.numero_documento ? ' (Cupom nº ' + data.numero_documento + ')' : ''}.`;
+    } else if (data.tipo_documento.includes('Recibo')) {
+      data.descritivo = `Recibo comprobatório de serviços prestados emitido por ${data.fornecedor || 'prestador'}${data.numero_documento ? ' (Recibo nº ' + data.numero_documento + ')' : ''}.`;
+    } else if (data.tipo_documento.includes('Boleto')) {
+      data.descritivo = `Quitação de obrigação bancária e títulos devidos em favor de ${data.fornecedor || 'beneficiário'}${data.valor ? ' no valor de ' + data.valor : ''}.`;
+    } else if (data.tipo_documento.includes('Fatura')) {
+      data.descritivo = `Despesas de consumo e faturas de serviços continuados essenciais junto a ${data.fornecedor || 'concessionária'}${data.numero_documento ? ' (Fatura nº ' + data.numero_documento + ')' : ''}.`;
+    } else if (data.tipo_documento.includes('Declaração')) {
+      data.descritivo = `Declaração comprobatória de regularidade documental e ateste de serviços emitida por ${data.fornecedor || 'declarante'}.`;
+    } else if (fileName) {
+      data.descritivo = `Comprovação documental de despesa operacional: ${fileName}${data.fornecedor ? ' (' + data.fornecedor + ')' : ''}.`;
+    } else {
+      data.descritivo = 'Comprovação documental de serviços e atos administrativos perante o CCHA.';
     }
   }
   data.descricao = data.descritivo;
@@ -277,7 +300,7 @@ export function parseDocumentFields(rawText = '', fileName = '') {
   // 8. Motivo da Necessidade (Justificativa fundamentada para o CCHA)
   if (/honorarios|sucumbencia|rateio/i.test(text)) {
     data.motivo = 'Art. 29 a 36 da Lei nº 13.327/2016 e deliberações do CCHA. Preenchimento de requisitos de elegibilidade e rateio de honorários sucumbenciais.';
-  } else if (/drogaria|farm[aá]cia|medicamento/i.test(text)) {
+  } else if (/drogaria|farm[aá]cia|medicamento/i.test(text) || (data.fornecedor && /drogaria|farm[aá]cia/i.test(data.fornecedor))) {
     data.motivo = 'Comprovação de despesa miúda e aquisição de insumos farmacêuticos de pronto pagamento vinculados à atividade funcional perante o CCHA.';
   } else if (/tiss|tuss|sadt|medica|saude/i.test(text)) {
     data.motivo = 'Comprovação de despesa de assistência à saúde e atendimento médico/hospitalar para fins de ressarcimento funcional perante o CCHA.';

@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Fixed
+- **Detecção Confiável de PDFs Escaneados no Sidepanel**: Avaliação semântica pós-extração no `extension/sidepanel.js`. Caso o PDF não contenha campos fiscais essenciais (CNPJ, CPF, Valor ou Número de Documento) ou possua menos de 50 caracteres (resíduos de fontes de 30 bytes), o sistema classifica o documento como digitalizado e dispara automaticamente o OCR óptico via `/api/ocr`.
+- **Descritivo Resumido Dinâmico e Individualizado CCHA / AGU**: Extrator especializado de itens de cupom fiscal e NFC-e (`core/document-parser.js`), compondo descritivos contextuais que correlacionam o produto real (ex: medicamentos, insumos, honorários), o fornecedor, o número do documento e o valor, extinguindo a repetição de frases estáticas genéricas.
+- **Resolução Imediata de Endpoint**: Execução de `resolveApiBaseUrl()` logo no ciclo `DOMContentLoaded` do Sidepanel, garantindo sincronia imediata na aba de arquivos.
 - **Motor Semântico de Preenchimento & Autofill Forense**: Mapeamento inteligente de tipos de documento em `<select>` (ex.: Cupom Fiscal mapeado para Nota Fiscal) sem reset destrutivo para vazio (`selectedIndex = 0`).
 - **Normalização de Ruído de OCR em Cupons Térmicos (NFC-e)**: Parser resiliente da chave de acesso de 44 dígitos com substituição de ruídos óticos (`D/O -> 0`, `I/l -> 1`, `S -> 5`) extraindo os 9 dígitos da NF e higienização de cabeçalhos de tabela fiscal no descritivo.
 - **Prevenção de Colisões & Controle de Estado**: Remoção do termo `'documento'` em `cpf_cnpj` e introdução de `filledElements Set` impedindo sobrescrita de dados já preenchidos.
