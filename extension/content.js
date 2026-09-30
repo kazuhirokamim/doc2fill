@@ -77,7 +77,7 @@
       if (optVal && optVal.length >= 4 && normVal.includes(optVal)) return opt;
     }
 
-    // 2ª Tentativa: Mapeamento semântico priorizado
+    // 2ª Tentativa: Mapeamento semântico priorizado (O(N) achatado)
     const semanticGroups = [
       { keys: ['cupom', 'nfc', 'sat', 'danfe', 'nota fiscal', 'nfse', 'nfe', 'fiscal'], matches: ['nota_fiscal', 'nota', 'fiscal', 'recibo'] },
       { keys: ['recibo', 'honorario', 'profissional', 'autonomo', 'rpa'], matches: ['recibo', 'honorarios', 'autonomo'] },
@@ -86,19 +86,18 @@
       { keys: ['farmacia', 'medicamento', 'drogaria', 'droga'], matches: ['nota_fiscal', 'recibo', 'outro'] }
     ];
 
+    const normalizedOpts = Array.from(options).map((opt, i) => ({
+      opt,
+      val: normalizeText(opt.value),
+      text: normalizeText(opt.text),
+      isPlaceholder: i === 0 && !normalizeText(opt.value)
+    }));
+
     for (const group of semanticGroups) {
-      if (group.keys.some(k => normVal.includes(k))) {
-        for (const targetMatch of group.matches) {
-          for (let i = 0; i < options.length; i++) {
-            const opt = options[i];
-            const optVal = normalizeText(opt.value);
-            const optText = normalizeText(opt.text);
-            if (!optVal && i === 0) continue;
-            if ((optVal && optVal.includes(targetMatch)) || (optText && optText.includes(targetMatch))) {
-              return opt;
-            }
-          }
-        }
+      if (!group.keys.some(k => normVal.includes(k))) continue;
+      for (const targetMatch of group.matches) {
+        const found = normalizedOpts.find(o => !o.isPlaceholder && (o.val.includes(targetMatch) || o.text.includes(targetMatch)));
+        if (found) return found.opt;
       }
     }
 

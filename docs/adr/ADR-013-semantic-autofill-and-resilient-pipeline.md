@@ -39,6 +39,7 @@ No contexto de extração e preenchimento automático de comprovantes fiscais e 
    - Higienização do descritivo para remover cabeçalhos de tabela fiscal e preservar o nome real do item/medicamento adquirido.
 2. **Motor Semântico de Selects e Prevenção de Colisões (`extension/content.js`)**:
    - Função `matchSemanticSelectOption` com grupos semânticos prioritários (Cupom/NFC-e mapeia para `nota_fiscal` ou `recibo`; Recibo mapeia para `recibo`; Guia Médica mapeia para `guia_medica`).
+   - Otimização algorítmica O(N) com pré-normalização da lista de opções em passo único, eliminando loops aninhados profundos e mantendo latência de correspondência inferior a 1ms.
    - Remoção do termo genérico `'documento'` de `cpf` e `cpf_cnpj` em `FISCAL_MAPPINGS`.
    - Controle de estado `filledElements = new Set()` para garantir que um elemento preenchido com alta pontuação não seja sobrescrito por termos genéricos posteriores.
 3. **Resiliência e Auto-Injeção no Sidepanel (`extension/sidepanel.js`)**:

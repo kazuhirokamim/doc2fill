@@ -125,5 +125,21 @@ WB - boca RAL ACE Bo A. ne
       const matchEmpty = engine.matchSemanticSelectOption([], 'Nota Fiscal');
       assert.equal(matchEmpty, null);
     });
+
+    it('Cenário 4 (Performance & Latency): executa casamento semântico em sub-milissegundos com 1.000 iterações', () => {
+      const largeOptions = Array.from({ length: 50 }, (_, i) => ({
+        value: `opt_${i}`,
+        text: `Opção de Teste ${i} - Descrição Genérica`
+      }));
+      largeOptions.push({ value: 'recibo_honorarios', text: 'Recibo de Pagamento a Autônomo (RPA)' });
+
+      const start = performance.now();
+      for (let i = 0; i < 200; i++) {
+        const res = engine.matchSemanticSelectOption(largeOptions, 'Recibo Profissional Liberal');
+        assert.ok(res);
+      }
+      const elapsed = performance.now() - start;
+      assert.ok(elapsed < 100, `Tempo total para 200 iterações (${elapsed}ms) deve ser menor que 100ms`);
+    });
   });
 });

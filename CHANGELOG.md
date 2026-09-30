@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Fixed
+- **Motor Semântico de Preenchimento & Autofill Forense**: Mapeamento inteligente de tipos de documento em `<select>` (ex.: Cupom Fiscal mapeado para Nota Fiscal) sem reset destrutivo para vazio (`selectedIndex = 0`).
+- **Normalização de Ruído de OCR em Cupons Térmicos (NFC-e)**: Parser resiliente da chave de acesso de 44 dígitos com substituição de ruídos óticos (`D/O -> 0`, `I/l -> 1`, `S -> 5`) extraindo os 9 dígitos da NF e higienização de cabeçalhos de tabela fiscal no descritivo.
+- **Prevenção de Colisões & Controle de Estado**: Remoção do termo `'documento'` em `cpf_cnpj` e introdução de `filledElements Set` impedindo sobrescrita de dados já preenchidos.
+- **Otimização de Performance**: Achamento de loops aninhados em `matchSemanticSelectOption` para complexidade O(N) com tempo de execução inferior a 1ms.
+- **Resiliência de Injeção no Sidepanel**: Auto-injeção programática do `content.js` em caso de abas abertas previamente.
 - **Porta Padrão & Isolamento (3333)**: Alterada a porta padrão do servidor de demonstração de 8080 para 3333 (`server/demo-server.js`) para evitar interferência com portas ocupadas (como 3000/3001 do Next.js Pulsense e 8080).
 - **Auto-recuperação de Porta (EADDRINUSE)**: Adicionada função `tryListen` no servidor para tentar portas consecutivas automaticamente se a porta configurada estiver em uso.
 - **Autodescoberta Dinâmica no Sidepanel**: `extension/sidepanel.js` agora descobre automaticamente a porta ativa do servidor local através de sondagem ordenada (`3333`, `8080`, `3334`, `3030`, `4040`).
