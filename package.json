@@ -5,7 +5,7 @@
   "description": "Smart document capture and autofill with zero data retention for government portals",
   "scripts": {
     "sync-core": "cp -r core/* extension/core/",
-    "test": "npm run sync-core && node --test tests/**/*.test.js",
+    "test": "npm run sync-core && node --test tests/**/*.test.js tests/*.test.js",
     "dev": "node server/demo-server.js",
     "demo": "node server/demo-server.js"
   },

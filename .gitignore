@@ -9,3 +9,4 @@ build/
 .tear/
 .milestone-context
 *.traineddata
+scratch/

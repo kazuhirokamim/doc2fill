@@ -79,7 +79,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 2. Preenchimento dos 8 campos focados
   function populateFormFields(data, fileData = null) {
-    if (data.tipo_documento && fTipoDoc) fTipoDoc.value = data.tipo_documento;
+    if (data.tipo_documento && fTipoDoc) {
+      fTipoDoc.value = data.tipo_documento;
+      if (!fTipoDoc.value && fTipoDoc.options) {
+        const norm = (data.tipo_documento || '').toLowerCase();
+        for (const opt of fTipoDoc.options) {
+          const optVal = opt.value.toLowerCase();
+          if (norm.includes('cupom') && optVal.includes('cupom')) {
+            fTipoDoc.value = opt.value;
+            break;
+          }
+          if (norm.includes('nota') && optVal.includes('nota')) {
+            fTipoDoc.value = opt.value;
+            break;
+          }
+          if (norm.includes('recibo') && optVal.includes('recibo')) {
+            fTipoDoc.value = opt.value;
+            break;
+          }
+          if (norm.includes('guia') && optVal.includes('guia')) {
+            fTipoDoc.value = opt.value;
+            break;
+          }
+          if (norm.includes('boleto') && optVal.includes('boleto')) {
+            fTipoDoc.value = opt.value;
+            break;
+          }
+        }
+      }
+    }
     if ((data.cpf_cnpj || data.cnpj || data.cpf) && fCnpj) {
       fCnpj.value = data.cpf_cnpj || data.cnpj || data.cpf;
     }
@@ -359,7 +387,16 @@ document.addEventListener('DOMContentLoaded', () => {
     btnAutofill.disabled = true;
 
     try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab || !tab.id) {
+        const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+        tab = tabs && tabs.length > 0 ? tabs[0] : null;
+      }
+      if (!tab || !tab.id) {
+        const allTabs = await chrome.tabs.query({ active: true });
+        tab = allTabs && allTabs.length > 0 ? allTabs[0] : null;
+      }
+
       if (!tab || !tab.id) {
         alert('Nenhuma aba ativa encontrada.');
         btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
@@ -367,11 +404,34 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const response = await chrome.tabs.sendMessage(tab.id, {
-        action: 'DOC2FILL_EXECUTE',
-        data: payload,
-        file: attachedFile
-      });
+      let response = null;
+      try {
+        response = await chrome.tabs.sendMessage(tab.id, {
+          action: 'DOC2FILL_EXECUTE',
+          data: payload,
+          file: attachedFile
+        });
+      } catch (sendErr) {
+        // Se a página foi aberta antes do reload da extensão, auto-injeta o content script
+        if (typeof chrome !== 'undefined' && chrome.scripting && chrome.scripting.executeScript) {
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              files: ['content.js']
+            });
+            response = await chrome.tabs.sendMessage(tab.id, {
+              action: 'DOC2FILL_EXECUTE',
+              data: payload,
+              file: attachedFile
+            });
+          } catch (injectErr) {
+            console.warn('[doc2fill] Falha na auto-injeção programática:', injectErr);
+            throw sendErr;
+          }
+        } else {
+          throw sendErr;
+        }
+      }
 
       if (response && response.success) {
         btnAutofill.textContent = `✓ Preenchido (${response.count} campos)!`;

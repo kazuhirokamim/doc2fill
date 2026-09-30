@@ -32,19 +32,19 @@
   // Mapeamentos fiscais e jurídicos padrão com suporte ao portal CCHA (Honorários Advocatícios / AGU)
   const FISCAL_MAPPINGS = [
     { key: 'tipo_documento', terms: ['tipo_documento', 'comprovante_tipo', 'especie', 'tipo_comprovante', 'tipo_doc', 'comprovante', 'tipo_despesa', 'tipo_requerimento', 'tipodocumento'] },
-    { key: 'cpf_cnpj', terms: ['cpf_cnpj', 'cpfcnpj', 'cnpj', 'cpf', 'documento', 'prestador', 'emitente', 'identificacao', 'fornecedor', 'prestador_cpf', 'prestador_cnpj', 'fornecedor_cnpj', 'fornecedor_cpf'] },
-    { key: 'fornecedor', terms: ['fornecedor', 'nome_fornecedor', 'fornecedor_nome', 'razao', 'razao_social', 'nome', 'fantasia', 'empresa', 'social', 'prestador_nome', 'nome_prestador'] },
-    { key: 'numero_documento', terms: ['numero_documento', 'num_documento', 'numero_nf', 'num_nf', 'numero_nota', 'numero', 'num_recibo', 'numero_recibo', 'numero_cupom', 'numero_fatura', 'numero_comprovante', 'num_doc', 'processo', 'protocolo', 'identificador'] },
-    { key: 'data', terms: ['data', 'emissao', 'competencia', 'dt_emissao', 'data_requerimento', 'data_pagamento', 'dt_pagamento', 'data_atendimento', 'data_realizacao', 'dataingresso', 'datanascimento', '_data', 'data_emissao', 'data_documento'] },
-    { key: 'valor', terms: ['valor', 'honorarios', 'valor_honorarios', 'quantia', 'valor_total', 'bruto', 'total', 'servico_valor', 'valor_servico', 'valor_pago', 'valor_despesa', 'valor_solicitado', '_valor', 'valor_bruto'] },
-    { key: 'descritivo', terms: ['descritivo', 'descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos', 'procedimento', 'despesa', 'objeto', 'especificacao', 'discriminacao_servico', 'descricao_servico'] },
-    { key: 'motivo', terms: ['motivo', 'justificativa', 'fundamentacao', 'indicacao', 'necessidade', 'diagnostico', 'cid', 'justificativa_clinica', 'indicacao_clinica', 'relatorio_medico', 'laudo', 'relatorio', 'observacao', 'motivo_procedimento'] },
+    { key: 'cpf_cnpj', terms: ['cpf_cnpj', 'cpfcnpj', 'cnpj_prestador', 'prestador_cnpj', 'fornecedor_cnpj', 'cnpj', 'cpf_prestador', 'fornecedor_cpf', 'cpf', 'emitente', 'identificacao'] },
+    { key: 'fornecedor', terms: ['fornecedor', 'nome_fornecedor', 'fornecedor_nome', 'razao_social', 'razao', 'nome_prestador', 'prestador_nome', 'fantasia', 'empresa', 'social'] },
+    { key: 'numero_documento', terms: ['numero_documento', 'num_documento', 'numero_nf', 'num_nf', 'numero_nota', 'numero', 'num_recibo', 'numero_recibo', 'numero_cupom', 'numero_fatura', 'numero_comprovante', 'num_doc', 'protocolo_ccha', 'protocolo', 'processo', 'identificador'] },
+    { key: 'data', terms: ['data_emissao', 'data_documento', 'emissao', 'competencia', 'dt_emissao', 'data_requerimento', 'data_pagamento', 'dt_pagamento', 'data_atendimento', 'data_realizacao', 'data'] },
+    { key: 'valor', terms: ['valor_bruto', 'valor_total', 'valor_documento', 'valor_servico', 'valor_pago', 'valor_despesa', 'valor_honorarios', 'honorarios', 'valor', 'total'] },
+    { key: 'descritivo', terms: ['discriminacao_servico', 'descricao_servico', 'descritivo', 'descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos', 'procedimento', 'objeto', 'especificacao'] },
+    { key: 'motivo', terms: ['motivo_procedimento', 'motivo', 'justificativa_clinica', 'justificativa', 'fundamentacao', 'indicacao_clinica', 'indicacao', 'necessidade', 'diagnostico'] },
     // Aliases para retrocompatibilidade
-    { key: 'cnpj', terms: ['cnpj', 'cpf', 'documento', 'prestador', 'emitente', 'identificacao', 'cpf_cnpj', 'cpfcnpj', 'cpf_procurador', 'cpf_beneficiario', 'prestador_cpf', 'prestador_cnpj'] },
-    { key: 'cpf', terms: ['cpf', 'cpfcnpj', 'documento', 'identificacao', 'cpfprocurador', 'cpfbeneficiario', 'prestadorcpf', 'dependentecpf'] },
-    { key: 'razao', terms: ['razao', 'nome', 'fantasia', 'empresa', 'social', 'prestador_nome', 'nome_prestador', 'nome_procurador', 'nome_advogado', 'requerente', 'beneficiario', 'dependentenome', 'nomemae', 'nomepai'] },
-    { key: 'nome', terms: ['nome', 'razao', 'prestador_nome', 'nome_procurador', 'nome_advogado', 'requerente', 'beneficiario', 'dependentenome', 'nomemae', 'nomepai'] },
-    { key: 'descricao', terms: ['descricao', 'discriminacao', 'historico', 'detalhe', 'observacao', 'servicos', 'procedimento', 'despesa', 'especialidade', 'tipo_despesa', 'objeto', 'especificacao', 'honorarios_sucumbenciais'] },
+    { key: 'cnpj', terms: ['cnpj_prestador', 'prestador_cnpj', 'fornecedor_cnpj', 'cnpj', 'cpf_cnpj', 'cpfcnpj'] },
+    { key: 'cpf', terms: ['cpf_prestador', 'fornecedor_cpf', 'cpf', 'cpf_procurador', 'cpf_beneficiario', 'cpfcnpj'] },
+    { key: 'razao', terms: ['razao_social', 'razao', 'nome_prestador', 'prestador_nome', 'nome_fornecedor', 'fornecedor_nome', 'empresa', 'social'] },
+    { key: 'nome', terms: ['nome_prestador', 'prestador_nome', 'nome_fornecedor', 'fornecedor_nome', 'nome', 'razao'] },
+    { key: 'descricao', terms: ['descricao_servico', 'discriminacao_servico', 'descricao', 'descritivo', 'discriminacao', 'historico'] },
     { key: 'processo', terms: ['processo', 'numero_processo', 'num_processo', 'processo_judicial', 'processo_administrativo', 'protocolo'] },
     { key: 'servico', terms: ['servico', 'codigo', 'item', 'cnae', 'atividade', 'cod_servico', 'codigo_tuss', 'tuss', 'tuss_codigo', 'rubrica', 'rubrica_ccha'] },
     { key: 'irrf', terms: ['irrf', 'retencao', 'retido', 'imposto', 'tributo'] },
@@ -58,6 +58,52 @@
     { key: 'pix', terms: ['pix', 'chave_pix', 'tipo_pix', 'chavepix'] },
     { key: 'email', terms: ['email', 'emailinstitucional', 'emailpessoal'] }
   ];
+
+  // Casamento semântico priorizado para opções de <select>
+  function matchSemanticSelectOption(options, val) {
+    if (!options || !val) return null;
+    const normVal = normalizeText(val);
+    if (!normVal) return null;
+
+    // 1ª Tentativa: Match exato de valor ou texto
+    for (let i = 0; i < options.length; i++) {
+      const opt = options[i];
+      const optVal = normalizeText(opt.value);
+      const optText = normalizeText(opt.text);
+      if (!optVal && i === 0) continue;
+      if (optVal && optVal === normVal) return opt;
+      if (optText && optText === normVal) return opt;
+      if (optText && optText.includes(normVal)) return opt;
+      if (optVal && optVal.length >= 4 && normVal.includes(optVal)) return opt;
+    }
+
+    // 2ª Tentativa: Mapeamento semântico priorizado
+    const semanticGroups = [
+      { keys: ['cupom', 'nfc', 'sat', 'danfe', 'nota fiscal', 'nfse', 'nfe', 'fiscal'], matches: ['nota_fiscal', 'nota', 'fiscal', 'recibo'] },
+      { keys: ['recibo', 'honorario', 'profissional', 'autonomo', 'rpa'], matches: ['recibo', 'honorarios', 'autonomo'] },
+      { keys: ['guia', 'tiss', 'tuss', 'sadt', 'medica', 'consulta', 'exame'], matches: ['guia_medica', 'guia', 'tiss'] },
+      { keys: ['boleto', 'bancario', 'fatura', 'pagamento', 'concessionaria'], matches: ['boleto', 'fatura', 'bancario', 'comprovante'] },
+      { keys: ['farmacia', 'medicamento', 'drogaria', 'droga'], matches: ['nota_fiscal', 'recibo', 'outro'] }
+    ];
+
+    for (const group of semanticGroups) {
+      if (group.keys.some(k => normVal.includes(k))) {
+        for (const targetMatch of group.matches) {
+          for (let i = 0; i < options.length; i++) {
+            const opt = options[i];
+            const optVal = normalizeText(opt.value);
+            const optText = normalizeText(opt.text);
+            if (!optVal && i === 0) continue;
+            if ((optVal && optVal.includes(targetMatch)) || (optText && optText.includes(targetMatch))) {
+              return opt;
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
 
   // Coleta profunda de elementos de formulário, incluindo Angular Reactive Forms, ng-select e Shadow DOM
   function getAllFormElements(root = document) {
@@ -92,6 +138,7 @@
     }
 
     let filledCount = 0;
+    const filledElements = new Set();
     const rootDoc = typeof document !== 'undefined' ? document : null;
     const inputs = getAllFormElements(rootDoc);
 
@@ -99,10 +146,11 @@
       const val = data[m.key];
       if (!val || typeof val !== 'string' || val.trim() === '') continue;
 
-      const target = findBestMatchingInput(inputs, m.terms);
+      const target = findBestMatchingInput(inputs, m.terms, filledElements);
       if (target) {
         fillInputElement(target, val.trim());
         highlightSuccessField(target);
+        filledElements.add(target);
         filledCount++;
       }
     }
@@ -120,12 +168,14 @@
     return { success: false, reason: 'Nenhum campo compatível encontrado na página.' };
   }
 
-  function findBestMatchingInput(inputs, terms) {
+  function findBestMatchingInput(inputs, terms, filledElements = new Set()) {
     let best = null;
     let highestScore = 0;
     const normalizedTerms = terms.map(normalizeText).filter(Boolean);
 
     for (const input of inputs) {
+      if (filledElements && filledElements.has(input)) continue;
+
       const id = normalizeText(input.id || '');
       const name = normalizeText(input.name || '');
       const placeholder = normalizeText(input.placeholder || '');
@@ -205,20 +255,13 @@
       return;
     }
 
-    // 3. Suporte a SELECT nativo
+    // 3. Suporte a SELECT nativo com matching semântico
     if (tagName === 'SELECT') {
-      const normVal = normalizeText(val);
-      let optionMatched = false;
-      if (input.options) {
-        for (const opt of input.options) {
-          if (normalizeText(opt.value) === normVal || normalizeText(opt.text).includes(normVal)) {
-            input.value = opt.value;
-            optionMatched = true;
-            break;
-          }
-        }
-        if (!optionMatched && input.options.length > 0) {
-          input.selectedIndex = 0;
+      const matchedOpt = matchSemanticSelectOption(input.options, val);
+      if (matchedOpt) {
+        input.value = matchedOpt.value;
+        if (input.options) {
+          input.selectedIndex = Array.from(input.options).indexOf(matchedOpt);
         }
       }
     } else if (input.type === 'radio' || input.type === 'checkbox') {
@@ -334,6 +377,7 @@
     globalThis.__doc2fill_content_engine = {
       normalizeText,
       FISCAL_MAPPINGS,
+      matchSemanticSelectOption,
       getAllFormElements,
       findBestMatchingInput,
       fillInputElement,

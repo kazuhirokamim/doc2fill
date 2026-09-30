@@ -162,14 +162,46 @@ export function parseDocumentFields(rawText = '', fileName = '') {
   if (numDocMatch) {
     data.numero_documento = numDocMatch[1].trim();
   } else {
-    // 4.1 Extrai número a partir dos 44 dígitos da Chave de Acesso (posições 25 a 33 na NFC-e)
-    const chaveMatch = text.match(/(?:Chave\s+de\s+Acesso[^\d]*)([0-9\s]{25,60})/i);
-    if (chaveMatch) {
-      const cleanDigits = chaveMatch[1].replace(/[^\d]/g, '');
-      if (cleanDigits.length >= 34) {
-        data.numero_documento = cleanDigits.substring(25, 34);
-      } else if (cleanDigits.length >= 6) {
-        data.numero_documento = cleanDigits.substring(0, 10);
+    // 4.1 Extrai número a partir da Chave de Acesso da NFC-e com normalização de ruídos térmicos
+    const lines = text.split(/[\r\n]+/);
+    for (let i = 0; i < lines.length; i++) {
+      const l = lines[i];
+      if (/chave\s+de\s+acesso|consulte|sefaz|nfe\/consulta|danfe/i.test(l)) {
+        let combined = '';
+        for (let j = i + 1; j < Math.min(i + 6, lines.length); j++) {
+          const nextLine = lines[j].trim();
+          const digitLike = (nextLine.match(/[\dDOoIlSBZb\|]/g) || []).length;
+          if (digitLike >= 6) {
+            combined += ' ' + nextLine;
+          }
+        }
+        if (combined) {
+          const clean = combined
+            .replace(/[DOo]/g, '0')
+            .replace(/[Il\|]/g, '1')
+            .replace(/[Ss]/g, '5')
+            .replace(/[Bb]/g, '8')
+            .replace(/[Zz]/g, '2')
+            .replace(/[^\d]/g, '');
+
+          if (clean.length >= 35) {
+            const nNf = clean.substring(25, 34);
+            if (nNf && !/^0+$/.test(nNf)) {
+              data.numero_documento = nNf;
+            } else {
+              data.numero_documento = clean.substring(0, 10);
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    // 4.2 Fallback para códigos operacionais ou de caixa em cupons fiscais
+    if (!data.numero_documento) {
+      const opMatch = text.match(/(?:OP|VD|CX|C[oó]d)[:\s]*([0-9]{3,10})/i);
+      if (opMatch) {
+        data.numero_documento = opMatch[1].trim();
       }
     }
   }
@@ -202,29 +234,43 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     text.match(/(?:Discrimina[cç][aã]o\s+dos\s+Servi[cç]os|Descri[cç][aã]o|Objeto|Hist[oó]rico)[:\s\n]*([^\n\r]+(?:\n[^\n\r]+)?)/i);
 
   if (descMatch && descMatch[1].trim().length > 8) {
-    data.descritivo = descMatch[1].trim().replace(/\s+/g, ' ');
-  } else if (/honorarios|sucumbencia/i.test(text)) {
-    data.descritivo = 'Honorários advocatícios sucumbenciais devidos perante o CCHA em decorrência de atuação judicial.';
-  } else if (/drogaria|farm[aá]cia|medicamento|pant\s*sec/i.test(text)) {
-    data.descritivo = 'Aquisição de medicamentos e insumos farmacêuticos de pronto pagamento para suporte às atividades funcionais.';
-  } else if (/tiss|tuss|sadt|medica/i.test(text)) {
-    data.descritivo = 'Assistência médica e procedimentos de saúde com comprovação diagnóstica e terapêutica.';
-  } else if (data.tipo_documento.includes('Nota Fiscal')) {
-    data.descritivo = `Prestação de serviços técnicos/operacionais discriminados em Nota Fiscal emitida por ${data.fornecedor || 'prestador'}.`;
-  } else if (data.tipo_documento.includes('Cupom Fiscal')) {
-    data.descritivo = 'Aquisição de insumos operacionais e materiais de consumo para expediente funcional.';
-  } else if (data.tipo_documento.includes('Comprovante')) {
-    data.descritivo = `Comprovante de pagamento e quitação financeira emitido em favor de ${data.fornecedor || 'beneficiário'}.`;
-  } else if (data.tipo_documento.includes('Boleto')) {
-    data.descritivo = 'Quitação de obrigação bancária e títulos devidos para prestação de contas.';
-  } else if (data.tipo_documento.includes('Fatura')) {
-    data.descritivo = 'Despesas de consumo e faturas de serviços continuados essenciais ao exercício profissional.';
-  } else if (data.tipo_documento.includes('Declaração')) {
-    data.descritivo = 'Declaração comprobatória de regularidade documental e ateste de serviços.';
-  } else if (fileName) {
-    data.descritivo = `Documento comprobatório: ${fileName}`;
-  } else {
-    data.descritivo = 'Comprovação documental de serviços e atos administrativos.';
+    let cleanDesc = descMatch[1].trim().replace(/\s+/g, ' ');
+    // Remove cabeçalhos de tabela de cupons fiscais
+    cleanDesc = cleanDesc
+      .replace(/^(?:Gtd|Qtd|Un|Vl|Unit|Total|C[oó]d|Descri[cç][aã]o|Itens|Pre[cç]o)[,\.\s\:\-\|]*/gi, '')
+      .replace(/^(?:O01|001|\d{1,3})\s+\d{4,8}\s+/i, '')
+      .replace(/\s*x\s+[0-9,\.]+\s*.*$/i, '')
+      .trim();
+
+    if (cleanDesc.length >= 3) {
+      data.descritivo = cleanDesc;
+    }
+  }
+
+  if (!data.descritivo) {
+    if (/honorarios|sucumbencia/i.test(text)) {
+      data.descritivo = 'Honorários advocatícios sucumbenciais devidos perante o CCHA em decorrência de atuação judicial.';
+    } else if (/drogaria|farm[aá]cia|medicamento|pant\s*sec/i.test(text)) {
+      data.descritivo = 'Aquisição de medicamentos e insumos farmacêuticos de pronto pagamento para suporte às atividades funcionais.';
+    } else if (/tiss|tuss|sadt|medica/i.test(text)) {
+      data.descritivo = 'Assistência médica e procedimentos de saúde com comprovação diagnóstica e terapêutica.';
+    } else if (data.tipo_documento.includes('Nota Fiscal')) {
+      data.descritivo = `Prestação de serviços técnicos/operacionais discriminados em Nota Fiscal emitida por ${data.fornecedor || 'prestador'}.`;
+    } else if (data.tipo_documento.includes('Cupom Fiscal')) {
+      data.descritivo = 'Aquisição de insumos operacionais e materiais de consumo para expediente funcional.';
+    } else if (data.tipo_documento.includes('Comprovante')) {
+      data.descritivo = `Comprovante de pagamento e quitação financeira emitido em favor de ${data.fornecedor || 'beneficiário'}.`;
+    } else if (data.tipo_documento.includes('Boleto')) {
+      data.descritivo = 'Quitação de obrigação bancária e títulos devidos para prestação de contas.';
+    } else if (data.tipo_documento.includes('Fatura')) {
+      data.descritivo = 'Despesas de consumo e faturas de serviços continuados essenciais ao exercício profissional.';
+    } else if (data.tipo_documento.includes('Declaração')) {
+      data.descritivo = 'Declaração comprobatória de regularidade documental e ateste de serviços.';
+    } else if (fileName) {
+      data.descritivo = `Documento comprobatório: ${fileName}`;
+    } else {
+      data.descritivo = 'Comprovação documental de serviços e atos administrativos.';
+    }
   }
   data.descricao = data.descritivo;
 

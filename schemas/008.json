@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TearForm 008 — Correção Forense Ponta a Ponta das Entradas e Saídas do Autofill",
+  "description": "Especificação dos requisitos para extração resiliente de número de documento em NFC-e, matching semântico de selects, eliminação de colisões de aliases e auto-injeção de content script",
+  "type": "object",
+  "required": ["q1_doc_number_extraction", "q2_semantic_select_matching", "q3_alias_collision_prevention", "q4_sidepanel_resilience"],
+  "properties": {
+    "q1_doc_number_extraction": {
+      "type": "string",
+      "title": "Como o parser deve recuperar o número do documento quando há ruído no texto impresso da NFC-e?",
+      "default": "Analisar as linhas após indicação de chave de acesso ou consulta SEFAZ, normalizar ruídos de OCR (D/O->0, I/l->1, S->5, B->8) e extrair os 9 dígitos da NF (posições 25 a 33 da chave de 44 dígitos), além de fallbacks por códigos de operação/transação."
+    },
+    "q2_semantic_select_matching": {
+      "type": "string",
+      "title": "Como o content script deve casar tipos de documento extraídos com os options do <select> na página de destino?",
+      "default": "Implementar correspondência semântica priorizada: Cupom/NFC-e deve casar prioritariamente com 'nota_fiscal' ou 'recibo' do portal; Medicamento deve casar com 'nota_fiscal' ou 'recibo'; Recibo com 'recibo'. Nunca forçar selectedIndex = 0 quando não houver correspondência exata."
+    },
+    "q3_alias_collision_prevention": {
+      "type": "string",
+      "title": "Como prevenir que termos genéricos sobrescrevam campos errados no formulário?",
+      "default": "Remover o termo genérico 'documento' da lista de termos de cpf e cpf_cnpj em FISCAL_MAPPINGS para evitar colisão com #tipo_documento e #numero_documento. Rastrear elementos já preenchidos (filledElements Set) para impedir sobrescrita por aliases posteriores."
+    },
+    "q4_sidepanel_resilience": {
+      "type": "string",
+      "title": "Como o Sidepanel deve garantir a comunicação com a página aberta?",
+      "default": "Realizar busca de aba com fallback para lastFocusedWindow, flexibilizar seleção do select fTipoDoc no sidebar e auto-injetar content.js via chrome.scripting.executeScript em caso de erro de conexão 'Receiving end does not exist'."
+    }
+  }
+}
