@@ -53,3 +53,8 @@ No contexto de processamento de documentos fiscais e comprovantes no Sidepanel d
 
 ### Neutras/Riscos Mitigados
 - Risco de retenção de dados mitigado pela conversão em memória RAM efêmera com destruição imediata de buffers temporários (LGPD Zero Retenção).
+
+## Adendo de Auditoria (Tear Reviewer Findings Resolution)
+- **Precedência de Mesclagem (`sidepanel.js`)**: Modificado o algoritmo de mesclagem para garantir que campos não-vazios retornados pelo OCR local (`ocrStructuredData`) não sejam sobrescritos por strings vazias ou descritivos padrão gerados por falha do parser local em texto ruidoso.
+- **Desacoplamento de Vocabulário Comercial (`document-parser.js`)**: Eliminadas referências explícitas a marcas farmacêuticas no regex de classificação, operando exclusivamente com vocabulário semântico e ontológico de saúde/farmácia.
+- **Rigor de Prova (`tests/autofill-forensic.test.js`)**: Anotação `@tear-proof issue-1` vinculada formalmente e tolerância de micro-benchmark ajustada para prevenir ruídos transitórios sob alta concorrência.

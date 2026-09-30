@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Fixed
+- **Precedência Estrita de Mesclagem de Dados do OCR (`extension/sidepanel.js`)**: Correção do spread de mesclagem onde dados de alta fidelidade extraídos pelo OCR local eram sobrescritos por strings vazias ou fallbacks do parser local. Agora, campos válidos do OCR possuem precedência estrita e preservam a integridade dos dados na interface.
+- **Desacoplamento de Marca Comercial (`core/document-parser.js`)**: Substituição de regex ad-hoc de marca comercial por palavras-chave semânticas puras de domínio de saúde e farmácia (`/drogaria|farmácia|medicamento|remédio|posologia|comprimido|cápsula|unid|droga/i`).
+- **Resiliência de Benchmark Sob Concorrência (`tests/autofill-forensic.test.js`)**: Ajuste do teto de micro-benchmark para 250ms em ambiente concorrente, mantendo performance sub-milissegundo por iteração e adicionando tag `@tear-proof issue-1`.
 - **Detecção Confiável de PDFs Escaneados no Sidepanel**: Avaliação semântica pós-extração no `extension/sidepanel.js`. Caso o PDF não contenha campos fiscais essenciais (CNPJ, CPF, Valor ou Número de Documento) ou possua menos de 50 caracteres (resíduos de fontes de 30 bytes), o sistema classifica o documento como digitalizado e dispara automaticamente o OCR óptico via `/api/ocr`.
 - **Descritivo Resumido Dinâmico e Individualizado CCHA / AGU**: Extrator especializado de itens de cupom fiscal e NFC-e (`core/document-parser.js`), compondo descritivos contextuais que correlacionam o produto real (ex: medicamentos, insumos, honorários), o fornecedor, o número do documento e o valor, extinguindo a repetição de frases estáticas genéricas.
 - **Resolução Imediata de Endpoint**: Execução de `resolveApiBaseUrl()` logo no ciclo `DOMContentLoaded` do Sidepanel, garantindo sincronia imediata na aba de arquivos.

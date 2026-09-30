@@ -285,7 +285,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 4. Extrai campos estruturados (CCHA / Honorários) e mescla com dados do OCR se houver
       const parsed = parseDocumentFields(extractedText, file.name);
-      const mergedData = { ...(ocrStructuredData || {}), ...parsed };
+      
+      // Mesclagem com prioridade estrita: campos válidos do OCR nunca são esmagados por fallbacks locais
+      const mergedData = { ...parsed };
+      if (ocrStructuredData && typeof ocrStructuredData === 'object') {
+        for (const [key, val] of Object.entries(ocrStructuredData)) {
+          if (val && typeof val === 'string' && val.trim() !== '') {
+            mergedData[key] = val;
+          } else if (val !== null && val !== undefined && typeof val !== 'string') {
+            mergedData[key] = val;
+          }
+        }
+      }
 
       dropTitle.textContent = `✓ ${file.name}`;
       dropSubtitle.textContent = `Arquivo lido • ${(file.size / 1024).toFixed(1)} KB • Dados extraídos`;

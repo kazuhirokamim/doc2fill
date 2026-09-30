@@ -262,7 +262,7 @@ export function parseDocumentFields(rawText = '', fileName = '') {
 
   // 7.3 Composição Dinâmica e Personalizada do Descritivo CCHA
   if (extractedItem) {
-    if (/drogaria|farm[aá]cia|medicamento|pant\s*sec/i.test(text) || (data.fornecedor && /drogaria|farm[aá]cia/i.test(data.fornecedor))) {
+    if (/drogaria|farm[aá]cia|medicamento|rem[eé]dio|posologia|comprimido|c[aá]psula|unid|droga/i.test(text) || (data.fornecedor && /drogaria|farm[aá]cia/i.test(data.fornecedor))) {
       data.descritivo = `Aquisição de medicamentos/insumos farmacêuticos (${extractedItem}) - ${data.fornecedor || 'Drogaria'}${data.numero_documento ? ' (Doc nº ' + data.numero_documento + ')' : ''}.`;
     } else if (data.tipo_documento.includes('Nota Fiscal')) {
       data.descritivo = `Prestação de serviços / produtos (${extractedItem}) - ${data.fornecedor || 'Fornecedor'}${data.numero_documento ? ' (NF nº ' + data.numero_documento + ')' : ''}.`;
@@ -273,7 +273,7 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     // Composição contextual individualizada quando não há linha explícita de item
     if (/honorarios|sucumbencia/i.test(text)) {
       data.descritivo = `Honorários advocatícios sucumbenciais devidos perante o CCHA em decorrência de atuação judicial${data.processo ? ' no Processo ' + data.processo : ''}.`;
-    } else if (/drogaria|farm[aá]cia|medicamento|pant\s*sec/i.test(text) || (data.fornecedor && /drogaria|farm[aá]cia/i.test(data.fornecedor))) {
+    } else if (/drogaria|farm[aá]cia|medicamento|rem[eé]dio|posologia|comprimido|c[aá]psula|unid|droga/i.test(text) || (data.fornecedor && /drogaria|farm[aá]cia/i.test(data.fornecedor))) {
       data.descritivo = `Aquisição de medicamentos e insumos farmacêuticos de pronto pagamento junto a ${data.fornecedor || 'fornecedor'}${data.numero_documento ? ' (Doc nº ' + data.numero_documento + ')' : ''}.`;
     } else if (/tiss|tuss|sadt|medica/i.test(text)) {
       data.descritivo = `Assistência médica e procedimentos de saúde com comprovação diagnóstica junto a ${data.fornecedor || 'prestador'}${data.numero_documento ? ' (Doc nº ' + data.numero_documento + ')' : ''}.`;
