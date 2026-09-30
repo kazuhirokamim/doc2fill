@@ -160,3 +160,45 @@ describe('doc2fill Sidepanel API Candidate Resolver (TDD Suite)', () => {
     assert.deepEqual(buildCandidateApiUrls('3333'), ['http://localhost:3333']);
   });
 });
+
+/**
+ * Validador das abas de navegação ativas no Sidepanel (eliminando abas de teste/mock)
+ * @param {string[]} registeredTabs 
+ * @returns {{ valid: boolean, tabs: string[] }}
+ */
+export function sanitizeNavigationTabs(registeredTabs) {
+  const allowedProductionTabs = ['file', 'qr'];
+  if (!Array.isArray(registeredTabs)) {
+    return { valid: true, tabs: allowedProductionTabs };
+  }
+  const filtered = registeredTabs.filter(tab => allowedProductionTabs.includes(tab));
+  return {
+    valid: filtered.length > 0 && !registeredTabs.includes('demo'),
+    tabs: filtered
+  };
+}
+
+describe('doc2fill Navigation Tabs Guard (TDD Suite)', () => {
+  it('Cenário 1 (Happy Path): deve validar abas de produção padrão (file e qr) com file prioritária', () => {
+    const result = sanitizeNavigationTabs(['file', 'qr']);
+    assert.equal(result.valid, true);
+    assert.deepEqual(result.tabs, ['file', 'qr']);
+  });
+
+  it('Cenário 2 (Edge Case): deve expurgar aba legada demo e retornar falso para integridade', () => {
+    const result = sanitizeNavigationTabs(['demo', 'file', 'qr']);
+    assert.equal(result.valid, false);
+    assert.deepEqual(result.tabs, ['file', 'qr']);
+  });
+
+  it('Cenário 3 (Error Path): deve retornar abas de produção seguras quando input for inválido ou vazio', () => {
+    const resNull = sanitizeNavigationTabs(null);
+    assert.equal(resNull.valid, true);
+    assert.deepEqual(resNull.tabs, ['file', 'qr']);
+
+    const resEmpty = sanitizeNavigationTabs([]);
+    assert.equal(resEmpty.valid, false);
+    assert.deepEqual(resEmpty.tabs, []);
+  });
+});
+

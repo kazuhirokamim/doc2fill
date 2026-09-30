@@ -26,22 +26,18 @@
   <main class="panel-content">
     <!-- Segmented Control (Tabs Suaves) -->
     <div class="segmented-tabs">
-      <button class="tab-btn active" id="tab-demo" data-tab="demo">Teste Rápido</button>
+      <button class="tab-btn active" id="tab-file" data-tab="file">PDF / Comprovante</button>
       <button class="tab-btn" id="tab-qr" data-tab="qr">Celular (QR)</button>
-      <button class="tab-btn" id="tab-file" data-tab="file">PDF / Foto</button>
     </div>
 
-    <!-- Modo 1: Demonstração Imediata CCHA -->
-    <section class="tab-pane active" id="pane-demo">
-      <div class="clean-card">
-        <div class="card-header">
-          <span class="card-eyebrow">CCHA · Honorários Advocatícios & AGU</span>
-        </div>
-        <h3 class="card-title">Preenchimento de Requerimento CCHA</h3>
-        <p class="card-desc">Carregue dados do Procurador/Advogado Público, processo, honorários e comprovante pronto para preenchimento no portal CCHA.</p>
-        <button id="btn-load-sample" class="btn-secondary">
-          <span>⚡</span> Carregar Requerimento CCHA Modelo
-        </button>
+    <!-- Modo 1: Drag & Drop e Seleção de Arquivo (PDF / Imagem) -->
+    <section class="tab-pane active" id="pane-file">
+      <div class="clean-card drop-zone" id="drop-zone">
+        <div class="drop-icon-wrap" id="drop-icon-wrap">📄</div>
+        <h4 class="drop-title" id="drop-title">Arraste o Comprovante / Requerimento aqui</h4>
+        <p class="drop-subtitle" id="drop-subtitle">Compatível com PDF, PNG e JPEG</p>
+        <button type="button" id="btn-select-file" class="btn-secondary btn-sm">Selecionar Arquivo</button>
+        <input type="file" id="file-input" accept="application/pdf,image/*" style="display:none;">
       </div>
     </section>
 
@@ -62,17 +58,6 @@
         <div id="qr-relay-status" class="qr-relay-status" style="display:none;">
           <span class="pulse-dot">●</span> Aguardando captura do smartphone...
         </div>
-      </div>
-    </section>
-
-    <!-- Modo 3: Drag & Drop e Seleção de Arquivo (PDF / Imagem) -->
-    <section class="tab-pane" id="pane-file">
-      <div class="clean-card drop-zone" id="drop-zone">
-        <div class="drop-icon-wrap" id="drop-icon-wrap">📄</div>
-        <h4 class="drop-title" id="drop-title">Arraste o Comprovante / Requerimento aqui</h4>
-        <p class="drop-subtitle" id="drop-subtitle">Compatível com PDF, PNG e JPEG</p>
-        <button type="button" id="btn-select-file" class="btn-secondary btn-sm">Selecionar Arquivo</button>
-        <input type="file" id="file-input" accept="application/pdf,image/*" style="display:none;">
       </div>
     </section>
 

@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Elements
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabPanes = document.querySelectorAll('.tab-pane');
-  const btnLoadSample = document.getElementById('btn-load-sample');
   const btnAutofill = document.getElementById('btn-autofill');
   const validationBadge = document.getElementById('validation-badge');
 
@@ -114,28 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
     validationBadge.classList.add('valid');
     btnAutofill.disabled = false;
   }
-
-  // Demonstração Rápida (Caso Real CCHA: Requerimento de Honorários Advocatícios / AGU)
-  btnLoadSample.addEventListener('click', () => {
-    // PDF de comprovante em base64 minimalista
-    const samplePdfBase64 = 'data:application/pdf;base64,JVBERi0xLjQKJcTl8uXrp/Og0MTGCjEgMCBvYmoKPDwKL1R5cGUgL0NhdGFsb2cKL1BhZ2VzIDIgMCBS';
-
-    populateFormFields({
-      tipo_documento: 'Nota Fiscal de Serviços (NFS-e)',
-      cpf_cnpj: '12.345.678/0001-90',
-      fornecedor: 'Dr. Lucas Silva — Perícias & Consultoria Jurídica',
-      numero_documento: '00045821',
-      data: '2026-09-25',
-      valor: 'R$ 14.850,00',
-      descritivo: 'Honorários advocatícios sucumbenciais devidos perante o CCHA em decorrência de êxito em atuação judicial.',
-      motivo: 'Art. 29 a 36 da Lei nº 13.327/2016 e deliberações do CCHA. Preenchimento de requisitos de elegibilidade e rateio.'
-    }, {
-      name: 'comprovante_honorarios_ccha.pdf',
-      type: 'application/pdf',
-      size: 165000,
-      base64: samplePdfBase64
-    });
-  });
 
   // 3. Seleção e Drag & Drop de Arquivos com Leitura em Memória
   if (btnSelectFile && fileInput) {
