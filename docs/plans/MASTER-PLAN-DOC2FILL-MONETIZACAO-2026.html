@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Master Plan Doc2Fill — Q4 2026</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    @page {
+      size: A4 portrait;
+      margin: 18mm 16mm 18mm 16mm;
+      @bottom-right {
+        content: counter(page);
+        font-size: 9pt;
+        color: #64748b;
+        font-family: 'Inter', sans-serif;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #0f172a;
+      background-color: #ffffff;
+      line-height: 1.55;
+      font-size: 10pt;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Capa Executiva */
+    .header-hero {
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 14px;
+      margin-bottom: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .brand-title {
+      font-size: 24pt;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #090d14;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title span.lightning {
+      color: #f59e0b;
+    }
+
+    .doc-subtitle {
+      font-size: 12pt;
+      font-weight: 600;
+      color: #2563eb;
+      margin: 4px 0 0 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .meta-box {
+      text-align: right;
+      font-size: 8.5pt;
+      color: #475569;
+    }
+
+    .badge-pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 7.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-emerald {
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #10b981;
+    }
+
+    .badge-amber {
+      background: #fffbeb;
+      color: #d97706;
+      border: 1px solid #f59e0b;
+    }
+
+    h2 {
+      font-size: 14pt;
+      font-weight: 700;
+      color: #090d14;
+      border-left: 4px solid #0f172a;
+      padding-left: 10px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+      page-break-after: avoid;
+    }
+
+    h3 {
+      font-size: 11pt;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      page-break-after: avoid;
+    }
+
+    p {
+      margin: 0 0 10px 0;
+      color: #334155;
+    }
+
+    /* Cards e Callouts */
+    .callout-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      page-break-inside: avoid;
+    }
+
+    .callout-highlight {
+      background: #090d14;
+      color: #f8fafc;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 20px;
+      page-break-inside: avoid;
+    }
+
+    .callout-highlight p {
+      color: #cbd5e1;
+    }
+
+    .callout-highlight h3 {
+      color: #f59e0b;
+      margin-top: 0;
+    }
+
+    /* Tabelas Executivas */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 20px 0;
+      font-size: 8.5pt;
+      page-break-inside: avoid;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    th {
+      background-color: #0f172a;
+      color: #ffffff;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 7.5pt;
+      letter-spacing: 0.05em;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .font-bold {
+      font-weight: 700;
+    }
+
+    .text-emerald {
+      color: #059669;
+      font-weight: 700;
+    }
+
+    .text-amber {
+      color: #d97706;
+      font-weight: 700;
+    }
+
+    /* Grid de Planos */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+      page-break-inside: avoid;
+    }
+
+    .plan-card {
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 14px;
+      background: #ffffff;
+      position: relative;
+    }
+
+    .plan-card.featured {
+      border: 2px solid #0f172a;
+      background: #fafafa;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .plan-card.featured::before {
+      content: "MAIS POPULAR · FOCO";
+      position: absolute;
+      top: -10px;
+      right: 12px;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 6.5pt;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .plan-name {
+      font-size: 11pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+    }
+
+    .plan-price {
+      font-size: 18pt;
+      font-weight: 800;
+      color: #090d14;
+      margin: 6px 0;
+    }
+
+    .plan-price span {
+      font-size: 8.5pt;
+      font-weight: 500;
+      color: #64748b;
+    }
+
+    .plan-features {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0 0;
+      font-size: 8pt;
+      color: #475569;
+    }
+
+    .plan-features li {
+      padding: 3px 0;
+      border-bottom: 1px dashed #f1f5f9;
+    }
+
+    .plan-features li:last-child {
+      border-bottom: none;
+    }
+
+    /* Timeline Semanal */
+    .timeline-item {
+      border-left: 2px solid #0f172a;
+      padding-left: 14px;
+      margin-left: 6px;
+      margin-bottom: 12px;
+      position: relative;
+      page-break-inside: avoid;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -5px;
+      top: 3px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #0f172a;
+    }
+
+    .timeline-header {
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 2px;
+    }
+
+    .timeline-desc {
+      font-size: 8.5pt;
+      color: #475569;
+      margin: 0;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CABEÇALHO HERO -->
+  <div class="header-hero">
+    <div>
+      <div class="brand-title"><span class="lightning">⚡</span> doc2fill</div>
+      <div class="doc-subtitle">Master Plan Executivo — Monetização & Lucro Q4/2026</div>
+    </div>
+    <div class="meta-box">
+      <div><strong>Data:</strong> 29 de Setembro de 2026</div>
+      <div><strong>Destinatários:</strong> Kazuhiro & Lucas</div>
+      <div style="margin-top: 4px;">
+        <span class="badge-pill badge-emerald">Meta: Lucro em Dezembro</span>
+        <span class="badge-pill badge-amber">13 Semanas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 1: DIAGNÓSTICO E PROPOSTA DE VALOR -->
+  <h2>1. Visão Geral e Proposta de Valor Incontestável</h2>
+  <p>
+    O <strong>doc2fill</strong> soluciona a maior ineficiência operacional de advogados públicos, procuradores e clínicas que prestam contas no portal <strong>CCHA (Conselho Curador dos Honorários Advocatícios)</strong>: a redigitação manual de notas fiscais e recibos térmicos.
+  </p>
+
+  <div class="callout-highlight">
+    <h3>A Equação Matemática que Vende o Produto</h3>
+    <p>
+      Um estagiário ou secretária custa cerca de <strong>R$ 2.000,00/mês</strong> e perde mais de <strong>35 horas mensais</strong> digitando comprovantes no CCHA com alto risco de glosa. O <strong>doc2fill Pro</strong> reduz o tempo de cada nota para <strong>6 segundos</strong> por apenas <strong>R$ 197,00/mês</strong> — gerando uma economia líquida imediata de mais de <strong>R$ 1.800,00/mês</strong> e ROI de 812% já no primeiro mês de uso.
+    </p>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Métrica de Comparação</th>
+        <th>Processo Manual Tradicional</th>
+        <th>Com doc2fill Pro (Autofill Inteligente)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Tempo Médio por Nota</strong></td>
+        <td>12 a 15 minutos</td>
+        <td class="font-bold text-emerald">6 segundos (99% mais rápido)</td>
+      </tr>
+      <tr>
+        <td><strong>Processamento de 150 Notas</strong></td>
+        <td>35 a 40 horas de trabalho braçal</td>
+        <td class="font-bold text-emerald">15 minutos no mês</td>
+      </tr>
+      <tr>
+        <td><strong>Custo Efetivo Estimado</strong></td>
+        <td>R$ 1.800,00 a R$ 2.400,00/mês</td>
+        <td class="font-bold text-emerald">R$ 197,00/mês (ou R$ 157,50 no anual)</td>
+      </tr>
+      <tr>
+        <td><strong>Risco de Glosa / Erro de Digitação</strong></td>
+        <td>10% a 15% das notas rejeitadas</td>
+        <td class="font-bold text-emerald">&lt; 0.5% (Validação anti-glosa CCHA)</td>
+      </tr>
+      <tr>
+        <td><strong>Segurança da Informação</strong></td>
+        <td>Papeis espalhados e arquivos em desktops</td>
+        <td class="font-bold text-emerald">Zero Retenção · 100% em memória RAM efêmera</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SEÇÃO 2: MATRIZ DE PLANOS E PRECIFICAÇÃO -->
+  <h2>2. Estrutura de Planos Mensais e Quotas de Leitura</h2>
+  <p>
+    Modelo de assinatura recorrente com ancoragem de valor, incentivando o plano anual à vista no Pix para geração de caixa imediato já em Outubro e Novembro.
+  </p>
+
+  <div class="pricing-grid">
+    <!-- Starter -->
+    <div class="plan-card">
+      <div class="plan-name">INDIVIDUAL / STARTER</div>
+      <div class="plan-price">R$ 89 <span>/ mês</span></div>
+      <p style="font-size: 7.5pt; color: #64748b; margin-bottom: 8px;">Ou R$ 790/ano à vista no Pix</p>
+      <ul class="plan-features">
+        <li><strong>120 leituras</strong> / mês</li>
+        <li>1 usuário (Acesso Extensão)</li>
+        <li>OCR em Português de alta precisão</li>
+        <li>Suporte por e-mail (48h)</li>
+      </ul>
+    </div>
+
+    <!-- Pro -->
+    <div class="plan-card featured">
+      <div class="plan-name">PRO / ESCRITÓRIO</div>
+      <div class="plan-price">R$ 197 <span>/ mês</span></div>
+      <p style="font-size: 7.5pt; color: #059669; font-weight:700; margin-bottom: 8px;">Ou R$ 1.890/ano à vista no Pix</p>
+      <ul class="plan-features">
+        <li><strong>500 leituras</strong> / mês</li>
+        <li><strong>Até 3 acessos</strong> simultâneos</li>
+        <li><strong>Sincronização Mobile (QR Code PWA)</strong></li>
+        <li><strong>Motor Anti-Glosa CCHA ativo</strong></li>
+        <li>Suporte VIP WhatsApp (SLA 15min)</li>
+      </ul>
+    </div>
+
+    <!-- Enterprise -->
+    <div class="plan-card">
+      <div class="plan-name">ENTERPRISE / CLÍNICAS</div>
+      <div class="plan-price">R$ 497 <span>/ mês</span></div>
+      <p style="font-size: 7.5pt; color: #64748b; margin-bottom: 8px;">Ou R$ 4.790/ano à vista no Pix</p>
+      <ul class="plan-features">
+        <li><strong>2.000 leituras</strong> / mês</li>
+        <li><strong>Até 10 acessos</strong> de equipe</li>
+        <li>Múltiplos CNPJs cadastrados</li>
+        <li>Exportação de relatórios em lote</li>
+        <li>Gerente de conta e setup assistido</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout-card">
+    <strong>🎯 Estratégia do Plano Degustação (Free Tier - 15 Leituras/Mês):</strong> Qualquer usuário que baixar a extensão tem direito a 15 leituras gratuitas para testar com seus próprios comprovantes. Na 16ª leitura, abre-se a tela de upgrade com QR Code Pix para liberação instantânea.
+  </div>
+
+  <!-- SEÇÃO 3: DISTRIBUIÇÃO E MOBILE PWA -->
+  <h2>3. Estrutura de Acesso: Extensão Chrome & Scanner Mobile PWA</h2>
+  <p>
+    Para atingir lucro em dezembro, eliminamos intermediários e burocracias de aprovação que atrasariam o lançamento:
+  </p>
+  <ul>
+    <li>
+      <strong>Desktop (Extensão Chrome):</strong> Em outubro, disponibilizamos o arquivo <code>.zip</code> com instalador guiado em 2 cliques para early adopters (Closed Beta). Em novembro, publicamos a versão homologada na Chrome Web Store.
+    </li>
+    <li>
+      <strong>Mobile (PWA via QR Code):</strong> O usuário não precisa baixar nenhum app na App Store ou Google Play. Ele apenas aponta a câmera do celular para o QR Code da extensão; o navegador abre o scanner PWA em tela cheia, acessa a câmera em 4K com auto-foco e dispara a foto via WebSocket em menos de 500ms para o computador.
+    </li>
+    <li>
+      <strong>Vantagem Estratégica:</strong> Ficamos com <strong>100% da receita</strong> recebida por Pix ou Cartão, sem pagar a comissão de 30% da Apple ou Google.
+    </li>
+  </ul>
+
+  <div class="page-break"></div>
+
+  <!-- SEÇÃO 4: CRONOGRAMA SEMANAL DETALHADO -->
+  <h2>4. Cronograma de Entregáveis Semanais (Outubro a Dezembro de 2026)</h2>
+
+  <h3>Mês 1: Outubro — Engenharia, Validação & Primeiras Vendas</h3>
+  
+  <div class="timeline-item">
+    <div class="timeline-header">Semana 01 (30/Set a 05/Out) · Estabilização do OCR Real & PDF Universal</div>
+    <div class="timeline-desc">
+      Aba de demonstração expurgada; motor de OCR validado com bobinas térmicas de farmácia/postos com ruído óptico; conversão local de PDFs escaneados para imagem sem dependências pesadas. Teste cego com 25 comprovantes reais com &gt; 95% de assertividade.
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-header">Semana 02 (06/Out a 12/Out) · Licenciamento, Quotas & Checkout Pix Automático</div>
+    <div class="timeline-desc">
+      Implementação do controle de licenças e quotas mensais no backend; integração com gateway Asaas para liquidação instantânea via Pix e geração automática de chave de licença via WhatsApp/E-mail.
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-header">Semana 03 (13/Out a 19/Out) · PWA Mobile Aperfeiçoado & Conexão &lt; 500ms</div>
+    <div class="timeline-desc">
+      Otimização da captura de câmera no smartphone, recorte de margens no Canvas e transmissão em tempo real via WebSocket efêmero. Gravação de vídeo demonstrativo de 30 segundos (Mobile + Desktop).
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-header">Semana 04 (20/Out a 26/Out) · Landing Page Comercial & Primeiros 5 Clientes Pagantes</div>
+    <div class="timeline-desc">
+      Lançamento da página oficial do Doc2Fill com estética Obsidian Cyber-Tátil e calculadora de ROI. Onboarding dos primeiros 5 clientes pagantes no nicho CCHA (Meta: <strong>R$ 985,00 em MRR</strong>).
+    </div>
+  </div>
+
+  <h3>Mês 2: Novembro — Tração, Chrome Store & Black Friday</h3>
+
+  <div class="timeline-item">
+    <div class="timeline-header">Semana 05 (27/Out a 02/Nov) · Submissão à Chrome Web Store & Distribuição Aberta</div>
+    <div class="timeline-desc">
+      Homologação do Manifest V3 e publicação na loja oficial de extensões do Google, permitindo instalação com 1 clique para acelerar conversões orgânicas.
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-header">Semana 06 (03/Nov a 09/Nov) · Prospecção Ativa (Outreach Escritórios CCHA)</div>
+    <div class="timeline-desc">
+      Abordagem direta via LinkedIn e grupos profissionais de advogados públicos e clínicas médicas. Fechamento de 15 novas assinaturas Pro (Meta: <strong>R$ 3.940,00 em MRR</strong>).
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-header">Semana 07 (10/Nov a 16/Nov) · Módulo Anti-Glosa CCHA & Sugestão Legal</div>
+    <div class="timeline-desc">
+      Validador semântico com sugestão automática de descritivos e motivos legais fundamentados na Lei 13.327/2016 para garantir deferimento em 100% dos requerimentos no CCHA.
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-header">Semana 08 (17/Nov a 23/Nov) · Oferta Black Friday Anual (Injeção de Caixa Imediato)</div>
+    <div class="timeline-desc">
+      Campanha de Anuidade com 30% de desconto à vista no Pix (R$ 1.650/ano). Fechamento de 12 clientes anuais gerando <strong>R$ 19.800,00 em caixa à vista</strong>.
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-header">Semana 09 (24/Nov a 30/Nov) · Tráfego Pago Hiper-Segmentado (Google Ads)</div>
+    <div class="timeline-desc">
+      Campanhas ativas de Google Search para termos específicos: "preenchimento CCHA", "restituição honorários AGU", "sistema notas CCHA". Custo por cliente inferior a R$ 60,00.
+    </div>
+  </div>
+
+  <h3>Mês 3: Dezembro — Consolidação, Expansão & Lucro Líquido</h3>
+
+  <div class="timeline-item">
+    <div class="timeline-header">Semana 10 (01/Dez a 07/Dez) · Lançamento Oficial do Plano Enterprise</div>
+    <div class="timeline-desc">
+      Venda para clínicas de grande porte e escritórios com múltiplos CNPJs e volume superior a 1.000 notas/mês (3 contratos fechados somando <strong>+ R$ 1.491,00/mês</strong>).
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-header">Semana 11 (08/Dez a 14/Dez) · Programa de Indicação Viral entre Pares</div>
+    <div class="timeline-desc">
+      Mecanismo de recomendação no app: "Indique um colega: ele ganha 20% e você ganha 1 mês grátis". Aquisição de 15 novos clientes com custo de tráfego zero.
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-header">Semana 12 (15/Dez a 21/Dez) · Fechamento Contábil de 2026 & Consolidação do Lucro</div>
+    <div class="timeline-desc">
+      Apuração do resultado financeiro do trimestre: MRR superior a <strong>R$ 11.500,00/mês</strong> e caixa acumulado acima de <strong>R$ 25.000,00</strong> com margem líquida superior a 85%.
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-header">Semana 13 (22/Dez a 31/Dez) · Operação Estável de Fim de Ano & Roadmap 2027</div>
+    <div class="timeline-desc">
+      Manutenção preventiva, suporte sob regime estável e planejamento de expansão para outros portais públicos e privados (PJe, SEI, e-CAC, TISS) em 2027.
+    </div>
+  </div>
+
+  <!-- SEÇÃO 5: METAS FINANCEIRAS E DRE PROJETADA -->
+  <h2>5. Projeção Financeira e Metas de Caixa (Q4/2026)</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Linha Financeira</th>
+        <th class="text-right">Outubro/2026</th>
+        <th class="text-right">Novembro/2026</th>
+        <th class="text-right">Dezembro/2026</th>
+        <th class="text-right">Total Acumulado Q4</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Assinantes Ativos Recorrentes</strong></td>
+        <td class="text-right font-mono">8 clientes</td>
+        <td class="text-right font-mono">30 clientes</td>
+        <td class="text-right font-mono font-bold">55 clientes</td>
+        <td class="text-right font-mono font-bold text-emerald">55 clientes</td>
+      </tr>
+      <tr>
+        <td><strong>Vendas de Planos Anuais (Pix)</strong></td>
+        <td class="text-right font-mono">0</td>
+        <td class="text-right font-mono">12 planos</td>
+        <td class="text-right font-mono">3 planos</td>
+        <td class="text-right font-mono font-bold text-emerald">15 anuais</td>
+      </tr>
+      <tr>
+        <td><strong>Receita Recorrente Mensal (MRR)</strong></td>
+        <td class="text-right font-mono">R$ 1.480,00</td>
+        <td class="text-right font-mono">R$ 5.814,00</td>
+        <td class="text-right font-mono font-bold text-emerald">R$ 11.725,00</td>
+        <td class="text-right font-mono">—</td>
+      </tr>
+      <tr>
+        <td><strong>Receita à Vista de Anuais (Caixa)</strong></td>
+        <td class="text-right font-mono">R$ 0,00</td>
+        <td class="text-right font-mono">R$ 19.800,00</td>
+        <td class="text-right font-mono">R$ 4.950,00</td>
+        <td class="text-right font-mono font-bold">R$ 24.750,00</td>
+      </tr>
+      <tr style="background:#f1f5f9;">
+        <td><strong>FATURAMENTO BRUTO TOTAL</strong></td>
+        <td class="text-right font-mono font-bold">R$ 1.480,00</td>
+        <td class="text-right font-mono font-bold">R$ 25.614,00</td>
+        <td class="text-right font-mono font-bold">R$ 16.675,00</td>
+        <td class="text-right font-mono font-bold text-emerald">R$ 43.769,00</td>
+      </tr>
+      <tr>
+        <td>Custos Operacionais (Servidores + Ads)</td>
+        <td class="text-right font-mono" style="color:#ef4444;">- R$ 380,00</td>
+        <td class="text-right font-mono" style="color:#ef4444;">- R$ 2.450,00</td>
+        <td class="text-right font-mono" style="color:#ef4444;">- R$ 2.100,00</td>
+        <td class="text-right font-mono" style="color:#ef4444;">- R$ 4.930,00</td>
+      </tr>
+      <tr style="background:#ecfdf5; border-top: 2px solid #10b981;">
+        <td><strong style="color:#065f46; font-size:9.5pt;">LUCRO LÍQUIDO REAL ESTIMADO</strong></td>
+        <td class="text-right font-mono font-bold text-emerald" style="font-size:9.5pt;">+ R$ 1.100,00</td>
+        <td class="text-right font-mono font-bold text-emerald" style="font-size:9.5pt;">+ R$ 23.164,00</td>
+        <td class="text-right font-mono font-bold text-emerald" style="font-size:9.5pt;">+ R$ 14.575,00</td>
+        <td class="text-right font-mono font-bold text-emerald" style="font-size:10pt;">+ R$ 38.839,00</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ASSINATURA -->
+  <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #cbd5e1; display:flex; justify-content:space-between; font-size:8pt; color:#64748b;">
+    <div><strong>doc2fill</strong> · Tecnologia de Autofill Fiscal & P2P Zero-Retention</div>
+    <div>Planejamento Estratégico Q4/2026 · Aprovado para Apresentação Executiva</div>
+  </div>
+
+</body>
+</html>
