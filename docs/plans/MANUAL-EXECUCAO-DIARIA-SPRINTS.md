@@ -26,16 +26,21 @@ Em qualquer dia de sprint, você só precisa seguir este ciclo padrão de 4 pass
 
 ---
 
-### 🔹 DIA 1 (Segunda) — Tarefa S1-T1: Unificação do Handler de Upload (`handleDocumentFile`)
-* **Objetivo:** Garantir que arrastar (Drag-and-Drop) ou selecionar um arquivo dispare o mesmo pipeline unificado com logs de depuração.
-* **Agentes Especialistas:** `noesis-frontend-maestro` e `tear-frontend`.
+### 🔹 DIA 1 (Segunda) — Tarefa S1-T1: Unificação do Handler de Upload (`handleDocumentFile`) & Aprimoramento do Motor OCR (+20% Acurácia)
+* **Objetivo:** Garantir upload resiliente via drag-and-drop/seleção nativa e aprimorar o OCR em pelo menos 20% com pré-processamento de imagem, binarização e suporte a Chave de Acesso SEFAZ.
+* **Agentes Especialistas:** `noesis-frontend-maestro`, `noesis-backend-maestro` e `tear-frontend`.
 * **Prompt para copiar e colar no Antigravity:**
 ```text
-Ative o noesis-frontend-maestro e o tear-frontend para a tarefa S1-T1 do Doc2Fill.
-Objetivo: Unificar os handlers de Drag-and-Drop (onDrop) e seleção nativa (onChange) na função 'handleDocumentFile' no Sidepanel.
+Ative o noesis-frontend-maestro, o noesis-backend-maestro e o tear-frontend para a tarefa S1-T1 do Doc2Fill.
+Objetivo: 
+1. Unificar os handlers de Drag-and-Drop (onDrop) e seleção nativa (onChange) na função 'handleDocumentFile' no Sidepanel.
+2. Aprimorar o motor OCR ('core/ocr-engine.js') para aumentar a acurácia em pelo menos 20%:
+   - Pré-processamento de imagem determinístico em buffer/canvas (grayscale ponderado + realce de contraste/binarização adaptativa contra sombras e papel térmico amarelado);
+   - Calibração de parâmetros Tesseract (preserve_interword_spaces='1' e PSM ajustado);
+   - Reconhecimento sintático de Chave de Acesso SEFAZ de 44 dígitos para extração determinística de CNPJ, Data, Tipo e Número.
 Diretrizes Tear:
-1. Primeiro, crie a suíte TDD em tests/ com os 3 cenários: arquivo válido (PNG/PDF), arquivo corrompido/nulo e múltiplos arquivos arrastados simultaneamente.
-2. Implemente o handler unificado garantindo preventDefault, sanitização de extensão e emissão de evento de início de leitura.
+1. Primeiro, crie a suíte TDD em tests/ com os 3 cenários: arquivo válido (PNG/PDF), arquivo corrompido/nulo e múltiplos arquivos arrastados simultaneamente, mais testes de pré-processamento e extração de chave SEFAZ.
+2. Implemente o handler unificado e os aprimoramentos do OCR garantindo tempo de execução < 3s e Zero Retenção.
 3. Garanta que todos os testes passem verdes.
 ```
 
