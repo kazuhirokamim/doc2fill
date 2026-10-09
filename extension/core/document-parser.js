@@ -54,6 +54,48 @@ export function extractTextFromPdfContent(input) {
 }
 
 /**
+ * Decodifica deterministicamente a Chave de Acesso SEFAZ de 44 dígitos (NF-e / NFC-e)
+ * Formato padrão: UF(2) + AAMM(4) + CNPJ(14) + MOD(2) + SERIE(3) + NRO(9) + TPEMIS(1) + COD(8) + DV(1)
+ * @param {string} text Texto bruto do documento
+ * @returns {Object|null}
+ */
+export function extractSefazAccessKey(text) {
+  if (!text || typeof text !== 'string') return null;
+
+  // Busca 44 dígitos contínuos ou em blocos com espaços/pontos/hífens
+  const regex = /(?:chave\s*(?:de\s*acesso)?[:\s]*)?([0-9]{4}[.\s-]?[0-9]{4}[.\s-]?[0-9]{4}[.\s-]?[0-9]{4}[.\s-]?[0-9]{4}[.\s-]?[0-9]{4}[.\s-]?[0-9]{4}[.\s-]?[0-9]{4}[.\s-]?[0-9]{4}[.\s-]?[0-9]{4}[.\s-]?[0-9]{4})/i;
+
+  const match = text.match(regex);
+  if (!match) return null;
+
+  const rawDigits = match[1].replace(/\D/g, '');
+  if (rawDigits.length !== 44) return null;
+
+  const uf = rawDigits.substring(0, 2);
+  const aa = rawDigits.substring(2, 4);
+  const mm = rawDigits.substring(4, 6);
+  const cnpjRaw = rawDigits.substring(6, 20);
+  const mod = rawDigits.substring(20, 22);
+  const serie = rawDigits.substring(22, 25);
+  const nro = rawDigits.substring(25, 34);
+
+  const formattedCnpj = `${cnpjRaw.slice(0, 2)}.${cnpjRaw.slice(2, 5)}.${cnpjRaw.slice(5, 8)}/${cnpjRaw.slice(8, 12)}-${cnpjRaw.slice(12, 14)}`;
+  const anoMes = `20${aa}-${mm}`;
+  const tipoDoc = (mod === '65') ? 'Cupom Fiscal (NFC-e / SAT)' : 'Nota Fiscal de Serviços (NFS-e)';
+
+  return {
+    chave: rawDigits,
+    uf,
+    anoMes,
+    cnpj: formattedCnpj,
+    modelo: mod,
+    serie,
+    numero_documento: nro,
+    tipo_documento: tipoDoc
+  };
+}
+
+/**
  * Extrai campos estruturados focados nos 8 campos essenciais a partir do texto de um documento
  * @param {string} rawText Texto bruto extraído do arquivo
  * @param {string} [fileName=''] Nome do arquivo para inferência complementar
@@ -71,9 +113,21 @@ export function parseDocumentFields(rawText = '', fileName = '') {
 
   const data = {};
 
-  // 1. Classificação do Tipo de Documento
-  const classified = classifyDocumentType(rawText || '', fileName || '');
-  data.tipo_documento = classified.label || 'Outro Comprovante';
+  // 0. Decodificação determinística de Chave de Acesso SEFAZ (se houver)
+  const sefazData = extractSefazAccessKey(rawText);
+  if (sefazData) {
+    data.cpf_cnpj = sefazData.cnpj;
+    data.cnpj = sefazData.cnpj;
+    data.numero_documento = sefazData.numero_documento;
+    data.tipo_documento = sefazData.tipo_documento;
+    data.data = `${sefazData.anoMes}-01`;
+  }
+
+  // 1. Classificação do Tipo de Documento (se não inferido pela chave SEFAZ)
+  if (!data.tipo_documento) {
+    const classified = classifyDocumentType(rawText || '', fileName || '');
+    data.tipo_documento = classified.label || 'Outro Comprovante';
+  }
 
   // 2. CPF e CNPJ (do Fornecedor, Prestador ou Procurador)
   const cnpjMatch = text.match(/\b(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})\b/) ||

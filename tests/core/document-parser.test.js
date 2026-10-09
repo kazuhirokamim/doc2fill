@@ -184,4 +184,45 @@ describe('doc2fill Document Parser & Extractor Engine (TDD Suite)', () => {
       assert.equal(extractTextFromPdfContent(123), '');
     });
   });
+
+  describe('extractSefazAccessKey', () => {
+    it('Cenário 1 (Happy Path): decodifica chave de 44 dígitos contínua e extrai CNPJ, Ano/Mês, Modelo e Número', async () => {
+      const { extractSefazAccessKey } = await import('../../core/document-parser.js');
+      // Chave: 35 (SP) + 2609 (Set/2026) + 33000167000101 (CNPJ Petrobras) + 55 (NF-e) + 001 (Série) + 000045821 (Número) + 1 + 83920192 + 4
+      const key = '35260933000167000101550010000458211839201924';
+      const text = `DANFE DOCUMENTO AUXILIAR DA NOTA FISCAL\nCHAVE DE ACESSO: ${key}\nConsulte pela Chave`;
+      
+      const res = extractSefazAccessKey(text);
+      assert.ok(res, 'Deve decodificar a chave de acesso SEFAZ');
+      assert.equal(res.chave, key);
+      assert.equal(res.cnpj, '33.000.167/0001-01');
+      assert.equal(res.anoMes, '2026-09');
+      assert.equal(res.modelo, '55');
+      assert.equal(res.tipo_documento, 'Nota Fiscal de Serviços (NFS-e)');
+      assert.equal(res.numero_documento, '000045821');
+    });
+
+    it('Cenário 2 (Edge Case): decodifica chave NFC-e (modelo 65) com espaçamento em blocos de 4 dígitos', async () => {
+      const { extractSefazAccessKey } = await import('../../core/document-parser.js');
+      // Chave em blocos: 3526 0912 3456 7800 0190 6500 1000 0012 3418 3920 1924
+      const spacedKey = '3526 0912 3456 7800 0190 6500 1000 0012 3418 3920 1924';
+      const text = `EMISSÃO EM CONTINGÊNCIA\nConsulte via QR Code ou chave:\n${spacedKey}\nProtocolo SEFAZ`;
+      
+      const res = extractSefazAccessKey(text);
+      assert.ok(res);
+      assert.equal(res.cnpj, '12.345.678/0001-90');
+      assert.equal(res.modelo, '65');
+      assert.equal(res.tipo_documento, 'Cupom Fiscal (NFC-e / SAT)');
+      assert.equal(res.numero_documento, '000001234');
+    });
+
+    it('Cenário 3 (Error Path): retorna null para textos sem chave, chave truncada ou entrada nula', async () => {
+      const { extractSefazAccessKey } = await import('../../core/document-parser.js');
+      assert.equal(extractSefazAccessKey(null), null);
+      assert.equal(extractSefazAccessKey(''), null);
+      assert.equal(extractSefazAccessKey('Chave de acesso incompleta: 1234 5678'), null);
+      assert.equal(extractSefazAccessKey('Texto qualquer de recibo de aluguel sem chave'), null);
+    });
+  });
 });
+

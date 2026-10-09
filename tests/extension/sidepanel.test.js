@@ -63,6 +63,82 @@ export function validateUploadFile(fileObj) {
   return { valid: true, extension: ext };
 }
 
+/**
+ * Processador em lote unificado para Drag & Drop e Seleção Nativa
+ * @param {FileList|Array} fileList 
+ * @returns {Object} { valid: boolean, file?: Object, warning?: string, error?: string }
+ */
+export function handleDocumentFileBatch(fileList) {
+  if (!fileList) {
+    return { valid: false, error: 'Nenhum arquivo fornecido' };
+  }
+  const files = Array.isArray(fileList) ? fileList : (fileList.length !== undefined ? Array.from(fileList) : [fileList]);
+  if (files.length === 0) {
+    return { valid: false, error: 'Lista de arquivos vazia' };
+  }
+
+  const validFiles = [];
+  const errors = [];
+
+  for (const f of files) {
+    const valRes = validateUploadFile(f);
+    if (valRes.valid) {
+      validFiles.push({ file: f, extension: valRes.extension });
+    } else {
+      errors.push(`${f?.name || 'arquivo'}: ${valRes.error}`);
+    }
+  }
+
+  if (validFiles.length === 0) {
+    return { valid: false, error: errors[0] || 'Nenhum arquivo válido encontrado' };
+  }
+
+  const selected = validFiles[0];
+  const warning = files.length > 1 ? `Múltiplos arquivos detectados (${files.length}). Processando apenas o primeiro: ${selected.file.name}` : null;
+
+  return {
+    valid: true,
+    file: selected.file,
+    extension: selected.extension,
+    warning,
+    totalFiles: files.length
+  };
+}
+
+describe('doc2fill Unified Upload Batch Handler (TDD Suite)', () => {
+  it('Cenário 1 (Happy Path): processa arquivo único válido com sucesso', () => {
+    const file = { name: 'nota_fiscal.pdf', size: 1024 * 50, type: 'application/pdf' };
+    const res = handleDocumentFileBatch([file]);
+    assert.equal(res.valid, true);
+    assert.equal(res.file.name, 'nota_fiscal.pdf');
+    assert.equal(res.extension, '.pdf');
+    assert.equal(res.warning, null);
+  });
+
+  it('Cenário 2 (Edge Case): lida com múltiplos arquivos arrastados escolhendo o primeiro válido e avisando o usuário', () => {
+    const files = [
+      { name: 'documento_1.png', size: 1024 * 30, type: 'image/png' },
+      { name: 'documento_2.pdf', size: 1024 * 60, type: 'application/pdf' }
+    ];
+    const res = handleDocumentFileBatch(files);
+    assert.equal(res.valid, true);
+    assert.equal(res.file.name, 'documento_1.png');
+    assert.ok(res.warning && res.warning.includes('Múltiplos arquivos detectados'));
+    assert.equal(res.totalFiles, 2);
+  });
+
+  it('Cenário 3 (Error Path): rejeita lote vazio, nulo ou com formatos proibidos', () => {
+    assert.equal(handleDocumentFileBatch(null).valid, false);
+    assert.equal(handleDocumentFileBatch([]).valid, false);
+
+    const invalidBatch = [{ name: 'malware.exe', size: 500 }];
+    const res = handleDocumentFileBatch(invalidBatch);
+    assert.equal(res.valid, false);
+    assert.ok(res.error.includes('não suportado'));
+  });
+});
+
+
 describe('doc2fill Sidepanel Payload Builder (TDD Suite)', () => {
   it('Cenário 1 (Happy Path): deve construir e higienizar payload completo com os 8 campos focados', () => {
     const raw = {

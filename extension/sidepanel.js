@@ -176,21 +176,37 @@ document.addEventListener('DOMContentLoaded', () => {
     dropZone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropZone.classList.remove('drag-over');
-      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        handleFileProcessing(e.dataTransfer.files[0]);
+      if (e.dataTransfer && e.dataTransfer.files) {
+        handleDocumentFile(e.dataTransfer.files);
       }
     });
 
     fileInput.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files.length > 0) {
-        handleFileProcessing(e.target.files[0]);
+      if (e.target && e.target.files) {
+        handleDocumentFile(e.target.files);
       }
     });
   }
 
-  async function handleFileProcessing(file) {
-    if (!file) return;
+  async function handleDocumentFile(filesOrFile) {
+    if (!filesOrFile) return;
+    const fileList = Array.isArray(filesOrFile) ? filesOrFile : (filesOrFile.length !== undefined ? Array.from(filesOrFile) : [filesOrFile]);
+    if (fileList.length === 0) return;
 
+    const file = fileList[0];
+    if (fileList.length > 1) {
+      console.warn(`[doc2fill] Múltiplos arquivos detectados (${fileList.length}). Processando apenas o primeiro: ${file.name}`);
+    }
+
+    const allowedExts = ['.pdf', '.png', '.jpg', '.jpeg'];
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    if (!allowedExts.includes(ext)) {
+      dropTitle.textContent = `⚠️ Formato não suportado: ${ext}`;
+      dropSubtitle.textContent = 'Por favor, selecione um arquivo PDF, PNG ou JPG.';
+      return;
+    }
+
+    if (dropZone) dropZone.style.pointerEvents = 'none';
     dropTitle.textContent = `⏳ Lendo ${file.name}...`;
     dropSubtitle.textContent = `Extraindo texto e campos em memória efêmera...`;
 
@@ -306,6 +322,8 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('[doc2fill] Erro ao processar arquivo:', err);
       dropTitle.textContent = `⚠️ Erro ao ler ${file.name}`;
       dropSubtitle.textContent = 'Não foi possível ler o arquivo. Tente novamente.';
+    } finally {
+      if (dropZone) dropZone.style.pointerEvents = 'auto';
     }
   }
 

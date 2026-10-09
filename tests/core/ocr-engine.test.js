@@ -85,3 +85,33 @@ test('Motor OCR — 4. Resiliência a PDF (Happy Path / Conversion): detecta se 
   assert.equal(res.confidence, 0);
 });
 
+test('Motor OCR — 5. Pré-processamento e Calibração de Imagem (TDD Suite)', async () => {
+  const { preprocessImageBufferForOcr, cleanOcrText } = await import('../../core/ocr-engine.js');
+
+  // Cenário 1 (Happy Path): processa buffer de imagem e devolve buffer com contraste
+  const fakePixelBuffer = Buffer.alloc(100, 128); // Buffer simulando imagem média
+  const processed = preprocessImageBufferForOcr(fakePixelBuffer);
+  assert.ok(Buffer.isBuffer(processed), 'Deve retornar Buffer processado');
+  assert.equal(processed.length, 100);
+
+  // Cenário 2 (Edge Case): cleanOcrText higieniza ruídos típicos de comprovantes SEFAZ e térmicos
+  const thermalOcrText = `
+    NFC - e  DOCUMENTO  AUXILIAR
+    CHAVE   DE   ACESSO : 3526  0912  3456  7800
+    VALOR   TOTAL   R$ : 45,90
+    C.P.F / C.N.P.J DO CONSUMIGOR : 123.456.789-00
+  `;
+  const normalized = cleanOcrText(thermalOcrText);
+  assert.ok(normalized.includes('NFC-e'));
+  assert.ok(normalized.includes('CHAVE DE ACESSO'));
+  assert.ok(normalized.includes('VALOR TOTAL'));
+  assert.ok(normalized.includes('CONSUMIDOR'));
+
+  // Cenário 3 (Error Path): preprocessImageBufferForOcr com entradas nulas ou vazias
+  assert.equal(preprocessImageBufferForOcr(null), null);
+  assert.equal(preprocessImageBufferForOcr(undefined), undefined);
+  const emptyBuf = Buffer.from('');
+  assert.equal(preprocessImageBufferForOcr(emptyBuf).length, 0);
+});
+
+
