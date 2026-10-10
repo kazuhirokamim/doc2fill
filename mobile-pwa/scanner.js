@@ -108,6 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const resJson = await res.json();
       if (resJson.success && statusBadge) {
+        if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+          try { navigator.vibrate([40, 30, 40]); } catch (_) {}
+        }
         statusBadge.textContent = '✓ Transmitido para a extensão no computador com sucesso!';
         statusBadge.style.background = '#ECFDF5';
         statusBadge.style.color = '#065F46';

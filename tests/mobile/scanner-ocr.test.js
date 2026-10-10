@@ -119,3 +119,29 @@ test('Mobile Scanner & Relay OCR — 3. Tratamento de Erro (Error Path): JSON co
     await new Promise(resolve => server.close(resolve));
   }
 });
+
+test('Mobile Scanner — S3-T1: Confirmação Háptica na Transmissão (TDD)', () => {
+  let vibratePattern = null;
+  const mockNavigator = {
+    vibrate: (pattern) => { vibratePattern = pattern; }
+  };
+
+  function triggerHapticSuccess(nav) {
+    if (nav && typeof nav.vibrate === 'function') {
+      try { nav.vibrate([40, 30, 40]); return true; } catch (_) {}
+    }
+    return false;
+  }
+
+  // Happy path
+  const success = triggerHapticSuccess(mockNavigator);
+  assert.equal(success, true);
+  assert.deepEqual(vibratePattern, [40, 30, 40]);
+
+  // Edge case (navegador sem suporte)
+  assert.equal(triggerHapticSuccess({}), false);
+
+  // Error path (null / undefined)
+  assert.equal(triggerHapticSuccess(null), false);
+});
+

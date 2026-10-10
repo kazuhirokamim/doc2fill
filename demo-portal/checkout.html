@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>doc2fill — Checkout Fundador Pix 1-Click</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-app: #0A0D14;
+      --bg-surface: #111622;
+      --bg-card: rgba(17, 22, 34, 0.85);
+      --bg-card-hover: rgba(22, 28, 42, 0.95);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: #00D2FF;
+      --brand-blue: #0052FF;
+      --brand-cyan: #00D2FF;
+      --brand-emerald: #10B981;
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --glow-cyan: 0 0 24px rgba(0, 210, 255, 0.25);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      background-image: radial-gradient(circle at 50% 0%, rgba(0, 82, 255, 0.15) 0%, transparent 60%);
+    }
+
+    .checkout-wrapper {
+      width: 100%;
+      max-width: 540px;
+      perspective: 1000px;
+    }
+
+    .bento-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.5px;
+    }
+
+    .scarcity-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #F87171;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 600;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(0.98); }
+    }
+
+    .plan-toggle {
+      display: flex;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 4px;
+      margin-bottom: 20px;
+      gap: 4px;
+    }
+
+    .plan-btn {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .plan-btn.active {
+      background: var(--brand-blue);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(0, 82, 255, 0.4);
+    }
+
+    .plan-price-display {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .price-value {
+      font-size: 38px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -1px;
+    }
+
+    .price-period {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .pix-box {
+      background: #FFFFFF;
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .pix-qr-container svg {
+      width: 190px;
+      height: 190px;
+      display: block;
+    }
+
+    .pix-copia-e-cola-group {
+      width: 100%;
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .pix-input {
+      flex: 1;
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #0F172A;
+      outline: none;
+    }
+
+    .btn-copy {
+      background: #0F172A;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .btn-copy:hover {
+      background: var(--brand-blue);
+    }
+
+    .sse-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--brand-cyan);
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: var(--glow-cyan);
+      animation: pulse 1.5s infinite;
+    }
+
+    .btn-simulate {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 1px dashed rgba(0, 210, 255, 0.3);
+      color: var(--brand-cyan);
+      border-radius: var(--radius-md);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-simulate:hover {
+      background: rgba(0, 210, 255, 0.08);
+      border-color: var(--brand-cyan);
+    }
+
+    /* Tela de Sucesso (Screen Flip) */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 12px 0;
+    }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 2px solid var(--brand-emerald);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+    }
+
+    .license-card {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin: 20px 0;
+      text-align: left;
+    }
+
+    .license-key-box {
+      background: #000;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--brand-cyan);
+      letter-spacing: 1px;
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #0052FF 0%, #00D2FF 100%);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 14.5px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0, 82, 255, 0.35);
+      transition: all 0.2s;
+    }
+
+    .btn-download:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(0, 82, 255, 0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="checkout-wrapper">
+    <div class="bento-card" id="checkout-card">
+      
+      <!-- Cabeçalho -->
+      <div class="brand-header">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#00D2FF" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          <span>doc2<span style="color:var(--brand-cyan)">fill</span></span>
+        </div>
+        <div class="scarcity-badge">
+          <span>🔥</span> Restam apenas 3 licenças
+        </div>
+      </div>
+
+      <!-- Formulário de Pagamento Pix -->
+      <div id="payment-view">
+        <div class="plan-toggle">
+          <button type="button" class="plan-btn active" id="btn-plan-monthly" data-plan="mensal">Mensal (Fundador)</button>
+          <button type="button" class="plan-btn" id="btn-plan-annual" data-plan="anual">Anual (2 Meses Grátis)</button>
+        </div>
+
+        <div class="plan-price-display">
+          <div class="price-value" id="price-display">R$ 197<span style="font-size:20px; font-weight:600;">,00</span></div>
+          <div class="price-period" id="period-display">Cobrado mensalmente • Cancele quando quiser</div>
+        </div>
+
+        <!-- Box Pix -->
+        <div class="pix-box">
+          <div class="pix-qr-container" id="pix-qr-container">
+            <div style="padding:40px; color:#64748B; font-size:12px;">⏳ Gerando Pix 1-Click...</div>
+          </div>
+          <div class="pix-copia-e-cola-group">
+            <input type="text" id="pix-copia-input" class="pix-input" readonly value="Carregando código Pix...">
+            <button type="button" class="btn-copy" id="btn-copy-pix">Copiar Pix</button>
+          </div>
+        </div>
+
+        <!-- Telemetria SSE em Tempo Real -->
+        <div class="sse-status" id="sse-status">
+          <span class="pulse-dot"></span>
+          <span>Aguardando confirmação bancária via Pix instantâneo...</span>
+        </div>
+
+        <!-- Simulação de demonstração para testes instantâneos -->
+        <button type="button" class="btn-simulate" id="btn-simulate-payment">
+          ⚡ Simular Confirmação Bancária (Teste Rápido)
+        </button>
+      </div>
+
+      <!-- Tela de Virada (Screen Flip) Pós-Pagamento -->
+      <div class="success-screen" id="success-view">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#10B981" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h2 style="font-size:22px; font-weight:800; margin-bottom:6px;">Pagamento Confirmado!</h2>
+        <p style="font-size:13px; color:var(--text-secondary);">Sua licença do doc2fill Lote 1 foi gerada e já está ativa.</p>
+
+        <div class="license-card">
+          <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); font-weight:700;">Chave de Ativação do Assinante</span>
+          <div class="license-key-box" id="license-key-display">
+            <span id="key-text">DOC2FILL-FUNDADOR-9941</span>
+            <button type="button" class="btn-copy" id="btn-copy-license" style="padding:4px 8px; font-size:11px;">Copiar</button>
+          </div>
+        </div>
+
+        <a href="#" class="btn-download" id="btn-download-pack">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span>Instalar Extensão (Guia de 2 Cliques)</span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let currentPlan = 'mensal';
+      let currentOrderId = null;
+
+      const priceDisplay = document.getElementById('price-display');
+      const periodDisplay = document.getElementById('period-display');
+      const btnPlanMonthly = document.getElementById('btn-plan-monthly');
+      const btnPlanAnnual = document.getElementById('btn-plan-annual');
+      const qrContainer = document.getElementById('pix-qr-container');
+      const pixInput = document.getElementById('pix-copia-input');
+      const btnCopyPix = document.getElementById('btn-copy-pix');
+      const btnSimulate = document.getElementById('btn-simulate-payment');
+      const paymentView = document.getElementById('payment-view');
+      const successView = document.getElementById('success-view');
+      const keyText = document.getElementById('key-text');
+      const btnCopyLicense = document.getElementById('btn-copy-license');
+
+      async function generatePix(plan) {
+        try {
+          qrContainer.innerHTML = '<div style="padding:40px; color:#64748B; font-size:12px;">⏳ Gerando Pix 1-Click...</div>';
+          const res = await fetch('/api/checkout/pix', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plan, email: 'fundador@doc2fill.com' })
+          });
+          const data = await res.json();
+          if (data.success) {
+            currentOrderId = data.orderId;
+            qrContainer.innerHTML = data.qrSvg;
+            pixInput.value = data.pixCode;
+          }
+        } catch (e) {
+          console.error('Falha ao gerar Pix:', e);
+        }
+      }
+
+      btnPlanMonthly.addEventListener('click', () => {
+        currentPlan = 'mensal';
+        btnPlanMonthly.classList.add('active');
+        btnPlanAnnual.classList.remove('active');
+        priceDisplay.innerHTML = 'R$ 197<span style="font-size:20px; font-weight:600;">,00</span>';
+        periodDisplay.textContent = 'Cobrado mensalmente • Cancele quando quiser';
+        generatePix('mensal');
+      });
+
+      btnPlanAnnual.addEventListener('click', () => {
+        currentPlan = 'anual';
+        btnPlanAnnual.classList.add('active');
+        btnPlanMonthly.classList.remove('active');
+        priceDisplay.innerHTML = 'R$ 1.970<span style="font-size:20px; font-weight:600;">,00</span>';
+        periodDisplay.textContent = 'Cobrado anualmente • 2 Meses Grátis';
+        generatePix('anual');
+      });
+
+      btnCopyPix.addEventListener('click', async () => {
+        if (pixInput.value) {
+          await navigator.clipboard.writeText(pixInput.value);
+          btnCopyPix.textContent = '✓ Copiado!';
+          setTimeout(() => { btnCopyPix.textContent = 'Copiar Pix'; }, 2000);
+        }
+      });
+
+      btnCopyLicense.addEventListener('click', async () => {
+        if (keyText.textContent) {
+          await navigator.clipboard.writeText(keyText.textContent);
+          btnCopyLicense.textContent = '✓ Copiado!';
+          setTimeout(() => { btnCopyLicense.textContent = 'Copiar'; }, 2000);
+        }
+      });
+
+      // Conexão Server-Sent Events (SSE) para virada de tela
+      const evtSource = new EventSource('/api/checkout/events');
+      evtSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.event === 'payment_confirmed') {
+            keyText.textContent = payload.licenseKey || 'DOC2FILL-FUNDADOR-ATIVADO';
+            paymentView.style.display = 'none';
+            successView.style.display = 'block';
+          }
+        } catch (err) {}
+      };
+
+      // Simulação instantânea no browser para testes e validação
+      btnSimulate.addEventListener('click', async () => {
+        btnSimulate.textContent = '⏳ Confirmando liquidação no Banco Central...';
+        btnSimulate.disabled = true;
+        try {
+          await fetch('/api/checkout/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: currentOrderId })
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      });
+
+      // Inicializa com o plano mensal padrão
+      generatePix('mensal');
+    });
+  </script>
+</body>
+</html>

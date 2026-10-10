@@ -15,6 +15,7 @@ export const SESSION_TTL_MS = 5 * 60 * 1000; // 5 minutos de vida máxima na RAM
 
 // Memória efêmera de sessões para pareamento P2P (Zero Retenção)
 export const relaySessions = new Map();
+export const sseClients = new Set();
 
 /**
  * Purga ativamente sessões que excederam o tempo de vida na memória RAM
@@ -209,12 +210,103 @@ export function createAppServer(port = DEFAULT_PORT) {
       return;
     }
 
-    // 4. Arquivos Estáticos e Roteamento Amigável
+    // 4. API: Checkout Pix 1-Click (Swarm Hermes)
+    if (reqPath === '/api/checkout/pix' && req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', async () => {
+        try {
+          const payload = body ? JSON.parse(body) : {};
+          const plan = payload.plan === 'anual' ? 'anual' : 'mensal';
+          const amount = plan === 'anual' ? 1970.00 : 197.00;
+          const orderId = `PED-${Date.now().toString(36).toUpperCase()}`;
+          const pixCode = `00020126580014br.gov.bcb.pix0136doc2fill-fundador@doc2fill.com520400005303986540${amount.toFixed(2)}5802BR5916DOC2FILL TECNOLOGIA6009SAO PAULO62070503***6304${orderId}`;
+
+          const qrSvg = await QRCode.toString(pixCode, {
+            type: 'svg',
+            margin: 1,
+            width: 190,
+            color: { dark: '#0A0D14', light: '#FFFFFF' }
+          });
+
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({
+            success: true,
+            orderId,
+            plan,
+            amount,
+            pixCode,
+            qrSvg,
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+          }));
+        } catch (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Falha ao processar checkout' }));
+        }
+      });
+      return;
+    }
+
+    // 5. API: Server-Sent Events (SSE) para Virada de Tela pós-Pix
+    if (reqPath === '/api/checkout/events' && req.method === 'GET') {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+      });
+      res.write(': sse connected\n\n');
+      sseClients.add(res);
+
+      req.on('close', () => {
+        sseClients.delete(res);
+      });
+      return;
+    }
+
+    // 6. API: Confirmação Bancária Instantânea / Webhook Simulado
+    if (reqPath === '/api/checkout/confirm' && req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', () => {
+        try {
+          const payload = body ? JSON.parse(body) : {};
+          const orderId = payload.orderId || `PED-${Date.now().toString(36).toUpperCase()}`;
+          const licenseKey = `DOC2FILL-FUNDADOR-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+          const ssePayload = JSON.stringify({
+            event: 'payment_confirmed',
+            orderId,
+            licenseKey,
+            downloadUrl: '/download/doc2fill-extension.zip',
+            timestamp: Date.now()
+          });
+
+          for (const client of sseClients) {
+            try {
+              client.write(`data: ${ssePayload}\n\n`);
+            } catch (_) {
+              sseClients.delete(client);
+            }
+          }
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, orderId, licenseKey }));
+        } catch (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Erro ao confirmar pedido' }));
+        }
+      });
+      return;
+    }
+
+    // 7. Arquivos Estáticos e Roteamento Amigável
     let staticPath = reqPath;
     if (staticPath === '/' || staticPath === '/portal' || staticPath === '/demo') {
       staticPath = '/demo-portal/index.html';
     } else if (staticPath === '/mobile' || staticPath === '/scanner') {
       staticPath = '/mobile-pwa/index.html';
+    } else if (staticPath === '/checkout' || staticPath === '/vendas') {
+      staticPath = '/demo-portal/checkout.html';
     }
 
     const filePath = path.join(ROOT_DIR, staticPath);

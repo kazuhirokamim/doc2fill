@@ -164,4 +164,57 @@ describe('doc2fill Demo Server & P2P Relay Suite (TDD)', () => {
       assert.doesNotThrow(() => cleanupExpiredSessions(Date.now(), -1));
     });
   });
+
+  describe('Pix 1-Click Checkout & SSE Telemetry (S3-T4)', () => {
+    it('Cenário 1 (Happy Path): rota /checkout responde 200 e /api/checkout/pix gera cobrança válida com QR Code', async () => {
+      const pageRes = await fetch(`http://localhost:${TEST_PORT}/checkout`);
+      assert.equal(pageRes.status, 200);
+      const html = await pageRes.text();
+      assert.ok(html.includes('Checkout Fundador Pix 1-Click'));
+
+      const pixRes = await fetch(`http://localhost:${TEST_PORT}/api/checkout/pix`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: 'mensal' })
+      });
+      assert.equal(pixRes.status, 200);
+      const pixJson = await pixRes.json();
+
+      assert.equal(pixJson.success, true);
+      assert.equal(pixJson.amount, 197.00);
+      assert.ok(pixJson.orderId.startsWith('PED-'));
+      assert.ok(pixJson.pixCode.includes('doc2fill'));
+      assert.ok(pixJson.qrSvg.startsWith('<svg'));
+    });
+
+    it('Cenário 2 (Edge Case): plano anual gera valor com desconto e /api/checkout/confirm emite chave de licença', async () => {
+      const pixAnnualRes = await fetch(`http://localhost:${TEST_PORT}/api/checkout/pix`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: 'anual' })
+      });
+      const annualJson = await pixAnnualRes.json();
+      assert.equal(annualJson.amount, 1970.00);
+
+      const confirmRes = await fetch(`http://localhost:${TEST_PORT}/api/checkout/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: annualJson.orderId })
+      });
+      assert.equal(confirmRes.status, 200);
+      const confirmJson = await confirmRes.json();
+      assert.equal(confirmJson.success, true);
+      assert.ok(confirmJson.licenseKey.startsWith('DOC2FILL-FUNDADOR-'));
+    });
+
+    it('Cenário 3 (Error Path): requisição com payload inválido é tratada com segurança', async () => {
+      const badRes = await fetch(`http://localhost:${TEST_PORT}/api/checkout/pix`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: 'bad-json{'
+      });
+      assert.equal(badRes.status, 400);
+    });
+  });
 });
+
