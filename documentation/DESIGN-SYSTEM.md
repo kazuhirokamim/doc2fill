@@ -25,10 +25,14 @@ A paleta do doc2fill é fundamentada no contraste de alta resolução entre o pr
 
 ## 💎 2. Logotipia & Símbolo Vetorial Oficial
 
-* **Símbolo Oficial:** Silhueta estilizada de documento com dobra angular superior direita + traço contínuo de aprovação (*checkmark*) que transita para ponta de cursor de clique no canto inferior direito.
-  - Gradiente do Símbolo: `linear-gradient(135deg, #0052FF 0%, #00D2FF 100%)`.
-  - Arquivo: `extension/icons/icon-symbol.svg` e `extension/icons/icon-squircle.svg`.
-* **Logotipia:** `Doc` em Branco Titânio (`#F8FAFC`) + `2Fill` em Ciano Fluxo (`#00D2FF`).
+* **Símbolo Oficial (Flat 2D):** Silhueta de documento com dobra angular superior direita em Azul Conexão (`#0052FF`), 3 linhas internas de dados (`#0052FF`), checkmark de aprovação contínuo em Ciano Fluxo (`#00D2FF`) e cursor de mouse clássico (seta branca com borda preta) apontando para o checkmark.
+  - Arquivo Símbolo Simples: `extension/icons/icon-symbol.svg` (utilizado na barra de extensões do Chrome).
+  - Arquivo Símbolo Squircle: `extension/icons/icon-squircle.svg` (para loja e distribuição).
+  - Arquivo Logotipo Completo: `extension/icons/logo-full.svg`.
+* **Logotipia Textual:** Três cores canônicas:
+  - `Doc` = **Branco Titânio** (`#FFFFFF` / `#F8FAFC`)
+  - `2` = **Azul Conexão** (`#0052FF`)
+  - `Fill` = **Ciano Fluxo** (`#00D2FF`)
 * **Regra Anti-Emoji:** Proibido o uso de emojis de sistema (`⚡`, `📄`, `⏳`) na interface de produção. Todos os ícones devem ser componentes vetoriais SVG minimalistas de traço limpo (`stroke-width: 2`).
 
 ---

@@ -16,10 +16,10 @@
     "service_worker": "background.js"
   },
   "icons": {
-    "128": "icons/icon-squircle.svg"
+    "128": "icons/icon-symbol.svg"
   },
   "action": {
-    "default_icon": "icons/icon-squircle.svg",
+    "default_icon": "icons/icon-symbol.svg",
     "default_title": "Abrir doc2fill"
   },
   "side_panel": {
