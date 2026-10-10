@@ -101,6 +101,13 @@
       }
     }
 
+    // 3ª Tentativa (S2-T4): Fallback defensivo para "Outros" / "Outro" / "Diversos" quando não houver correspondência exata
+    const fallbackOption = normalizedOpts.find(o => !o.isPlaceholder && (
+      o.val.includes('outro') || o.text.includes('outro') ||
+      o.val.includes('diversos') || o.text.includes('diversos')
+    ));
+    if (fallbackOption) return fallbackOption.opt;
+
     return null;
   }
 
@@ -292,29 +299,34 @@
         }
       }
 
-      const proto = typeof window !== 'undefined' ? Object.getOwnPropertyDescriptor(
-        tagName === 'TEXTAREA' ? window.HTMLTextAreaElement?.prototype : window.HTMLInputElement?.prototype,
-        'value'
-      ) : null;
+      setInputValueWithEvents(input, finalVal);
+    }
+  }
 
-      if (proto && proto.set) {
-        proto.set.call(input, finalVal);
-      } else {
-        input.value = finalVal;
-      }
+  // Injetor de propriedades nativas e despacho da cadeia reativa com bubbles e composed (S2-T3)
+  function setInputValueWithEvents(input, val) {
+    if (!input) return;
+    const tagName = (input.tagName || '').toUpperCase();
+    const proto = typeof window !== 'undefined' ? Object.getOwnPropertyDescriptor(
+      tagName === 'TEXTAREA' ? window.HTMLTextAreaElement?.prototype : window.HTMLInputElement?.prototype,
+      'value'
+    ) : null;
 
-      val = finalVal;
+    if (proto && proto.set) {
+      proto.set.call(input, val);
+    } else {
+      input.value = val;
     }
 
-    // Disparo da cadeia completa de eventos do ciclo reativo do Angular
-    input.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+    // Disparo da cadeia completa de eventos do ciclo reativo com bubbles e composed
+    input.dispatchEvent(new Event('input', { bubbles: true, cancelable: true, composed: true }));
     try {
       if (typeof InputEvent !== 'undefined') {
-        input.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: val }));
+        input.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, composed: true, inputType: 'insertText', data: val }));
       }
     } catch (_) {}
-    input.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
-    input.dispatchEvent(new Event('blur', { bubbles: true, cancelable: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true, cancelable: true, composed: true }));
+    input.dispatchEvent(new Event('blur', { bubbles: true, cancelable: true, composed: true }));
 
     // Se estiver em <mat-form-field>, ajusta estado flutuante do label
     const matField = input.closest ? input.closest('mat-form-field') : null;
@@ -380,6 +392,7 @@
       getAllFormElements,
       findBestMatchingInput,
       fillInputElement,
+      setInputValueWithEvents,
       executeAutofill,
       attachFileToPage
     };

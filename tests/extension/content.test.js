@@ -237,3 +237,104 @@ describe('doc2fill Clean DOM Lifecycle (TDD Suite)', () => {
     assert.equal(elements.size, 0);
   });
 });
+
+describe('doc2fill S2-T3: setInputValueWithEvents (Reactive Forms & Angular Material)', () => {
+  it('Cenário 1 (Happy Path): seta valor e despacha cadeia de eventos com composed: true e bubbles: true', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    assert.ok(typeof engine.setInputValueWithEvents === 'function', 'setInputValueWithEvents deve ser exposta');
+
+    const dispatched = [];
+    const mockInput = {
+      tagName: 'INPUT',
+      type: 'text',
+      value: '',
+      focus: () => {},
+      closest: () => null,
+      dispatchEvent: (e) => dispatched.push({ type: e.type, bubbles: e.bubbles, composed: e.composed, inputType: e.inputType, data: e.data })
+    };
+
+    engine.setInputValueWithEvents(mockInput, '00.394.544/0001-85');
+    assert.equal(mockInput.value, '00.394.544/0001-85');
+
+    const inputEvents = dispatched.filter(e => e.type === 'input');
+    assert.ok(inputEvents.length >= 2, 'Deve disparar evento input e InputEvent');
+    assert.ok(inputEvents.some(e => e.composed === true), 'Eventos devem possuir composed: true');
+
+    const changeEvent = dispatched.find(e => e.type === 'change');
+    assert.ok(changeEvent && changeEvent.bubbles && changeEvent.composed);
+
+    const blurEvent = dispatched.find(e => e.type === 'blur');
+    assert.ok(blurEvent && blurEvent.bubbles && blurEvent.composed);
+  });
+
+  it('Cenário 2 (Edge Case): suporta elementos textarea ajustando estado em mat-form-field', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    let floatClassAdded = false;
+    const mockMatField = {
+      classList: {
+        add: (...classes) => {
+          if (classes.includes('mat-form-field-should-float')) floatClassAdded = true;
+        }
+      }
+    };
+    const mockTextarea = {
+      tagName: 'TEXTAREA',
+      value: '',
+      focus: () => {},
+      closest: (sel) => sel === 'mat-form-field' ? mockMatField : null,
+      dispatchEvent: () => {}
+    };
+
+    engine.setInputValueWithEvents(mockTextarea, 'Discriminação do serviço médico');
+    assert.equal(mockTextarea.value, 'Discriminação do serviço médico');
+    assert.equal(floatClassAdded, true, 'Deve marcar mat-form-field-should-float');
+  });
+
+  it('Cenário 3 (Error Path): lida com input nulo ou indefinido sem lançar exceção', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    assert.doesNotThrow(() => engine.setInputValueWithEvents(null, 'valor'));
+    assert.doesNotThrow(() => engine.setInputValueWithEvents(undefined, 'valor'));
+  });
+});
+
+describe('doc2fill S2-T4: matchSemanticSelectOption (Mapeador de Selects com Fallback)', () => {
+  const cchaSelectOptions = [
+    { value: '', text: 'Selecione o tipo de comprovante' },
+    { value: 'nota_fiscal', text: 'Nota Fiscal / DANFE' },
+    { value: 'recibo', text: 'Recibo de Pagamento / RPS' },
+    { value: 'guia_tiss', text: 'Guia Médica / TISS' },
+    { value: 'boleto', text: 'Boleto Bancário' },
+    { value: 'outros', text: 'Outros Comprovantes' }
+  ];
+
+  it('Cenário 1 (Happy Path): mapeia variações semânticas como NF-e, NFC-e e DANFE para nota_fiscal', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const matchDanfe = engine.matchSemanticSelectOption(cchaSelectOptions, 'DANFE Simplificada');
+    assert.ok(matchDanfe);
+    assert.equal(matchDanfe.value, 'nota_fiscal');
+
+    const matchNfce = engine.matchSemanticSelectOption(cchaSelectOptions, 'Cupom Fiscal Eletrônico NFC-e');
+    assert.ok(matchNfce);
+    assert.equal(matchNfce.value, 'nota_fiscal');
+
+    const matchRecibo = engine.matchSemanticSelectOption(cchaSelectOptions, 'Recibo de Honorários');
+    assert.ok(matchRecibo);
+    assert.equal(matchRecibo.value, 'recibo');
+  });
+
+  it('Cenário 2 (Edge Case): recorre ao fallback seguro Outros quando o tipo não tem equivalência direta', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const matchDesconhecido = engine.matchSemanticSelectOption(cchaSelectOptions, 'Comprovante de Despesa Extraordinária');
+    assert.ok(matchDesconhecido);
+    assert.equal(matchDesconhecido.value, 'outros', 'Deve selecionar opção de fallback Outros');
+  });
+
+  it('Cenário 3 (Error Path): retorna null quando lista de opções for vazia, nula ou valor for vazio', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    assert.equal(engine.matchSemanticSelectOption(null, 'NF-e'), null);
+    assert.equal(engine.matchSemanticSelectOption([], 'NF-e'), null);
+    assert.equal(engine.matchSemanticSelectOption(cchaSelectOptions, ''), null);
+    assert.equal(engine.matchSemanticSelectOption(cchaSelectOptions, null), null);
+  });
+});
+
