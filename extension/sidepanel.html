@@ -7,36 +7,64 @@
   <link rel="stylesheet" href="sidepanel.css">
 </head>
 <body>
-  <!-- Header Minimalista e Sofisticado -->
+  <!-- Header Minimalista e Sofisticado — Obsidian & Flow Cyan -->
   <header class="app-header">
     <div class="brand-row">
       <div class="brand">
-        <div class="logo-icon-wrap">⚡</div>
+        <div class="logo-symbol-wrap" title="doc2fill">
+          <svg viewBox="0 0 100 100" class="brand-icon-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="hdrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0052FF" />
+                <stop offset="100%" stop-color="#00D2FF" />
+              </linearGradient>
+            </defs>
+            <path d="M26 18C26 14.6863 28.6863 12 32 12H58L74 28V82C74 85.3137 71.3137 88 68 88H32C28.6863 88 26 85.3137 26 82V18Z" 
+                  fill="rgba(255,255,255,0.06)" stroke="#2A3447" stroke-width="2.5" />
+            <path d="M58 12V26C58 27.1046 58.8954 28 60 28H74" stroke="#2A3447" stroke-width="2.5" />
+            <path d="M34 60L46 72L76 40" stroke="url(#hdrGrad)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+            <polygon points="76,40 76,50 68,46" fill="#00D2FF" />
+          </svg>
+        </div>
         <div class="brand-details">
-          <h1>doc2fill</h1>
+          <h1 class="brand-title">Doc<span class="brand-accent">2Fill</span></h1>
           <span class="badge-pill badge-security">Zero-Retention</span>
         </div>
       </div>
       <div class="user-tier">
-        <span class="badge-pill badge-vip">CCHA · AGU & Procuradores</span>
+        <span class="badge-pill badge-ccha">CCHA · AGU</span>
       </div>
     </div>
   </header>
 
   <main class="panel-content">
-    <!-- Segmented Control (Tabs Suaves) -->
+    <!-- Segmented Control (Pills Táteis Dark) -->
     <div class="segmented-tabs">
-      <button class="tab-btn active" id="tab-file" data-tab="file">PDF / Comprovante</button>
-      <button class="tab-btn" id="tab-qr" data-tab="qr">Celular (QR)</button>
+      <button class="tab-btn active" id="tab-file" data-tab="file">
+        <svg class="tab-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        PDF / Comprovante
+      </button>
+      <button class="tab-btn" id="tab-qr" data-tab="qr">
+        <svg class="tab-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Celular (QR)
+      </button>
     </div>
 
     <!-- Modo 1: Drag & Drop e Seleção de Arquivo (PDF / Imagem) -->
     <section class="tab-pane active" id="pane-file">
       <div class="clean-card drop-zone" id="drop-zone">
-        <div class="drop-icon-wrap" id="drop-icon-wrap">📄</div>
-        <h4 class="drop-title" id="drop-title">Arraste o Comprovante / Requerimento aqui</h4>
-        <p class="drop-subtitle" id="drop-subtitle">Compatível com PDF, PNG e JPEG</p>
-        <button type="button" id="btn-select-file" class="btn-secondary btn-sm">Selecionar Arquivo</button>
+        <div class="drop-icon-wrap" id="drop-icon-wrap">
+          <svg viewBox="0 0 48 48" width="38" height="38" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="6" width="32" height="36" rx="4" fill="rgba(0, 82, 255, 0.08)" stroke="#2A3447" stroke-width="1.8" />
+            <path d="M28 6V14C28 15.1 28.9 16 30 16H40" stroke="#2A3447" stroke-width="1.8" />
+            <path d="M24 22V34M24 22L19 27M24 22L29 27" stroke="#00D2FF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <h4 class="drop-title" id="drop-title">Arraste o Comprovante ou Requerimento</h4>
+        <p class="drop-subtitle" id="drop-subtitle">Compatível com PDF nativo, escaneado, PNG e JPEG</p>
+        <button type="button" id="btn-select-file" class="btn-secondary btn-sm">
+          <span>Selecionar Arquivo</span>
+        </button>
         <input type="file" id="file-input" accept="application/pdf,image/*" style="display:none;">
       </div>
     </section>
@@ -48,7 +76,7 @@
           <span class="card-eyebrow">Pareamento Direto P2P</span>
         </div>
         <div class="qr-container" id="qr-box">
-          <div class="qr-loading">⏳ Gerando QR Code escaneável...</div>
+          <div class="qr-loading">Gerando canal efêmero...</div>
         </div>
         <div id="qr-link-container" class="qr-link-container" style="display:none;">
           <a id="qr-direct-link" href="#" target="_blank" class="qr-url-text">Carregando URL...</a>
@@ -90,39 +118,39 @@
           </div>
           <div class="field-group flex-1">
             <label for="field-cnpj">CPF / CNPJ do Fornecedor</label>
-            <input type="text" id="field-cnpj" placeholder="000.000.000-00 ou 00.000.000/0000-00" spellcheck="false">
+            <input type="text" id="field-cnpj" placeholder="000.000.000-00 ou CNPJ" spellcheck="false" class="font-numeric">
           </div>
         </div>
 
         <!-- 3. Nome do Fornecedor / Razão Social -->
         <div class="field-group">
           <label for="field-razao">Nome do Fornecedor / Prestador</label>
-          <input type="text" id="field-razao" placeholder="Razão social ou nome do fornecedor/emissor" spellcheck="false">
+          <input type="text" id="field-razao" placeholder="Razão social ou nome do emissor" spellcheck="false">
         </div>
 
         <!-- 4. Número do Documento & 5. Data do Documento -->
         <div class="field-row">
           <div class="field-group flex-1">
             <label for="field-num-doc">Número do Documento</label>
-            <input type="text" id="field-num-doc" placeholder="Nº da NF, Cupom, Recibo, Fatura, etc." spellcheck="false">
+            <input type="text" id="field-num-doc" placeholder="Nº da NF, Cupom, Recibo" spellcheck="false" class="font-numeric">
           </div>
           <div class="field-group flex-1">
             <label for="field-data">Data do Documento</label>
-            <input type="date" id="field-data">
+            <input type="date" id="field-data" class="font-numeric">
           </div>
         </div>
 
         <!-- 6. Valor do Documento (R$) -->
         <div class="field-group">
           <label for="field-valor">Valor do Documento (R$)</label>
-          <input type="text" id="field-valor" placeholder="R$ 0,00" spellcheck="false">
+          <input type="text" id="field-valor" placeholder="R$ 0,00" spellcheck="false" class="font-numeric font-highlight">
         </div>
 
         <!-- 7. Descritivo Resumido -->
         <div class="field-group">
           <div class="label-badge-row">
             <label for="field-descricao">Descritivo Resumido</label>
-            <span class="badge-anti-glosa" id="badge-anti-glosa" style="display:none; background:#10b981; color:#fff;">⚖️ CCHA Validado</span>
+            <span class="badge-anti-glosa" id="badge-anti-glosa" style="display:none;">CCHA Validado</span>
           </div>
           <textarea id="field-descricao" rows="2" placeholder="Síntese concisa do serviço prestado ou produto adquirido..." spellcheck="false"></textarea>
         </div>
@@ -135,12 +163,13 @@
 
         <!-- Status do Anexo de Arquivo -->
         <div class="attachment-status-row" id="attachment-status-box" style="display:none;">
-          <span class="attachment-icon">📎</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#00D2FF" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
           <span class="attachment-text" id="attachment-text">Comprovante pronto para anexar</span>
         </div>
 
         <button id="btn-autofill" class="btn-primary" disabled>
-          <span>⚡</span> Preencher Automaticamente no CCHA
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+          <span>Preencher Automaticamente no CCHA</span>
         </button>
       </div>
     </section>
@@ -148,9 +177,10 @@
 
   <footer class="app-footer">
     <div class="footer-info">
-      <span>🔒 Canal efêmero local</span>
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#64748B" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+      <span>Canal efêmero local</span>
       <span class="dot">•</span>
-      <span>Nenhum dado é salvo na nuvem</span>
+      <span>Zero Retenção em Nuvem</span>
     </div>
   </footer>
 

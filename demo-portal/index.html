@@ -61,24 +61,29 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      background: #F8FAFC;
-      color: #1E293B;
-      border: 1px solid #E2E8F0;
+      background: #0A0D14;
+      color: #F8FAFC;
+      border: 1px solid #1E293B;
       border-radius: 12px;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
-      font-size: 12px;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3);
+      font-size: 12.5px;
       font-weight: 500;
-      padding: 12px 16px;
+      padding: 12px 18px;
       margin-bottom: 20px;
     }
     .simulation-badge span.tag {
       font-size: 11px;
-      background: #ECFDF5;
-      color: #065F46;
-      border: 1px solid #A7F3D0;
+      background: rgba(0, 210, 255, 0.1);
+      color: #00D2FF;
+      border: 1px solid rgba(0, 210, 255, 0.3);
       padding: 3px 9px;
       border-radius: 9999px;
       font-weight: 600;
+    }
+    .simulation-badge span.tag-security {
+      background: rgba(16, 185, 129, 0.1);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
     }
   </style>
 </head>
@@ -102,11 +107,11 @@
 
     <div class="form-body">
       <div class="simulation-badge">
-        <div>
-          <span class="tag">Simulador AGU</span>
-          <span style="margin-left:8px; color:#475569;">Ambiente de Teste:</span> Abra o <strong>doc2fill</strong> e clique em <em>"Preencher Formulário na Página"</em> para validação imediata.
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="tag">Doc<span style="color:#FFF;">2Fill</span> Simulador</span>
+          <span style="color:#94A3B8;">Ambiente CCHA / AGU:</span> Abra a extensão e clique em <em style="color:#00D2FF;">"Preencher Automaticamente no CCHA"</em>.
         </div>
-        <span class="tag">Zero Retenção</span>
+        <span class="tag tag-security">Zero Retenção</span>
       </div>
 
       <form id="nota-form">

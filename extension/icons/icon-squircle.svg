@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" fill="none">
+  <defs>
+    <linearGradient id="sqBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#111622" />
+      <stop offset="100%" stop-color="#0A0D14" />
+    </linearGradient>
+    <linearGradient id="sqGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0052FF" />
+      <stop offset="100%" stop-color="#00D2FF" />
+    </linearGradient>
+    <linearGradient id="sqPaper" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.04" />
+    </linearGradient>
+    <filter id="sqGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Obsidian Squircle Base -->
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#sqBg)" stroke="#1E293B" stroke-width="2" />
+  
+  <!-- Subtle Top Highlight -->
+  <path d="M28 6H100C112 6 122 16 122 28V36C96 30 32 30 6 36V28C6 16 16 6 28 6Z" fill="#FFFFFF" fill-opacity="0.03" />
+
+  <!-- Document Shape -->
+  <path d="M38 28C38 24.6863 40.6863 22 44 22H68L86 40V98C86 101.314 83.3137 104 80 104H44C40.6863 104 38 101.314 38 98V28Z" 
+        fill="url(#sqPaper)" 
+        stroke="#2A3447" 
+        stroke-width="2.5" />
+        
+  <!-- Fold Corner -->
+  <path d="M68 22V36C68 38.2091 69.7909 40 72 40H86" 
+        fill="none" 
+        stroke="#2A3447" 
+        stroke-width="2.5" 
+        stroke-linejoin="round" />
+
+  <!-- Signature Checkmark & Flow Cursor -->
+  <path d="M46 72L58 84L94 46" 
+        stroke="url(#sqGrad)" 
+        stroke-width="6" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        filter="url(#sqGlow)" />
+
+  <polygon points="94,46 94,57 85,53" fill="#00D2FF" />
+</svg>

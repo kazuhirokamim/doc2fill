@@ -1,42 +1,50 @@
 /* ==========================================================================
-   doc2fill — Clean, Refined & Sophisticated Modern Design System
-   Principles: Off-white canvas, ethereal soft shadows, generous whitespace,
-   smooth rounded corners, elegant slate/black CTAs and low-contrast harmony.
+   doc2fill — Obsidian & Flow Cyan Modern Design System (Tear & Noesis)
+   Principles: Obsidian canvas (#0A0D14), Bento surfaces (#111622),
+   Connection Blue CTAs (#0052FF), Flow Cyan accents (#00D2FF),
+   tactile pill controls, high-contrast typography and subtle micro-glows.
    ========================================================================== */
 
 :root {
-  --bg-app: #F9FAFB;
-  --bg-card: #FFFFFF;
-  --bg-muted: #F3F4F6;
-  --bg-subtle: #F8FAFC;
+  --bg-app: #0A0D14;
+  --bg-card: #111622;
+  --bg-surface: #141A28;
+  --bg-input: #0D111A;
+  --bg-hover: #192234;
   
-  --border-light: #E5E7EB;
-  --border-subtle: #F1F5F9;
-  --border-focus: #111827;
+  --border-subtle: #1E293B;
+  --border-card: #222C3F;
+  --border-focus: #00D2FF;
   
-  --text-primary: #111827;
-  --text-secondary: #4B5563;
-  --text-muted: #6B7280;
-  --text-placeholder: #9CA3AF;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-placeholder: #475569;
   
-  --cta-primary: #111827;
-  --cta-primary-hover: #1F2937;
-  --cta-text: #FFFFFF;
+  --brand-blue: #0052FF;
+  --brand-blue-hover: #1A66FF;
+  --brand-cyan: #00D2FF;
+  --brand-gradient: linear-gradient(135deg, #0052FF 0%, #00D2FF 100%);
   
-  --badge-green-bg: #ECFDF5;
-  --badge-green-text: #065F46;
-  --badge-green-border: #A7F3D0;
+  --badge-cyan-bg: rgba(0, 210, 255, 0.08);
+  --badge-cyan-text: #00D2FF;
+  --badge-cyan-border: rgba(0, 210, 255, 0.25);
+  
+  --badge-green-bg: rgba(16, 185, 129, 0.1);
+  --badge-green-text: #34D399;
+  --badge-green-border: rgba(16, 185, 129, 0.3);
   
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-full: 9999px;
   
-  --shadow-subtle: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
-  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
-  --shadow-floating: 0 10px 30px -4px rgba(0, 0, 0, 0.06), 0 4px 10px -2px rgba(0, 0, 0, 0.03);
+  --shadow-bento: 0 4px 20px -2px rgba(0, 0, 0, 0.4), 0 2px 6px -1px rgba(0, 0, 0, 0.2);
+  --shadow-glow: 0 0 20px rgba(0, 82, 255, 0.3);
+  --shadow-cyan-glow: 0 0 16px rgba(0, 210, 255, 0.25);
   
-  --font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  --font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-numeric: "Outfit", "SF Mono", "Segoe UI Mono", Menlo, Consolas, monospace;
 }
 
 * {
@@ -59,12 +67,12 @@ body {
 }
 
 /* ==========================================================================
-   Header Minimalista
+   Header Minimalista — Obsidian Brand
    ========================================================================== */
 .app-header {
   background: var(--bg-card);
-  border-bottom: 1px solid var(--border-light);
-  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 12px 18px;
 }
 
 .brand-row {
@@ -79,15 +87,20 @@ body {
   gap: 10px;
 }
 
-.logo-icon-wrap {
-  width: 28px;
-  height: 28px;
-  background: var(--bg-muted);
-  border-radius: var(--radius-sm);
+.logo-symbol-wrap {
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+}
+
+.brand-icon-svg {
+  width: 24px;
+  height: 24px;
 }
 
 .brand-details {
@@ -96,11 +109,15 @@ body {
   gap: 8px;
 }
 
-.brand-details h1 {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+.brand-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: var(--text-primary);
+}
+
+.brand-accent {
+  color: var(--brand-cyan);
 }
 
 /* ==========================================================================
@@ -109,27 +126,30 @@ body {
 .badge-pill {
   display: inline-flex;
   align-items: center;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 3px 9px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
   border-radius: var(--radius-full);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
 .badge-security {
-  background: var(--bg-muted);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
 }
 
-.badge-vip {
-  background: #FEF3C7;
-  color: #92400E;
+.badge-ccha {
+  background: var(--badge-cyan-bg);
+  color: var(--badge-cyan-text);
+  border: 1px solid var(--badge-cyan-border);
 }
 
 .badge-status {
-  background: var(--bg-muted);
+  background: var(--bg-surface);
   color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
 }
 
 .badge-status.valid {
@@ -142,22 +162,23 @@ body {
    Conteúdo Principal e Whitespace Generoso
    ========================================================================== */
 .panel-content {
-  padding: 18px;
+  padding: 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 /* ==========================================================================
-   Segmented Tabs (Estilo Apple / Linear)
+   Segmented Tabs (Estilo Pill Tátil Dark)
    ========================================================================== */
 .segmented-tabs {
   display: flex;
-  background: var(--bg-muted);
+  background: var(--bg-card);
   padding: 3px;
   border-radius: var(--radius-md);
-  gap: 2px;
+  border: 1px solid var(--border-subtle);
+  gap: 3px;
 }
 
 .tab-btn {
@@ -168,22 +189,27 @@ body {
   font-family: var(--font-family);
   font-size: 11.5px;
   font-weight: 500;
-  padding: 7px 4px;
+  padding: 8px 6px;
   border-radius: calc(var(--radius-md) - 2px);
   cursor: pointer;
-  text-align: center;
-  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.18s ease;
 }
 
 .tab-btn:hover:not(.active) {
   color: var(--text-primary);
+  background: var(--bg-hover);
 }
 
 .tab-btn.active {
-  background: var(--bg-card);
-  color: var(--text-primary);
+  background: var(--bg-surface);
+  color: var(--brand-cyan);
   font-weight: 600;
-  box-shadow: var(--shadow-subtle);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .tab-pane {
@@ -195,41 +221,26 @@ body {
 }
 
 /* ==========================================================================
-   Cards com Cantos Arredondados e Sombras Suaves
+   Bento Cards Minimalistas
    ========================================================================== */
 .clean-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-bento);
   padding: 18px;
 }
 
 .card-header {
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .card-eyebrow {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.card-title {
-  font-size: 14px;
+  font-size: 10.5px;
   font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.015em;
-  margin-bottom: 6px;
-}
-
-.card-desc {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 14px;
-  line-height: 1.5;
+  color: var(--brand-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .card-caption {
@@ -241,7 +252,42 @@ body {
 }
 
 /* ==========================================================================
-   QR Code e Dropzone Sofisticada
+   Bento Dropzone Táctil com Micro-Glow
+   ========================================================================== */
+.drop-zone {
+  text-align: center;
+  padding: 24px 16px;
+  border: 1.5px dashed var(--border-card);
+  cursor: pointer;
+  background: rgba(17, 22, 34, 0.7);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--brand-cyan);
+  background: rgba(0, 210, 255, 0.04);
+  box-shadow: var(--shadow-cyan-glow);
+}
+
+.drop-icon-wrap {
+  margin-bottom: 8px;
+}
+
+.drop-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.drop-subtitle {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* ==========================================================================
+   QR Code e Pareamento P2P
    ========================================================================== */
 .qr-card {
   text-align: center;
@@ -252,43 +298,16 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 12px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  padding: 14px;
+  background: #FFFFFF;
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-subtle);
-  margin: 6px 0;
+  margin: 8px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
-.drop-zone {
-  text-align: center;
-  padding: 24px 16px;
-  border: 1.5px dashed var(--border-light);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.drop-zone:hover, .drop-zone.drag-over {
-  border-color: var(--text-primary);
-  background: var(--bg-subtle);
-}
-
-.drop-icon-wrap {
-  font-size: 26px;
-  margin-bottom: 8px;
-}
-
-.drop-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-}
-
-.drop-subtitle {
+.qr-loading {
   font-size: 11.5px;
-  color: var(--text-muted);
-  margin-bottom: 12px;
+  color: #111827;
 }
 
 .qr-link-container {
@@ -301,7 +320,7 @@ body {
 
 .qr-url-text {
   font-size: 11.5px;
-  color: var(--text-primary);
+  color: var(--brand-cyan);
   text-decoration: underline;
   max-width: 170px;
   overflow: hidden;
@@ -312,7 +331,7 @@ body {
 .qr-relay-status {
   margin-top: 10px;
   font-size: 11px;
-  color: #059669;
+  color: #34D399;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -332,7 +351,7 @@ body {
 }
 
 /* ==========================================================================
-   Formulário e Inputs Arredondados
+   Formulário e Inputs Obsidian
    ========================================================================== */
 .form-header-row {
   display: flex;
@@ -375,10 +394,11 @@ body {
 }
 
 .field-group input,
-.field-group textarea {
+.field-group textarea,
+.field-group select {
   width: 100%;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 9px 12px;
   color: var(--text-primary);
@@ -394,9 +414,10 @@ body {
 }
 
 .field-group input:focus,
-.field-group textarea:focus {
+.field-group textarea:focus,
+.field-group select:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.06);
+  box-shadow: 0 0 0 2px rgba(0, 210, 255, 0.15);
 }
 
 .field-row {
@@ -408,50 +429,63 @@ body {
   flex: 1;
 }
 
+.font-numeric {
+  font-family: var(--font-numeric);
+}
+
+.font-highlight {
+  color: var(--brand-cyan) !important;
+  font-weight: 600;
+}
+
 /* ==========================================================================
-   Botões de Alta Elegância e Baixa Tensão
+   Botões de Ação de Alta Conversão
    ========================================================================== */
 .btn-primary {
   width: 100%;
-  background: var(--cta-primary);
-  color: var(--cta-text);
+  background: var(--brand-blue);
+  color: #FFFFFF;
   border: none;
   border-radius: var(--radius-md);
-  padding: 11px 16px;
+  padding: 12px 16px;
   font-family: var(--font-family);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   margin-top: 6px;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-glow);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--cta-primary-hover);
-  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.15);
+  background: var(--brand-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(0, 82, 255, 0.5);
 }
 
 .btn-primary:active:not(:disabled) {
-  transform: scale(0.99);
+  transform: translateY(0);
 }
 
 .btn-primary:disabled {
-  opacity: 0.4;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
   cursor: not-allowed;
   box-shadow: none;
+  opacity: 0.6;
 }
 
 .btn-secondary {
-  background: var(--bg-card);
+  background: var(--bg-surface);
   color: var(--text-primary);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 9px 14px;
+  padding: 8px 14px;
   font-family: var(--font-family);
   font-size: 12px;
   font-weight: 500;
@@ -464,7 +498,9 @@ body {
 }
 
 .btn-secondary:hover {
-  background: var(--bg-muted);
+  background: var(--bg-hover);
+  border-color: var(--border-card);
+  color: var(--brand-cyan);
 }
 
 .btn-sm {
@@ -473,30 +509,7 @@ body {
 }
 
 /* ==========================================================================
-   Rodapé Sofisticado
-   ========================================================================== */
-.app-footer {
-  padding: 14px;
-  text-align: center;
-  border-top: 1px solid var(--border-light);
-  background: var(--bg-card);
-}
-
-.footer-info {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.footer-info .dot {
-  color: var(--text-placeholder);
-}
-
-/* ==========================================================================
-   Componentes Clínicos & Anti-Glosa (ADR-006)
+   Componentes Anti-Glosa e Anexo
    ========================================================================== */
 .label-badge-row {
   display: flex;
@@ -514,9 +527,9 @@ body {
   font-weight: 600;
   padding: 2px 8px;
   border-radius: var(--radius-full);
-  background: #EFF6FF;
-  color: #1D4ED8;
-  border: 1px solid #BFDBFE;
+  background: var(--badge-green-bg);
+  color: var(--badge-green-text);
+  border: 1px solid var(--badge-green-border);
 }
 
 .attachment-status-row {
@@ -524,14 +537,32 @@ body {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: var(--bg-muted);
-  border: 1px solid var(--border-light);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   font-size: 11.5px;
   color: var(--text-secondary);
 }
 
-.attachment-icon {
-  font-size: 14px;
+/* ==========================================================================
+   Rodapé Sofisticado
+   ========================================================================== */
+.app-footer {
+  padding: 12px 16px;
+  text-align: center;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-card);
 }
 
+.footer-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.footer-info .dot {
+  color: var(--border-card);
+}

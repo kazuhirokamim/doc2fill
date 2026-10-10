@@ -15,7 +15,11 @@
   "background": {
     "service_worker": "background.js"
   },
+  "icons": {
+    "128": "icons/icon-squircle.svg"
+  },
   "action": {
+    "default_icon": "icons/icon-squircle.svg",
     "default_title": "Abrir doc2fill"
   },
   "side_panel": {
@@ -41,7 +45,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["sidepanel.html", "sidepanel.css", "sidepanel.js", "core/*"],
+      "resources": ["sidepanel.html", "sidepanel.css", "sidepanel.js", "core/*", "icons/*"],
       "matches": ["<all_urls>"]
     }
   ]

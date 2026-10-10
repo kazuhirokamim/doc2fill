@@ -5,25 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>doc2fill — Mobile Scanner</title>
   <style>
+    :root {
+      --bg-app: #0A0D14;
+      --bg-card: #111622;
+      --bg-surface: #141A28;
+      --bg-hover: #192234;
+      --border-subtle: #1E293B;
+      --border-card: #222C3F;
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --brand-blue: #0052FF;
+      --brand-blue-hover: #1A66FF;
+      --brand-cyan: #00D2FF;
+      --brand-gradient: linear-gradient(135deg, #0052FF 0%, #00D2FF 100%);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-full: 9999px;
+      --font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, sans-serif;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: #F9FAFB;
-      color: #111827;
-      font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-family);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      padding: 20px;
+      padding: 16px;
       -webkit-font-smoothing: antialiased;
     }
     
     header {
-      background: #FFFFFF;
-      border: 1px solid #E5E7EB;
-      border-radius: 16px;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
-      padding: 16px;
-      margin-bottom: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      margin-bottom: 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -34,84 +53,89 @@
       gap: 10px;
     }
     .logo-badge {
-      background: #F3F4F6;
-      color: #111827;
-      border-radius: 8px;
-      width: 28px;
-      height: 28px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      width: 32px;
+      height: 32px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
     }
     .logo-text {
       font-size: 16px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+    .logo-text .cyan {
+      color: var(--brand-cyan);
     }
     .badge-pill {
       font-size: 11px;
-      font-weight: 500;
-      background: #ECFDF5;
-      color: #065F46;
-      border: 1px solid #A7F3D0;
+      font-weight: 600;
+      background: rgba(0, 210, 255, 0.08);
+      color: var(--brand-cyan);
+      border: 1px solid rgba(0, 210, 255, 0.25);
       padding: 3px 10px;
-      border-radius: 9999px;
+      border-radius: var(--radius-full);
     }
 
     .clean-card {
-      background: #FFFFFF;
-      border: 1px solid #E5E7EB;
-      border-radius: 20px;
-      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
-      padding: 24px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+      padding: 22px 18px;
       margin-bottom: 16px;
       text-align: center;
     }
 
     .card-eyebrow {
-      font-size: 11.5px;
-      font-weight: 500;
-      color: #6B7280;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--brand-cyan);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 8px;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
     }
     .card-title {
       font-size: 18px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: -0.02em;
-      color: #111827;
-      margin-bottom: 8px;
+      color: var(--text-primary);
+      margin-bottom: 6px;
     }
     .card-desc {
       font-size: 13px;
-      color: #4B5563;
-      margin-bottom: 22px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
       line-height: 1.5;
     }
 
     .camera-btn {
-      background: #111827;
+      background: var(--brand-blue);
       color: #FFFFFF;
       border: none;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(17, 24, 39, 0.12);
+      border-radius: var(--radius-md);
+      box-shadow: 0 0 20px rgba(0, 82, 255, 0.35);
       width: 100%;
       padding: 14px 18px;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
       cursor: pointer;
       user-select: none;
-      transition: all 0.15s ease;
+      transition: all 0.18s ease;
+    }
+    .camera-btn:hover {
+      background: var(--brand-blue-hover);
     }
     .camera-btn:active {
       transform: scale(0.99);
-      background: #1F2937;
     }
 
     .preview-container {
@@ -122,9 +146,9 @@
       width: 100%;
       max-height: 240px;
       object-fit: contain;
-      border: 1px solid #E5E7EB;
-      border-radius: 14px;
-      background: #FAFAFA;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
     }
 
     .status-badge {
@@ -132,19 +156,19 @@
       align-items: center;
       gap: 6px;
       font-size: 11.5px;
-      font-weight: 500;
-      background: #ECFDF5;
-      color: #065F46;
-      border: 1px solid #A7F3D0;
-      border-radius: 9999px;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.1);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: var(--radius-full);
       padding: 6px 14px;
       margin-top: 14px;
     }
 
     .guarantee-card {
-      background: #F8FAFC;
-      border: 1px solid #E2E8F0;
-      border-radius: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
       padding: 16px;
       margin-bottom: 16px;
       text-align: left;
@@ -152,15 +176,15 @@
     .guarantee-title {
       font-size: 12px;
       font-weight: 600;
-      color: #334155;
+      color: var(--text-primary);
       margin-bottom: 4px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     .guarantee-desc {
       font-size: 11.5px;
-      color: #64748B;
+      color: var(--text-muted);
       line-height: 1.5;
     }
 
@@ -168,16 +192,27 @@
       margin-top: auto;
       text-align: center;
       padding-top: 12px;
-      font-size: 11.5px;
-      color: #9CA3AF;
+      font-size: 11px;
+      color: var(--text-muted);
     }
   </style>
 </head>
 <body>
   <header>
     <div class="logo-row">
-      <span class="logo-badge">⚡</span>
-      <span class="logo-text">doc2fill</span>
+      <span class="logo-badge">
+        <svg viewBox="0 0 100 100" width="20" height="20" fill="none">
+          <defs>
+            <linearGradient id="mGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0052FF" />
+              <stop offset="100%" stop-color="#00D2FF" />
+            </linearGradient>
+          </defs>
+          <path d="M26 18C26 14.6863 28.6863 12 32 12H58L74 28V82C74 85.3137 71.3137 88 68 88H32C28.6863 88 26 85.3137 26 82V18Z" fill="rgba(255,255,255,0.08)" stroke="#2A3447" stroke-width="3" />
+          <path d="M34 60L46 72L76 40" stroke="url(#mGrad)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </span>
+      <span class="logo-text">Doc<span class="cyan">2Fill</span></span>
     </div>
     <span class="badge-pill">Zero-Retention</span>
   </header>
@@ -185,27 +220,29 @@
   <main>
     <div class="clean-card">
       <div class="card-eyebrow">Scanner Mobile Instantâneo</div>
-      <h2 class="card-title">Capturar Nota Fiscal</h2>
-      <p class="card-desc">Aponte a câmera para a nota fiscal física. A extração ocorre diretamente na memória e transmite os dados para o seu computador.</p>
+      <h2 class="card-title">Capturar Nota ou Comprovante</h2>
+      <p class="card-desc">Aponte a câmera para o documento físico. A extração ocorre na memória e transmite os dados para o computador via canal seguro P2P.</p>
 
       <label for="camera-input" class="camera-btn">
-        <span>📸 Abrir Câmera do Smartphone</span>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+        <span>Abrir Câmera do Smartphone</span>
       </label>
       <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
 
       <div class="preview-container" id="preview-container">
         <img id="preview-img" class="preview-img" alt="Foto capturada">
-        <div class="status-badge" id="status-badge">✓ Dados extraídos com sucesso na memória</div>
-        <button type="button" id="btn-transmit" class="camera-btn" style="margin-top: 12px; background: #059669;">
-          <span>⚡ Transmitir para o Computador</span>
+        <div class="status-badge" id="status-badge">Dados extraídos com sucesso na memória</div>
+        <button type="button" id="btn-transmit" class="camera-btn" style="margin-top: 12px; background: #00D2FF; color: #0A0D14;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+          <span>Transmitir para o Computador</span>
         </button>
       </div>
 
       <!-- Preenchimento Assistido no Celular (1-Touch Copy) -->
       <div id="quick-copy-section" style="margin-top: 20px; text-align: left; display: none;">
-        <div style="font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-          <span>📋 Preenchimento Manual Assistido (1-Touch)</span>
-          <span style="font-size: 11px; font-weight: normal; color: #6B7280;">Toque para copiar</span>
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+          <span>Preenchimento Manual Assistido (1-Touch)</span>
+          <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">Toque para copiar</span>
         </div>
         <div id="quick-copy-buttons" style="display: flex; flex-direction: column; gap: 8px;"></div>
       </div>
@@ -213,7 +250,8 @@
 
     <div class="guarantee-card">
       <div class="guarantee-title">
-        <span>🛡️</span> Garantia de Privacidade e Sigilo Fiscal
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#00D2FF" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        <span>Garantia de Privacidade & Sigilo Fiscal</span>
       </div>
       <p class="guarantee-desc">
         Os dados e imagens transitam exclusivamente pela memória RAM via conexão efêmera direta com a extensão no computador. Nenhuma foto ou informação é salva em disco ou servidores na nuvem.
