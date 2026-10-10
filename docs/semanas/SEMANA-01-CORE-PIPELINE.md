@@ -5,27 +5,21 @@
 
 ### 1. Entregáveis & Tarefas Concluídas
 - [x] **S1-T1:** Unificação do Handler de Upload (`handleDocumentFile` / `handleDocumentFileBatch`) e Aprimoramento do Motor OCR (+20% a +40% de acurácia com decodificador determinístico de Chave SEFAZ de 44 dígitos e pré-processador de contraste/binarização).
+- [x] **S1-T2:** Normalizador Canônico de Esquemas (`normalizeCanonicalDocumentFields` em `core/document-parser.js`) garantindo ausência de `null`/`undefined`, preservação de zeros à esquerda em CPF/CNPJ, normalização monetária e retrocompatibilidade dos 8 campos do CCHA.
 
 ### 2. Evidências Técnicas
 - **Arquivos Criados/Modificados:**
-  - `core/ocr-engine.js`: Implementado `preprocessImageBufferForOcr` e calibração de `cleanOcrText`.
-  - `core/document-parser.js`: Implementado decodificador `extractSefazAccessKey` integrado a `parseDocumentFields`.
-  - `extension/sidepanel.js`: Unificado `handleDocumentFile` com bloqueio temporário de concorrência na dropzone e sanitização defensiva.
-  - `tests/extension/sidepanel.test.js`: Suíte TDD `handleDocumentFileBatch` nos 3 cenários (feliz, múltiplos arquivos, formatos proibidos).
-  - `tests/core/document-parser.test.js`: Suíte TDD `extractSefazAccessKey` nos 3 cenários (chave contínua, chave espaçada NFC-e, erro/nulo).
-  - `tests/core/ocr-engine.test.js`: Suíte TDD `preprocessImageBufferForOcr` nos 3 cenários.
-- **Cobertura de Testes:** 118 testes passando 100% verdes (`npm test` executado em ~650ms).
-- **Documentos Fiscais Validados:**
-  - [x] DANFE NF-e Modelo 55 (Chave SEFAZ 44 dígitos)
-  - [x] Cupom Fiscal NFC-e Modelo 65 (Chave SEFAZ em blocos de 4 dígitos)
-  - [x] Requerimento CCHA / Honorários Advocatícios
-  - [x] Cupom térmico com ruídos de caracteres ópticos
+  - `core/document-parser.js` & `extension/core/document-parser.js`: Implementado e exportado `normalizeCanonicalDocumentFields`.
+  - `extension/sidepanel.js`: Integrada a normalização canônica nos fluxos de upload de arquivos e recebimento via relay mobile.
+  - `tests/core/document-parser.test.js`: Suíte TDD nos 3 cenários (feliz, zeros à esquerda/moedas mistas, erro/nulos).
+  - `docs/plans/PLAN-012-s1-t2-canonical-schema-normalizer.md` & `docs/adr/ADR-019-canonical-schema-normalizer.md`.
+- **Cobertura de Testes:** 142 testes passando 100% verdes (133 JS + 9 Python) com `tear-done` aprovado.
 
 ### 3. Vereditos das 4 Lanes Tear
-- [x] **Lane CODE (GOLDEN):** Aprovado (0 Críticos, 0 Majors, 0 Minors; arquivos sob teto estrito de 700 linhas per Regra #24).
+- [x] **Lane CODE (GOLDEN):** Aprovado por tear-code-reviewer (0 Críticos, 0 Majors, 0 Minors; arquivos < 520 linhas per Regra #24).
 - [x] **Lane SECURITY (PASS):** Zero retenção de imagens ou dados em nuvem; operação puramente efêmera em RAM.
 - [x] **Lane LGPD (PASS):** Processamento 100% efêmero em RAM e Local-First, sem persistência de dados pessoais.
-- [x] **Lane PERFORMANCE (PASS):** Extração em memória e decodificação sintática em < 30ms; suíte completa em 652ms.
+- [x] **Lane PERFORMANCE (PASS):** Normalização canônica em O(1) (< 1ms por documento).
 
 ### 4. Próxima Tarefa
-- **S1-T2 (Dia 2):** Normalizador Canônico de Esquemas (`core/document-parser.js`) para os 8 campos finais e higienização profunda de pontuações e datas.
+- **S1-T4 (Dia 4):** Tratamento de Exceções & Sanitização de Imagens (blindagem contra PDFs protegidos por senha, imagens corrompidas/ruído 100% e payloads vazios).
