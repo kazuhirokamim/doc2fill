@@ -37,9 +37,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const fMotivo = document.getElementById('field-motivo');
   const badgeAntiGlosa = document.getElementById('badge-anti-glosa');
 
+  // Split-View Elements (S2-T1)
+  const documentPreviewContainer = document.getElementById('document-preview-container');
+  const previewDocImage = document.getElementById('preview-doc-image');
+  const previewViewport = document.getElementById('preview-viewport');
+  const btnZoom100 = document.getElementById('btn-zoom-100');
+  const btnZoom150 = document.getElementById('btn-zoom-150');
+  const btnZoom200 = document.getElementById('btn-zoom-200');
+  const btnTogglePreview = document.getElementById('btn-toggle-preview');
+
+  // Toolbar de Edição Manual (S2-T2)
+  const btnRestoreFields = document.getElementById('btn-restore-fields');
+  const btnClearFields = document.getElementById('btn-clear-fields');
+
   let activeSessionId = null;
   let relayPollInterval = null;
   let attachedFile = null;
+  let lastCanonicalData = null;
   let activeApiBaseUrl = 'http://localhost:3333';
 
   // Descobre dinamicamente a porta ativa do servidor local (3333, 8080, 3334, 3030...)
@@ -138,17 +152,71 @@ document.addEventListener('DOMContentLoaded', () => {
       badgeAntiGlosa.style.display = 'inline-block';
     }
 
+    lastCanonicalData = { ...data };
+
     if (fileData) {
       attachedFile = fileData;
       if (attachmentStatusBox && attachmentText) {
         attachmentStatusBox.style.display = 'flex';
         attachmentText.textContent = `📎 ${fileData.name} (${(fileData.size / 1024).toFixed(1)} KB) pronto para anexar`;
       }
+
+      // Renderiza Split-View visual da imagem em memória efêmera se for imagem
+      if (documentPreviewContainer && previewDocImage && fileData.base64 && (fileData.type?.startsWith('image/') || fileData.name?.match(/\.(png|jpe?g|webp)$/i))) {
+        previewDocImage.src = fileData.base64;
+        documentPreviewContainer.style.display = 'flex';
+      }
     }
 
     validationBadge.textContent = '✓ 8 Campos Prontos';
     validationBadge.classList.add('valid');
     btnAutofill.disabled = false;
+  }
+
+  // Controles de Zoom do Split-View (S2-T1)
+  function setPreviewZoom(level) {
+    if (!previewDocImage) return;
+    previewDocImage.classList.remove('zoom-100', 'zoom-150', 'zoom-200');
+    previewDocImage.classList.add(`zoom-${level}`);
+    [btnZoom100, btnZoom150, btnZoom200].forEach((b) => {
+      if (b) b.classList.toggle('active', b.dataset.zoom === String(level));
+    });
+  }
+
+  if (btnZoom100) btnZoom100.addEventListener('click', () => setPreviewZoom(100));
+  if (btnZoom150) btnZoom150.addEventListener('click', () => setPreviewZoom(150));
+  if (btnZoom200) btnZoom200.addEventListener('click', () => setPreviewZoom(200));
+
+  if (btnTogglePreview && previewViewport) {
+    btnTogglePreview.addEventListener('click', () => {
+      const isHidden = previewViewport.style.display === 'none';
+      previewViewport.style.display = isHidden ? 'flex' : 'none';
+      btnTogglePreview.textContent = isHidden ? '▲' : '▼';
+    });
+  }
+
+  // Ações Rápidas de Edição Manual (S2-T2)
+  if (btnRestoreFields) {
+    btnRestoreFields.addEventListener('click', () => {
+      if (lastCanonicalData) {
+        populateFormFields(lastCanonicalData, attachedFile);
+      }
+    });
+  }
+
+  if (btnClearFields) {
+    btnClearFields.addEventListener('click', () => {
+      if (fTipoDoc) fTipoDoc.selectedIndex = 0;
+      if (fCnpj) fCnpj.value = '';
+      if (fRazao) fRazao.value = '';
+      if (fNumDoc) fNumDoc.value = '';
+      if (fData) fData.value = '';
+      if (fValor) fValor.value = '';
+      if (fDescricao) fDescricao.value = '';
+      if (fMotivo) fMotivo.value = '';
+      validationBadge.textContent = 'Edição manual livre';
+      validationBadge.classList.remove('valid');
+    });
   }
 
   // 3. Seleção e Drag & Drop de Arquivos com Leitura em Memória

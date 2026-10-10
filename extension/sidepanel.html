@@ -102,6 +102,25 @@
         <span class="badge-pill badge-status" id="validation-badge">Aguardando dados</span>
       </div>
 
+      <!-- Split-View Retrátil com Zoom do Comprovante (S2-T1) -->
+      <div class="split-view-container" id="document-preview-container" style="display:none;">
+        <div class="split-view-header">
+          <span class="split-view-title">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#00D2FF" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            Conferência Visual
+          </span>
+          <div class="zoom-controls">
+            <button type="button" class="zoom-btn active" id="btn-zoom-100" data-zoom="100">1x</button>
+            <button type="button" class="zoom-btn" id="btn-zoom-150" data-zoom="150">1.5x</button>
+            <button type="button" class="zoom-btn" id="btn-zoom-200" data-zoom="200">2x</button>
+            <button type="button" class="toggle-preview-btn" id="btn-toggle-preview" title="Ocultar/Expandir prévia">▲</button>
+          </div>
+        </div>
+        <div class="split-view-viewport" id="preview-viewport">
+          <img id="preview-doc-image" class="preview-doc-image zoom-100" alt="Prévia do comprovante">
+        </div>
+      </div>
+
       <div class="fields-container">
         <!-- 1. Tipo do Documento & 2. CPF/CNPJ -->
         <div class="field-row">
@@ -168,6 +187,18 @@
         <div class="attachment-status-row" id="attachment-status-box" style="display:none;">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#00D2FF" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
           <span class="attachment-text" id="attachment-text">Comprovante pronto para anexar</span>
+        </div>
+
+        <!-- Barra de Ações Rápidas de Edição (S2-T2) -->
+        <div class="form-actions-toolbar">
+          <button type="button" class="btn-subtle-action" id="btn-restore-fields" title="Restaura os valores originais da extração automática">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+            Restaurar Original
+          </button>
+          <button type="button" class="btn-subtle-action" id="btn-clear-fields" title="Limpa todos os 8 campos para digitação manual">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            Limpar Campos
+          </button>
         </div>
 
         <button id="btn-autofill" class="btn-primary" disabled>

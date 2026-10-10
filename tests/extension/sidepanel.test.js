@@ -327,6 +327,58 @@ export function validateDesignSystemTokens(tokens) {
   };
 }
 
+/**
+ * Validador e normalizador de classe de zoom para Split-View (S2-T1)
+ * @param {number|string} level 
+ * @returns {string} 'zoom-100' | 'zoom-150' | 'zoom-200'
+ */
+export function computePreviewZoomClass(level) {
+  const parsed = parseInt(level, 10);
+  if (parsed === 150) return 'zoom-150';
+  if (parsed === 200) return 'zoom-200';
+  return 'zoom-100';
+}
+
+/**
+ * Restaura campos do formulário para o snapshot canônico original (S2-T2)
+ * @param {Object} current 
+ * @param {Object} original 
+ * @returns {Object}
+ */
+export function restoreOriginalFields(current, original) {
+  if (!original || typeof original !== 'object') {
+    return { ...current };
+  }
+  return {
+    tipo_documento: original.tipo_documento || 'Nota Fiscal de Serviços (NFS-e)',
+    cnpj: original.cnpj || original.cpf_cnpj || '',
+    fornecedor: original.fornecedor || original.razao || '',
+    numero_documento: original.numero_documento || original.processo || '',
+    data: original.data || '',
+    valor: original.valor || '',
+    descricao: original.descricao || original.descritivo || '',
+    motivo: original.motivo || ''
+  };
+}
+
+/**
+ * Limpa todos os campos editáveis mantendo apenas o tipo padrão de documento (S2-T2)
+ * @param {Object} fields 
+ * @returns {Object}
+ */
+export function clearInteractiveFields(fields) {
+  return {
+    tipo_documento: 'Nota Fiscal de Serviços (NFS-e)',
+    cnpj: '',
+    fornecedor: '',
+    numero_documento: '',
+    data: '',
+    valor: '',
+    descricao: '',
+    motivo: ''
+  };
+}
+
 describe('doc2fill Design System Tokens & Brand Theme (TDD Suite)', () => {
   it('Cenário 1 (Happy Path): valida tokens oficiais Obsidian & Flow Cyan com alto contraste', () => {
     const rawTokens = {
@@ -362,5 +414,78 @@ describe('doc2fill Design System Tokens & Brand Theme (TDD Suite)', () => {
     assert.equal(validateDesignSystemTokens({}).valid, false);
   });
 });
+
+describe('doc2fill S2-T1: Split-View Zoom Controls (TDD Suite)', () => {
+  it('Cenário 1 (Happy Path): converte 100, 150 e 200 para suas respectivas classes CSS de zoom', () => {
+    assert.equal(computePreviewZoomClass(100), 'zoom-100');
+    assert.equal(computePreviewZoomClass(150), 'zoom-150');
+    assert.equal(computePreviewZoomClass(200), 'zoom-200');
+    assert.equal(computePreviewZoomClass('150'), 'zoom-150');
+    assert.equal(computePreviewZoomClass('200'), 'zoom-200');
+  });
+
+  it('Cenário 2 (Edge Case): níveis de zoom não mapeados ou intermediários usam fallback zoom-100', () => {
+    assert.equal(computePreviewZoomClass(50), 'zoom-100');
+    assert.equal(computePreviewZoomClass(300), 'zoom-100');
+    assert.equal(computePreviewZoomClass(''), 'zoom-100');
+  });
+
+  it('Cenário 3 (Error Path): lida com valores nulos, indefinidos ou NaN retornando zoom-100 de forma segura', () => {
+    assert.equal(computePreviewZoomClass(null), 'zoom-100');
+    assert.equal(computePreviewZoomClass(undefined), 'zoom-100');
+    assert.equal(computePreviewZoomClass('invalido'), 'zoom-100');
+  });
+});
+
+describe('doc2fill S2-T2: Edição Manual, Restauração e Limpeza de Campos (TDD Suite)', () => {
+  const originalSnapshot = {
+    tipo_documento: 'Nota Fiscal de Serviços (NFS-e)',
+    cnpj: '00.394.544/0001-85',
+    fornecedor: 'HOSPITAL SÃO LUCAS S/A',
+    numero_documento: 'NF-998822',
+    data: '15/03/2026',
+    valor: '1.450,00',
+    descricao: 'Consulta especializada e exames laboratoriais',
+    motivo: 'Reembolso saúde titular CCHA'
+  };
+
+  it('Cenário 1 (Happy Path): restaura todos os campos a partir do snapshot original após edição manual', () => {
+    const editedFields = {
+      tipo_documento: 'Outro',
+      cnpj: '11.111.111/0001-11',
+      fornecedor: 'CLÍNICA MODIFICADA',
+      numero_documento: 'MOD-001',
+      data: '01/01/2020',
+      valor: '50,00',
+      descricao: 'Texto modificado',
+      motivo: 'Motivo alterado'
+    };
+
+    const restored = restoreOriginalFields(editedFields, originalSnapshot);
+    assert.deepEqual(restored, originalSnapshot);
+  });
+
+  it('Cenário 2 (Edge Case): clearInteractiveFields zera campos de texto e mantém tipo padrão', () => {
+    const cleared = clearInteractiveFields(originalSnapshot);
+    assert.equal(cleared.tipo_documento, 'Nota Fiscal de Serviços (NFS-e)');
+    assert.equal(cleared.cnpj, '');
+    assert.equal(cleared.fornecedor, '');
+    assert.equal(cleared.numero_documento, '');
+    assert.equal(cleared.data, '');
+    assert.equal(cleared.valor, '');
+    assert.equal(cleared.descricao, '');
+    assert.equal(cleared.motivo, '');
+  });
+
+  it('Cenário 3 (Error Path): restauração com snapshot nulo ou indefinido preserva o estado atual sem estourar exceção', () => {
+    const current = { fornecedor: 'Atual' };
+    const resNull = restoreOriginalFields(current, null);
+    assert.deepEqual(resNull, current);
+
+    const resUndefined = restoreOriginalFields(current, undefined);
+    assert.deepEqual(resUndefined, current);
+  });
+});
+
 
 
