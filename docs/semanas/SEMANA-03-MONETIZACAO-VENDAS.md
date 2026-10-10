@@ -28,7 +28,7 @@
 ### 3. Vereditos das 4 Lanes Tear
 - [x] **Lane CODE (GOLDEN):** Aprovado por tear-code-reviewer (0 Críticos, 0 Majors, 0 Minors; todos os arquivos de código mantidos estritamente abaixo de 400 linhas per Regra #24).
 - [x] **Lane SECURITY (PASS):** Zero retenção de imagens, cartões ou chaves PIX em disco ou nuvem; processamento estritamente efêmero em RAM local.
-- [x] **Lane LGPD (PASS):** Total conformidade de privacidade, minimização de dados e eliminação de identificadores pessoais logo após consumo.
+- [x] **Lane LGPD (PASS):** Total conformidade de privacidade, minimização de dados e eliminação de identificadores pessoais logo após consumo. E-mails e chaves simuladas de demonstração em checkout adequados ao padrão de domínios reservados RFC 2606 (`exemplo.com`).
 - [x] **Lane PERFORMANCE (PASS):** Acurácia de 97.9% avaliada em sub-segundo; virada de tela via SSE em tempo real (< 150ms).
 
 ---

@@ -183,7 +183,7 @@ describe('doc2fill Demo Server & P2P Relay Suite (TDD)', () => {
       assert.equal(pixJson.success, true);
       assert.equal(pixJson.amount, 197.00);
       assert.ok(pixJson.orderId.startsWith('PED-'));
-      assert.ok(pixJson.pixCode.includes('doc2fill'));
+      assert.ok(pixJson.pixCode.toLowerCase().includes('doc2fill'));
       assert.ok(pixJson.qrSvg.startsWith('<svg'));
     });
 

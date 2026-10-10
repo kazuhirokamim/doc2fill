@@ -220,7 +220,7 @@ export function createAppServer(port = DEFAULT_PORT) {
           const plan = payload.plan === 'anual' ? 'anual' : 'mensal';
           const amount = plan === 'anual' ? 1970.00 : 197.00;
           const orderId = `PED-${Date.now().toString(36).toUpperCase()}`;
-          const pixCode = `00020126580014br.gov.bcb.pix0136doc2fill-fundador@doc2fill.com520400005303986540${amount.toFixed(2)}5802BR5916DOC2FILL TECNOLOGIA6009SAO PAULO62070503***6304${orderId}`;
+          const pixCode = `00020126580014br.gov.bcb.pix0136fundador@exemplo.com520400005303986540${amount.toFixed(2)}5802BR5916DOC2FILL TECNOLOGIA6009SAO PAULO62070503***6304${orderId}`;
 
           const qrSvg = await QRCode.toString(pixCode, {
             type: 'svg',

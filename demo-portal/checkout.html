@@ -404,7 +404,7 @@
           const res = await fetch('/api/checkout/pix', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ plan, email: 'fundador@doc2fill.com' })
+            body: JSON.stringify({ plan, email: 'fundador@exemplo.com' })
           });
           const data = await res.json();
           if (data.success) {
