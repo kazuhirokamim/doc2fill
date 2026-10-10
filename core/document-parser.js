@@ -4,11 +4,47 @@
 import { classifyDocumentType } from './classifier.js';
 
 /**
+ * Detecta preventivamente se um buffer de PDF possui operador de criptografia / senha (/Encrypt)
+ * @param {ArrayBuffer|Buffer|Uint8Array} input
+ * @returns {boolean}
+ */
+export function isPdfEncrypted(input) {
+  if (!input) return false;
+  let bytes;
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(input)) {
+    bytes = input;
+  } else if (input instanceof ArrayBuffer) {
+    bytes = new Uint8Array(input);
+  } else if (ArrayBuffer.isView(input)) {
+    bytes = new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+  } else {
+    return false;
+  }
+
+  if (bytes.length < 10) return false;
+
+  const decoder = new TextDecoder('latin1');
+  const maxSearch = Math.min(bytes.length, 16384);
+  const headStr = decoder.decode(bytes.subarray(0, maxSearch));
+  const tailStr = bytes.length > maxSearch ? decoder.decode(bytes.subarray(bytes.length - maxSearch)) : '';
+
+  if (!headStr.includes('%PDF-') && !tailStr.includes('%%EOF')) {
+    return false;
+  }
+
+  return /\/Encrypt\s+\d+\s+\d+\s+R|\/Encrypt\b/i.test(headStr) || /\/Encrypt\s+\d+\s+\d+\s+R|\/Encrypt\b/i.test(tailStr);
+}
+
+/**
  * Extrai texto legível de um ArrayBuffer ou string de PDF (streams de texto descompactadas/ASCII)
  * @param {ArrayBuffer|string} input 
  * @returns {string}
  */
 export function extractTextFromPdfContent(input) {
+  if (isPdfEncrypted(input)) {
+    return '';
+  }
+
   let text = '';
   if (typeof input === 'string') {
     text = input;

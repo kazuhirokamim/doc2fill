@@ -28,6 +28,46 @@ export function cleanOcrText(text) {
 }
 
 /**
+ * Avalia se o buffer de imagem possui contraste suficiente para processamento OCR.
+ * Rejeita imagens sólidas (100% preta ou 100% branca) ou com variância nula.
+ * @param {Uint8Array|Buffer|ArrayBuffer} input
+ * @returns {boolean}
+ */
+export function hasSufficientImageContrast(input) {
+  if (!input) return false;
+  let bytes;
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(input)) {
+    bytes = input;
+  } else if (input instanceof Uint8Array) {
+    bytes = input;
+  } else if (input instanceof ArrayBuffer) {
+    bytes = new Uint8Array(input);
+  } else {
+    return false;
+  }
+
+  if (bytes.length < 16) return false;
+
+  const isPng = bytes.length > 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47;
+  const isJpeg = bytes.length > 3 && bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
+  if (isPng || isJpeg) {
+    return true;
+  }
+
+  const step = Math.max(1, Math.floor(bytes.length / 200));
+  let min = 255;
+  let max = 0;
+
+  for (let i = 0; i < bytes.length; i += step) {
+    const val = bytes[i];
+    if (val < min) min = val;
+    if (val > max) max = val;
+  }
+
+  return (max - min) >= 15;
+}
+
+/**
  * Aplica pré-processamento determinístico no buffer da imagem para elevar a acurácia do OCR em 20%+.
  * Executa estiramento de contraste (contrast stretching) e normalização perceptual de luminância.
  * Opera exclusivamente em memória efêmera (RAM) respeitando o princípio de Zero Retenção.

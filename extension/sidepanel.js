@@ -1,7 +1,7 @@
 // doc2fill - Sidepanel Controller (CCHA Honorários & Real File Parsing Edition)
 import { translateClinicalProcedure } from './core/clinical-translator.js';
 import { classifyDocumentType } from './core/classifier.js';
-import { parseDocumentFields, extractTextFromPdfContent, normalizeCanonicalDocumentFields } from './core/document-parser.js';
+import { parseDocumentFields, extractTextFromPdfContent, normalizeCanonicalDocumentFields, isPdfEncrypted } from './core/document-parser.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Elements
@@ -206,6 +206,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    if (file.size === 0) {
+      dropTitle.textContent = `⚠️ Arquivo vazio`;
+      dropSubtitle.textContent = 'Não foi possível identificar o texto. Preencha manualmente ou envie outra foto.';
+      populateFormFields(normalizeCanonicalDocumentFields({}), null);
+      return;
+    }
+
     if (dropZone) dropZone.style.pointerEvents = 'none';
     dropTitle.textContent = `⏳ Lendo ${file.name}...`;
     dropSubtitle.textContent = `Extraindo texto e campos em memória efêmera...`;
@@ -251,6 +258,17 @@ document.addEventListener('DOMContentLoaded', () => {
           r.readAsArrayBuffer(file);
         });
         const buffer = await bufferPromise;
+        if (isPdfEncrypted(buffer)) {
+          dropTitle.textContent = `🔒 PDF protegido por senha`;
+          dropSubtitle.textContent = 'Não foi possível identificar o texto. Preencha manualmente ou envie outra foto.';
+          populateFormFields(normalizeCanonicalDocumentFields({}), {
+            name: file.name,
+            type: file.type || 'application/pdf',
+            size: file.size,
+            base64: await base64Promise
+          });
+          return;
+        }
         extractedText = extractTextFromPdfContent(buffer);
 
         // Avaliação preliminar de integridade do texto digital do PDF
@@ -322,9 +340,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       populateFormFields(canonicalData, filePayload);
     } catch (err) {
-      console.error('[doc2fill] Erro ao processar arquivo:', err);
-      dropTitle.textContent = `⚠️ Erro ao ler ${file.name}`;
-      dropSubtitle.textContent = 'Não foi possível ler o arquivo. Tente novamente.';
+      console.warn('[doc2fill] Erro ao processar arquivo:', err);
+      dropTitle.textContent = `⚠️ Documento ilegível`;
+      dropSubtitle.textContent = 'Não foi possível identificar o texto. Preencha manualmente ou envie outra foto.';
+      populateFormFields(normalizeCanonicalDocumentFields({}), null);
     } finally {
       if (dropZone) dropZone.style.pointerEvents = 'auto';
     }
