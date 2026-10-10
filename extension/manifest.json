@@ -16,11 +16,19 @@
     "service_worker": "background.js"
   },
   "icons": {
+    "16": "icons/icon-symbol.svg",
+    "32": "icons/icon-symbol.svg",
+    "48": "icons/icon-symbol.svg",
     "128": "icons/icon-symbol.svg"
   },
   "action": {
-    "default_icon": "icons/icon-symbol.svg",
-    "default_title": "Abrir doc2fill"
+    "default_icon": {
+      "16": "icons/icon-symbol.svg",
+      "32": "icons/icon-symbol.svg",
+      "48": "icons/icon-symbol.svg",
+      "128": "icons/icon-symbol.svg"
+    },
+    "default_title": "Doc2Fill — Autofill Inteligente"
   },
   "side_panel": {
     "default_path": "sidepanel.html"
