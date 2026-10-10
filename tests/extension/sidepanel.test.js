@@ -1,3 +1,4 @@
+// @tear-proof issue-1
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -277,4 +278,90 @@ describe('doc2fill Navigation Tabs Guard (TDD Suite)', () => {
     assert.deepEqual(resEmpty.tabs, []);
   });
 });
+
+/**
+ * Validador e normalizador dos tokens oficiais do Design System (Obsidian & Flow Cyan)
+ * @param {Object} tokens
+ * @returns {{ valid: boolean, theme: string, tokens?: Object, error?: string }}
+ */
+export function validateDesignSystemTokens(tokens) {
+  if (!tokens || typeof tokens !== 'object' || Object.keys(tokens).length === 0) {
+    return { valid: false, theme: 'unknown', error: 'Tokens de design ausentes ou nulos' };
+  }
+
+  const bgApp = (tokens.bgApp || tokens['--bg-app'] || '').toLowerCase();
+  const brandBlue = (tokens.brandBlue || tokens['--brand-blue'] || '').toLowerCase();
+  const brandCyan = (tokens.brandCyan || tokens['--brand-cyan'] || '').toLowerCase();
+
+  // Verifica se pertence ao padrão corporativo oficial Obsidian (#0A0D14)
+  const isObsidian = bgApp === '#0a0d14' || bgApp.includes('0a0d14');
+  const hasCyanAccent = brandCyan === '#00d2ff' || brandCyan.includes('00d2ff');
+  const hasBluePrimary = brandBlue === '#0052ff' || brandBlue.includes('0052ff');
+
+  if (isObsidian && (hasCyanAccent || hasBluePrimary)) {
+    return {
+      valid: true,
+      theme: 'obsidian-flow',
+      tokens: {
+        bgApp: '#0A0D14',
+        bgCard: tokens.bgCard || '#111622',
+        brandBlue: '#0052FF',
+        brandCyan: '#00D2FF',
+        textPrimary: '#F8FAFC'
+      }
+    };
+  }
+
+  // Fallback seguro ou rejeição de temas legados não-conformes
+  if (bgApp === '#f9fafb') {
+    return { valid: false, theme: 'legacy-light-deprecated', error: 'Tema claro legado foi descontinuado em prol do Obsidian Dark' };
+  }
+
+  return {
+    valid: true,
+    theme: 'custom-adaptive',
+    tokens: {
+      bgApp: bgApp || '#0A0D14',
+      brandBlue: brandBlue || '#0052FF',
+      brandCyan: brandCyan || '#00D2FF'
+    }
+  };
+}
+
+describe('doc2fill Design System Tokens & Brand Theme (TDD Suite)', () => {
+  it('Cenário 1 (Happy Path): valida tokens oficiais Obsidian & Flow Cyan com alto contraste', () => {
+    const rawTokens = {
+      '--bg-app': '#0A0D14',
+      '--bg-card': '#111622',
+      '--brand-blue': '#0052FF',
+      '--brand-cyan': '#00D2FF',
+      '--text-primary': '#F8FAFC'
+    };
+
+    const res = validateDesignSystemTokens(rawTokens);
+    assert.equal(res.valid, true);
+    assert.equal(res.theme, 'obsidian-flow');
+    assert.equal(res.tokens.bgApp, '#0A0D14');
+    assert.equal(res.tokens.brandCyan, '#00D2FF');
+  });
+
+  it('Cenário 2 (Edge Case): rejeita tema claro legado e aceita tokens parciais com fallbacks', () => {
+    const legacy = { bgApp: '#F9FAFB' };
+    const resLegacy = validateDesignSystemTokens(legacy);
+    assert.equal(resLegacy.valid, false);
+    assert.equal(resLegacy.theme, 'legacy-light-deprecated');
+
+    const partial = { bgApp: '#0a0d14', brandBlue: '#0052ff' };
+    const resPartial = validateDesignSystemTokens(partial);
+    assert.equal(resPartial.valid, true);
+    assert.equal(resPartial.tokens.brandCyan, '#00D2FF');
+  });
+
+  it('Cenário 3 (Error Path): rejeita objeto de tokens nulo, indefinido ou vazio', () => {
+    assert.equal(validateDesignSystemTokens(null).valid, false);
+    assert.equal(validateDesignSystemTokens(undefined).valid, false);
+    assert.equal(validateDesignSystemTokens({}).valid, false);
+  });
+});
+
 
