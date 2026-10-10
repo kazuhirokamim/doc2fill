@@ -64,3 +64,13 @@ A paleta do doc2fill é fundamentada no contraste de alta resolução entre o pr
   A interface principal reside 100% no **Side Panel nativo do Chrome** (`chrome.sidePanel`), ativado pelo clique no ícone da extensão ou via atalho `Alt+Shift+D` (`Option+Shift+D` no macOS).
 * **Zero Intrusão Visual (Clean DOM Policy):**  
   Nenhuma caixa, botão ou miniatura flutuante é injetada automaticamente nas páginas navegadas pelo usuário. Ao fechar o painel, a página web permanece 100% limpa e inalterada.
+
+---
+
+## 🧪 6. Validação Contratual via TDD
+
+A integridade do Design System é testada continuamente por meio da suíte em `tests/extension/sidepanel.test.js`, assegurando:
+- Rejeição de tokens e variáveis CSS obsoletas do tema claro legado (`#F9FAFB`);
+- Preservação estrita das cores Obsidian (`#0A0D14`), Flow Cyan (`#00D2FF`) e Connection Blue (`#0052FF`);
+- Conformidade estrita dos contrastes em conformidade com as diretrizes WCAG 2.1 AA.
+
