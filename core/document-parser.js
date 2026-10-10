@@ -416,3 +416,106 @@ export function parseDocumentFields(rawText = '', fileName = '') {
 
   return data;
 }
+
+/**
+ * Normaliza campos brutos extraídos para o esquema canônico estrito dos 8 campos do CCHA
+ * @param {Object} raw Objeto com campos brutos ou parciais
+ * @returns {Object} Objeto canônico garantindo os 8 campos essenciais livres de undefined/null
+ */
+export function normalizeCanonicalDocumentFields(raw = {}) {
+  const source = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+
+  // 1. Tipo de Documento
+  let tipoDoc = (source.tipo_documento || source.tipo || '').toString().trim();
+  if (!tipoDoc) {
+    tipoDoc = 'Outro Comprovante';
+  }
+
+  // 2. CPF / CNPJ (com preservação de zeros à esquerda)
+  let rawCpfCnpj = (source.cpf_cnpj || source.cnpj || source.cpf || '').toString().trim();
+  let cleanDigits = rawCpfCnpj.replace(/\D/g, '');
+  let formattedCpfCnpj = '';
+
+  if (cleanDigits.length === 14) {
+    cleanDigits = cleanDigits.padStart(14, '0');
+    formattedCpfCnpj = `${cleanDigits.slice(0, 2)}.${cleanDigits.slice(2, 5)}.${cleanDigits.slice(5, 8)}/${cleanDigits.slice(8, 12)}-${cleanDigits.slice(12, 14)}`;
+  } else if (cleanDigits.length === 11) {
+    cleanDigits = cleanDigits.padStart(11, '0');
+    formattedCpfCnpj = `${cleanDigits.slice(0, 3)}.${cleanDigits.slice(3, 6)}.${cleanDigits.slice(6, 9)}-${cleanDigits.slice(9, 11)}`;
+  } else if (rawCpfCnpj) {
+    formattedCpfCnpj = rawCpfCnpj;
+  }
+
+  // 3. Fornecedor / Razão Social
+  const fornecedor = (source.fornecedor || source.razao || source.nome || source.prestador || '').toString().trim();
+
+  // 4. Número do Documento
+  let numDoc = (source.numero_documento || source.numero || source.num_doc || '').toString().trim();
+  numDoc = numDoc.replace(/^N[ºo°\.]*\s*/i, '').trim();
+
+  // 5. Data (DD/MM/AAAA ou YYYY-MM-DD)
+  let dataVal = (source.data || source.data_emissao || '').toString().trim();
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dataVal)) {
+    const parts = dataVal.split('/');
+    dataVal = `${parts[2]}-${parts[1]}-${parts[0]}`;
+  }
+
+  // 6. Valor Monetário
+  let rawValor = source.valor !== undefined && source.valor !== null ? source.valor.toString().trim() : '';
+  let valorFormatted = '';
+  let valorNum = 0;
+
+  if (typeof source.valor === 'number' && !isNaN(source.valor)) {
+    valorNum = source.valor;
+    valorFormatted = valorNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  } else if (rawValor) {
+    const cleanVal = rawValor.replace(/^R\$\s*/i, '').trim();
+    if (cleanVal.includes(',')) {
+      const normalizedNumStr = cleanVal.replace(/\./g, '').replace(',', '.');
+      const parsed = parseFloat(normalizedNumStr);
+      if (!isNaN(parsed)) {
+        valorNum = parsed;
+        valorFormatted = valorNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      } else {
+        valorFormatted = cleanVal;
+      }
+    } else {
+      const parsed = parseFloat(cleanVal);
+      if (!isNaN(parsed)) {
+        valorNum = parsed;
+        valorFormatted = valorNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      } else {
+        valorFormatted = cleanVal;
+      }
+    }
+  }
+
+  // 7. Descritivo dos Itens / Serviços
+  const descritivo = (source.descritivo || source.descricao || '').toString().trim();
+
+  // 8. Motivo da Necessidade
+  const motivo = (source.motivo || '').toString().trim();
+
+  return {
+    tipo_documento: tipoDoc,
+    cpf_cnpj: formattedCpfCnpj,
+    fornecedor,
+    numero_documento: numDoc,
+    data: dataVal,
+    valor: valorFormatted,
+    valorNumerico: valorNum,
+    descritivo,
+    motivo,
+    cnpj: formattedCpfCnpj,
+    cpf: formattedCpfCnpj,
+    razao: fornecedor,
+    descricao: descritivo,
+    ...(source.processo ? { processo: source.processo.toString().trim() } : {}),
+    ...(source.matricula || source.siape ? { matricula: (source.matricula || source.siape).toString().trim() } : {}),
+    ...(source.beneficiario ? { beneficiario: source.beneficiario.toString().trim() } : {}),
+    ...(source.banco ? { banco: source.banco.toString().trim() } : {}),
+    ...(source.agencia ? { agencia: source.agencia.toString().trim() } : {}),
+    ...(source.conta ? { conta: source.conta.toString().trim() } : {}),
+    ...(source.pix ? { pix: source.pix.toString().trim() } : {})
+  };
+}

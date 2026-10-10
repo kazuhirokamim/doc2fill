@@ -1,7 +1,7 @@
 // doc2fill - Sidepanel Controller (CCHA Honorários & Real File Parsing Edition)
 import { translateClinicalProcedure } from './core/clinical-translator.js';
 import { classifyDocumentType } from './core/classifier.js';
-import { parseDocumentFields, extractTextFromPdfContent } from './core/document-parser.js';
+import { parseDocumentFields, extractTextFromPdfContent, normalizeCanonicalDocumentFields } from './core/document-parser.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Elements
@@ -314,10 +314,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      dropTitle.textContent = `✓ ${file.name}`;
-      dropSubtitle.textContent = `Arquivo lido • ${(file.size / 1024).toFixed(1)} KB • Dados extraídos`;
+      // 5. Normalização canônica estrita dos 8 campos (S1-T2)
+      const canonicalData = normalizeCanonicalDocumentFields(mergedData);
 
-      populateFormFields(mergedData, filePayload);
+      dropTitle.textContent = `✓ ${file.name}`;
+      dropSubtitle.textContent = `Arquivo lido • ${(file.size / 1024).toFixed(1)} KB • 8 Campos canônicos extraídos`;
+
+      populateFormFields(canonicalData, filePayload);
     } catch (err) {
       console.error('[doc2fill] Erro ao processar arquivo:', err);
       dropTitle.textContent = `⚠️ Erro ao ler ${file.name}`;
@@ -397,7 +400,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const payload = await res.json();
         if (payload.hasData && payload.data) {
-          populateFormFields(payload.data, payload.file || null);
+          const canonical = normalizeCanonicalDocumentFields(payload.data);
+          populateFormFields(canonical, payload.file || null);
 
           if (qrRelayStatus) {
             qrRelayStatus.innerHTML = '✓ Dados & Foto recebidos do smartphone em tempo real!';

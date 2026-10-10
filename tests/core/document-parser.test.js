@@ -224,5 +224,83 @@ describe('doc2fill Document Parser & Extractor Engine (TDD Suite)', () => {
       assert.equal(extractSefazAccessKey('Texto qualquer de recibo de aluguel sem chave'), null);
     });
   });
+
+  describe('normalizeCanonicalDocumentFields (S1-T2 Canonical Schema)', () => {
+    it('Cenário 1 (Happy Path): normaliza objeto bruto completo garantindo os 8 campos canônicos sem null/undefined', async () => {
+      const { normalizeCanonicalDocumentFields } = await import('../../core/document-parser.js');
+      const raw = {
+        tipo_documento: 'Nota Fiscal de Serviços (NFS-e)',
+        cnpj: '12.345.678/0001-90',
+        razao: 'EMPRESA EXEMPLO LTDA',
+        numero_documento: '00012345',
+        data: '2026-10-09',
+        valor: 'R$ 1.850,50',
+        descricao: 'Serviços de assessoria jurídica especializada',
+        motivo: 'Art. 29 da Lei 13.327/2016'
+      };
+
+      const canonical = normalizeCanonicalDocumentFields(raw);
+      assert.equal(canonical.tipo_documento, 'Nota Fiscal de Serviços (NFS-e)');
+      assert.equal(canonical.cpf_cnpj, '12.345.678/0001-90');
+      assert.equal(canonical.fornecedor, 'EMPRESA EXEMPLO LTDA');
+      assert.equal(canonical.numero_documento, '00012345');
+      assert.equal(canonical.data, '2026-10-09');
+      assert.equal(canonical.valor, '1.850,50');
+      assert.equal(canonical.valorNumerico, 1850.5);
+      assert.equal(canonical.descritivo, 'Serviços de assessoria jurídica especializada');
+      assert.equal(canonical.motivo, 'Art. 29 da Lei 13.327/2016');
+
+      // Garante que nenhuma chave essencial é undefined ou null
+      const keys = ['tipo_documento', 'cpf_cnpj', 'fornecedor', 'numero_documento', 'data', 'valor', 'descritivo', 'motivo'];
+      for (const k of keys) {
+        assert.notEqual(canonical[k], undefined);
+        assert.notEqual(canonical[k], null);
+        assert.equal(typeof canonical[k], 'string');
+      }
+    });
+
+    it('Cenário 2 (Edge Case): preserva zeros à esquerda em CNPJ/CPF, normaliza valor numérico misto e preenche ausentes com string vazia', async () => {
+      const { normalizeCanonicalDocumentFields } = await import('../../core/document-parser.js');
+      // CNPJ com zeros à esquerda sem máscara: "00123456000199"
+      const rawWithLeadingZeros = {
+        cpf_cnpj: '00123456000199',
+        valor: '  R$ 450.90 ',
+        data: '09/10/2026'
+      };
+
+      const canonical = normalizeCanonicalDocumentFields(rawWithLeadingZeros);
+      assert.equal(canonical.cpf_cnpj, '00.123.456/0001-99');
+      assert.equal(canonical.valor, '450,90');
+      assert.equal(canonical.valorNumerico, 450.9);
+      assert.equal(canonical.fornecedor, '');
+      assert.equal(canonical.numero_documento, '');
+      assert.equal(canonical.descritivo, '');
+      assert.equal(canonical.motivo, '');
+      assert.equal(canonical.tipo_documento, 'Outro Comprovante');
+
+      // CPF com zeros à esquerda: "00987654321"
+      const rawCpf = { cpf_cnpj: '00987654321' };
+      const canonicalCpf = normalizeCanonicalDocumentFields(rawCpf);
+      assert.equal(canonicalCpf.cpf_cnpj, '009.876.543-21');
+    });
+
+    it('Cenário 3 (Error Path): trata entradas nulas, indefinidas ou com tipos inválidos sem quebrar', async () => {
+      const { normalizeCanonicalDocumentFields } = await import('../../core/document-parser.js');
+      
+      const testCases = [null, undefined, '', 12345, false, [], { valor: NaN, cpf_cnpj: null }];
+      for (const tc of testCases) {
+        const res = normalizeCanonicalDocumentFields(tc);
+        assert.ok(res, 'Deve retornar objeto válido');
+        assert.equal(typeof res.tipo_documento, 'string');
+        assert.equal(typeof res.cpf_cnpj, 'string');
+        assert.equal(typeof res.fornecedor, 'string');
+        assert.equal(typeof res.numero_documento, 'string');
+        assert.equal(typeof res.data, 'string');
+        assert.equal(typeof res.valor, 'string');
+        assert.equal(typeof res.descritivo, 'string');
+        assert.equal(typeof res.motivo, 'string');
+      }
+    });
+  });
 });
 
