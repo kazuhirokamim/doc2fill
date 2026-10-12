@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>doc2fill — Autofill Inteligente de Notas e Certidões</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="/extension/icons/icon-32.png">
+  <style>
+    :root {
+      --bg-app: #0A0D14;
+      --bg-surface: #111622;
+      --bg-card: rgba(17, 22, 34, 0.85);
+      --bg-card-hover: rgba(24, 31, 48, 0.95);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: #00D2FF;
+      --brand-blue: #0052FF;
+      --brand-cyan: #00D2FF;
+      --brand-emerald: #10B981;
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --glow-cyan: 0 0 32px rgba(0, 210, 255, 0.2);
+      --glow-blue: 0 0 32px rgba(0, 82, 255, 0.25);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(0, 82, 255, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 80% 60%, rgba(0, 210, 255, 0.06) 0%, transparent 40%);
+      background-attachment: fixed;
+    }
+
+    .container { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+    /* Header & Navbar */
+    .site-header {
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(16px);
+      background: rgba(10, 13, 20, 0.85);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 16px 0;
+    }
+    .nav-row { display: flex; align-items: center; justify-content: space-between; }
+    .brand-logo {
+      display: flex; align-items: center; gap: 12px;
+      text-decoration: none; color: #fff; font-weight: 800; font-size: 21px;
+    }
+    .brand-logo svg { width: 34px; height: 34px; }
+    .brand-doc { color: #E2E8F0; }
+    .brand-two { color: var(--brand-blue); }
+    .brand-fill { color: var(--brand-cyan); }
+    .nav-links { display: flex; gap: 24px; list-style: none; align-items: center; }
+    .nav-links a {
+      color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: #fff; }
+    .btn-nav-cta {
+      background: linear-gradient(135deg, var(--brand-blue), #0040cc);
+      color: #fff !important; padding: 8px 18px; border-radius: var(--radius-sm);
+      font-weight: 600 !important; border: 1px solid rgba(0, 210, 255, 0.3);
+      box-shadow: 0 4px 14px rgba(0, 82, 255, 0.3);
+    }
+    .btn-nav-cta:hover { transform: translateY(-1px); }
+
+    /* Hero Section */
+    .hero { padding: 90px 0 60px; text-align: center; }
+    .badge-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(0, 210, 255, 0.08); border: 1px solid rgba(0, 210, 255, 0.3);
+      color: var(--brand-cyan); padding: 6px 16px; border-radius: 999px;
+      font-size: 13px; font-weight: 600; margin-bottom: 24px;
+    }
+    .hero-title {
+      font-size: 54px; font-weight: 800; line-height: 1.15; letter-spacing: -1.5px;
+      max-width: 860px; margin: 0 auto 20px; color: #FFFFFF;
+    }
+    .hero-title .highlight {
+      background: linear-gradient(135deg, #FFFFFF 30%, var(--brand-cyan) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-desc {
+      font-size: 18px; color: var(--text-secondary); max-width: 680px; margin: 0 auto 36px;
+    }
+    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, var(--brand-blue), var(--brand-cyan));
+      color: #fff; padding: 14px 28px; border-radius: var(--radius-md);
+      font-size: 15px; font-weight: 700; text-decoration: none; border: none;
+      box-shadow: var(--glow-blue); transition: all 0.2s; cursor: pointer;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--glow-cyan); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--bg-surface); color: var(--text-primary);
+      padding: 14px 28px; border-radius: var(--radius-md); font-size: 15px;
+      font-weight: 600; text-decoration: none; border: 1px solid var(--border-subtle);
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: var(--bg-card-hover); border-color: rgba(255,255,255,0.2); }
+
+    /* Stats Grid */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px; margin: 50px auto 70px; max-width: 960px;
+    }
+    .stat-card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md); padding: 20px; text-align: center;
+      backdrop-filter: blur(12px);
+    }
+    .stat-val { font-size: 32px; font-weight: 800; color: var(--brand-cyan); }
+    .stat-lbl { font-size: 13px; color: var(--text-muted); font-weight: 500; margin-top: 4px; }
+
+    /* Bento Grid Features */
+    .section-title { font-size: 36px; font-weight: 800; text-align: center; margin-bottom: 12px; letter-spacing: -0.5px; }
+    .section-sub { font-size: 16px; color: var(--text-secondary); text-align: center; max-width: 600px; margin: 0 auto 48px; }
+    .bento-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 80px;
+    }
+    .bento-item {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg); padding: 30px; backdrop-filter: blur(12px);
+      transition: all 0.3s;
+    }
+    .bento-item:hover { border-color: rgba(0, 210, 255, 0.4); transform: translateY(-3px); }
+    .bento-span-2 { grid-column: span 2; }
+    .bento-icon {
+      width: 44px; height: 44px; border-radius: var(--radius-sm);
+      background: rgba(0, 82, 255, 0.15); border: 1px solid rgba(0, 82, 255, 0.3);
+      display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
+      color: var(--brand-cyan);
+    }
+    .bento-h { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #fff; }
+    .bento-p { font-size: 14.5px; color: var(--text-secondary); }
+
+    /* Comparison Box */
+    .compare-container {
+      background: var(--bg-surface); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg); padding: 36px; margin: 40px auto 80px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
+    }
+    .compare-col { padding: 24px; border-radius: var(--radius-md); }
+    .compare-bad { background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); }
+    .compare-good { background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); }
+    .compare-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .compare-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; font-size: 14px; color: var(--text-secondary); }
+
+    /* Pricing Section */
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px; max-width: 980px; margin: 0 auto 90px;
+    }
+    .price-card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg); padding: 36px 28px; position: relative;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .price-card.featured {
+      border-color: var(--brand-cyan); box-shadow: var(--glow-cyan);
+      background: linear-gradient(180deg, rgba(0, 82, 255, 0.08) 0%, rgba(17, 22, 34, 0.95) 100%);
+    }
+    .card-ribbon {
+      position: absolute; top: -12px; right: 24px;
+      background: var(--brand-cyan); color: #0A0D14; font-size: 11px; font-weight: 800;
+      padding: 4px 12px; border-radius: 999px; text-transform: uppercase;
+    }
+    .plan-name { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .plan-price { font-size: 42px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .plan-price span { font-size: 16px; color: var(--text-muted); font-weight: 500; }
+    .plan-features { list-style: none; margin: 24px 0 32px; font-size: 14px; color: var(--text-secondary); }
+    .plan-features li { margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+    .plan-features li svg { color: var(--brand-cyan); flex-shrink: 0; }
+
+    /* Feedback Hub Section */
+    .feedback-section {
+      background: var(--bg-surface); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg); padding: 48px 36px; margin-bottom: 90px;
+    }
+    .feedback-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; }
+    .form-group { margin-bottom: 18px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary); }
+    .form-input, .form-textarea, .form-select {
+      width: 100%; background: #0A0D14; border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm); padding: 10px 14px; color: #fff; font-size: 14px;
+      outline: none; transition: border-color 0.2s; font-family: inherit;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--brand-cyan); }
+    .star-rating { display: flex; gap: 8px; font-size: 24px; cursor: pointer; margin-bottom: 8px; }
+    .star { color: #334155; transition: color 0.15s; }
+    .star.active { color: #FBBF24; }
+    .feedback-list { max-height: 440px; overflow-y: auto; padding-right: 8px; display: flex; flex-direction: column; gap: 14px; }
+    .feedback-card {
+      background: #0A0D14; border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md); padding: 16px;
+    }
+    .feedback-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .feedback-author { font-weight: 700; font-size: 14px; color: #fff; }
+    .feedback-stars { color: #FBBF24; font-size: 13px; }
+    .feedback-tag {
+      font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase;
+    }
+    .tag-elogio { background: rgba(16, 185, 129, 0.15); color: #34D399; }
+    .tag-sugestao { background: rgba(0, 210, 255, 0.15); color: var(--brand-cyan); }
+    .tag-critica { background: rgba(245, 158, 11, 0.15); color: #FBBF24; }
+    .tag-erro { background: rgba(239, 68, 68, 0.15); color: #F87171; }
+    .feedback-text { font-size: 13.5px; color: var(--text-secondary); line-height: 1.5; }
+
+    /* Footer */
+    .site-footer {
+      border-top: 1px solid var(--border-subtle); padding: 40px 0; text-align: center;
+      color: var(--text-muted); font-size: 13px;
+    }
+    @media (max-width: 860px) {
+      .hero-title { font-size: 38px; }
+      .bento-grid { grid-template-columns: 1fr; }
+      .bento-span-2 { grid-column: span 1; }
+      .compare-container, .feedback-layout { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navegação Principal -->
+  <header class="site-header">
+    <div class="container nav-row">
+      <a href="/" class="brand-logo">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M26 14 H54 L74 34 V78 A6 6 0 0 1 68 84 H26 A6 6 0 0 1 20 78 V20 A6 6 0 0 1 26 14 Z" stroke="#0052FF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M54 14 V32 A2 2 0 0 0 56 34 H74" stroke="#0052FF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <line x1="29" y1="44" x2="35" y2="44" stroke="#0052FF" stroke-width="4" stroke-linecap="round" />
+          <line x1="41" y1="44" x2="47" y2="44" stroke="#0052FF" stroke-width="4" stroke-linecap="round" />
+          <line x1="53" y1="44" x2="59" y2="44" stroke="#0052FF" stroke-width="4" stroke-linecap="round" />
+          <line x1="29" y1="54" x2="58" y2="54" stroke="#0052FF" stroke-width="4" stroke-linecap="round" />
+          <line x1="29" y1="64" x2="46" y2="64" stroke="#0052FF" stroke-width="4" stroke-linecap="round" />
+          <path d="M48 70 L58 80 L78 60" stroke="#00D2FF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span><span class="brand-doc">Doc</span><span class="brand-two">2</span><span class="brand-fill">Fill</span></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#como-funciona">Como Funciona</a></li>
+        <li><a href="#seguranca">Zero Retenção</a></li>
+        <li><a href="#planos">Planos</a></li>
+        <li><a href="#avaliacoes">Avaliações Beta</a></li>
+        <li><a href="/portal" target="_blank">Simulador CCHA</a></li>
+        <li><a href="#download" class="btn-nav-cta">Baixar Beta</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero container">
+    <div class="badge-pill">
+      <span>●</span> Programa Beta Aberto · Lote 1 de Fundadores
+    </div>
+    <h1 class="hero-title">
+      Do Comprovante ao Portal CCHA em <span class="highlight">6 Segundos</span>.
+    </h1>
+    <p class="hero-desc">
+      Autofill inteligente de notas fiscais, cupons térmicos e certidões em portais governamentais com Zero Digitação Manual e 100% de Privacidade Local.
+    </p>
+    <div class="hero-actions">
+      <a href="#download" class="btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Baixar Versão Beta Grátis
+      </a>
+      <a href="/portal" target="_blank" class="btn-secondary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        Experimentar Simulador CCHA
+      </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-val">6s</div>
+        <div class="stat-lbl">Tempo Médio de Preenchimento</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">97.9%</div>
+        <div class="stat-lbl">Acurácia Fiscal Homologada</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">0 KB</div>
+        <div class="stat-lbl">Retenção de Dados em Nuvem (LGPD)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">204</div>
+        <div class="stat-lbl">Testes Automatizados Verdes</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparativo Antes x Depois -->
+  <section class="container">
+    <div class="compare-container">
+      <div class="compare-col compare-bad">
+        <h3 class="compare-title" style="color: #F87171;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+          Sem o Doc2Fill (Processo Manual)
+        </h3>
+        <div class="compare-item">❌ 12 a 15 minutos perdidos por documento digitando campo por campo.</div>
+        <div class="compare-item">❌ Risco constante de glosa no CCHA por erro de digitação de CNPJ ou datas.</div>
+        <div class="compare-item">❌ Digitação cansativa de chaves de acesso de 44 dígitos no teclado.</div>
+        <div class="compare-item">❌ Lotes de 20 notas consomem uma tarde inteira de trabalho.</div>
+      </div>
+      <div class="compare-col compare-good">
+        <h3 class="compare-title" style="color: #34D399;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          Com o Doc2Fill Pro
+        </h3>
+        <div class="compare-item">✅ Preenchimento automático em 6 segundos via atalho de teclado ou 1 clique.</div>
+        <div class="compare-item">✅ Validação anti-glosa com somatório matemático e conferência visual em split-view.</div>
+        <div class="compare-item">✅ Realce suave Flow Cyan (#00D2FF) nos campos preenchidos.</div>
+        <div class="compare-item">✅ Câmera do smartphone conectada via QR Code P2P sem fios nem login.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Como Funciona (Bento Grid) -->
+  <section id="como-funciona" class="container">
+    <h2 class="section-title">Engenharia Focada em Eliminar a Burocracia</h2>
+    <p class="section-sub">Três pilares construídos sob a disciplina rigorosa do Tear & Noesis.</p>
+
+    <div class="bento-grid">
+      <div class="bento-item">
+        <div class="bento-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+        </div>
+        <h3 class="bento-h">1. Arraste ou Fotografe</h3>
+        <p class="bento-p">Arraste PDFs nativos, escaneados ou aponte a câmera do celular com nosso QR Code efêmero.</p>
+      </div>
+
+      <div class="bento-item">
+        <div class="bento-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </div>
+        <h3 class="bento-h">2. Extração Canônica & Auto-Deskew</h3>
+        <p class="bento-p">O motor desentorta a imagem e mapeia os 8 dados vitais em milissegundos sem falhas.</p>
+      </div>
+
+      <div class="bento-item">
+        <div class="bento-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        </div>
+        <h3 class="bento-h">3. Injeção Reativa (1 Clique)</h3>
+        <p class="bento-p">Dispara eventos compostos nativos (input, change, blur), preenchendo portais em Angular ou React.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seção de Planos & Preços -->
+  <section id="planos" class="container">
+    <h2 class="section-title">Planos Transparentes & Sem Pegadinhas</h2>
+    <p class="section-sub">Economia comprovada de até 40 horas de trabalho manual por mês.</p>
+
+    <div class="pricing-grid">
+      <!-- Starter -->
+      <div class="price-card">
+        <div>
+          <h3 class="plan-name">Starter</h3>
+          <div class="plan-price">R$ 89<span>/mês</span></div>
+          <p style="font-size:13px; color:var(--text-muted);">Ideal para profissionais autônomos</p>
+          <ul class="plan-features">
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Até 120 leituras/mês</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> 1 Acesso Simultâneo</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Extensão Google Chrome</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Histórico local de 10 notas</li>
+          </ul>
+        </div>
+        <a href="/checkout?plan=starter" class="btn-secondary" style="text-align:center; justify-content:center;">Assinar Starter</a>
+      </div>
+
+      <!-- Pro (Destaque) -->
+      <div class="price-card featured">
+        <div class="card-ribbon">Mais Escolhido</div>
+        <div>
+          <h3 class="plan-name">Pro (Fundador)</h3>
+          <div class="plan-price">R$ 197<span>/mês</span></div>
+          <p style="font-size:13px; color:var(--text-cyan);">Para Procuradores e Escritórios</p>
+          <ul class="plan-features">
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> 500 leituras/mês</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Até 3 Acessos no Escritório</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Pareamento Mobile P2P via QR</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Validação CCHA Anti-Glosa</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Suporte VIP via WhatsApp</li>
+          </ul>
+        </div>
+        <a href="/checkout?plan=pro" class="btn-primary" style="text-align:center; justify-content:center;">Garantir Plano Pro</a>
+      </div>
+
+      <!-- Beta Grátis -->
+      <div class="price-card">
+        <div>
+          <h3 class="plan-name">Beta Teste VIP</h3>
+          <div class="plan-price">R$ 0<span>/14 dias</span></div>
+          <p style="font-size:13px; color:#34D399;">Lote Especial para Primeiros 50 Usuários</p>
+          <ul class="plan-features">
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> 14 Dias de Acesso Ilimitado</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Todos os recursos do Plano Pro</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Sem cartão de crédito</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Canal direto com os engenheiros</li>
+          </ul>
+        </div>
+        <a href="#download" class="btn-secondary" style="text-align:center; justify-content:center;">Participar do Beta</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hub de Avaliações & Feedback dos Beta Testers -->
+  <section id="avaliacoes" class="container">
+    <div class="feedback-section">
+      <h2 class="section-title" style="text-align:left;">Mural & Canal de Feedback dos Beta Testers</h2>
+      <p class="section-sub" style="text-align:left; margin-left:0; margin-bottom:32px;">
+        Sua opinião direta orienta nossos próximos lançamentos. Deixe sua crítica, sugestão ou elogio!
+      </p>
+
+      <div class="feedback-layout">
+        <!-- Formulário de Envio -->
+        <form id="feedback-form">
+          <div class="form-group">
+            <label class="form-label">Sua Nota Geral</label>
+            <div class="star-rating" id="star-box">
+              <span class="star active" data-val="1">★</span>
+              <span class="star active" data-val="2">★</span>
+              <span class="star active" data-val="3">★</span>
+              <span class="star active" data-val="4">★</span>
+              <span class="star active" data-val="5">★</span>
+            </div>
+            <input type="hidden" id="feedback-rating" value="5">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="feedback-category">Tipo de Mensagem</label>
+            <select id="feedback-category" class="form-select">
+              <option value="elogio">🌟 Elogio</option>
+              <option value="sugestao">💡 Sugestão de Melhoria / Novo Portal</option>
+              <option value="critica">💬 Crítica Construtiva</option>
+              <option value="erro">🛠️ Relato de Erro / Dificuldade</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="feedback-author">Seu Nome / Cargo (Opcional)</label>
+            <input type="text" id="feedback-author" class="form-input" placeholder="Ex: Dr. Marcelo (Procurador)">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="feedback-comment">Comentário ou Relato *</label>
+            <textarea id="feedback-comment" class="form-textarea" rows="4" required placeholder="Como foi sua experiência preenchendo o CCHA ou portal fiscal?"></textarea>
+          </div>
+
+          <button type="submit" id="btn-submit-feedback" class="btn-primary" style="width:100%; justify-content:center;">
+            Enviar Avaliação para o Squad
+          </button>
+          <div id="feedback-msg" style="display:none; font-size:13px; text-align:center; margin-top:10px;"></div>
+        </form>
+
+        <!-- Mural Dinâmico de Avaliações -->
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h4 style="font-size:15px; font-weight:700; color:#fff;">Avaliações Recentes</h4>
+            <span style="font-size:12px; color:var(--text-muted);">Atualizado em tempo real</span>
+          </div>
+          <div class="feedback-list" id="feedback-list">
+            <div style="color:var(--text-muted); font-size:13px;">Carregando avaliações...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download & Instalação em 2 Cliques -->
+  <section id="download" class="container" style="padding-bottom: 90px; text-align:center;">
+    <div style="background:linear-gradient(180deg, #111622 0%, #0A0D14 100%); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:50px 30px; max-width:800px; margin:0 auto;">
+      <h2 style="font-size:32px; font-weight:800; color:#fff; margin-bottom:12px;">Instale a Versão Beta em 2 Minutos</h2>
+      <p style="color:var(--text-secondary); font-size:15px; margin-bottom:28px;">Compatível com Google Chrome, Microsoft Edge e Brave.</p>
+      
+      <a href="/download/doc2fill-beta.zip" class="btn-primary" style="margin-bottom:24px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Baixar Pacote Beta (doc2fill-v0.3.0-beta.zip)
+      </a>
+
+      <div style="text-align:left; max-width:540px; margin:20px auto 0; font-size:13.5px; color:var(--text-secondary); line-height:1.7;">
+        <strong>Como ativar no navegador:</strong><br>
+        1. Descompacte o arquivo ZIP em uma pasta do seu computador.<br>
+        2. No Chrome, acesse <code style="color:var(--brand-cyan)">chrome://extensions/</code> e ative o <strong>Modo do Desenvolvedor</strong> (canto superior direito).<br>
+        3. Clique em <strong>"Carregar sem compactação"</strong> e selecione a pasta da extensão. Pronto!
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer container">
+    <p>Doc2Fill © 2026 — Arquitetura Local-First com Zero Retenção na Nuvem e Conformidade com a LGPD.</p>
+  </footer>
+
+  <script>
+    // Gerenciador Interativo de Estrelas
+    const stars = document.querySelectorAll('.star');
+    const ratingInput = document.getElementById('feedback-rating');
+    stars.forEach(star => {
+      star.addEventListener('click', () => {
+        const val = parseInt(star.getAttribute('data-val'), 10);
+        ratingInput.value = val;
+        stars.forEach(s => {
+          const sVal = parseInt(s.getAttribute('data-val'), 10);
+          if (sVal <= val) { s.classList.add('active'); } else { s.classList.remove('active'); }
+        });
+      });
+    });
+
+    // Carregar Avaliações da API
+    async function loadFeedbacks() {
+      const listEl = document.getElementById('feedback-list');
+      try {
+        const res = await fetch('/api/feedback');
+        const data = await res.json();
+        if (data.feedbacks && data.feedbacks.length > 0) {
+          listEl.innerHTML = data.feedbacks.map(f => {
+            const starsText = '★'.repeat(f.rating) + '☆'.repeat(5 - f.rating);
+            return `
+              <div class="feedback-card">
+                <div class="feedback-top">
+                  <span class="feedback-author">${escapeHtml(f.author || 'Anônimo')}</span>
+                  <div>
+                    <span class="feedback-tag tag-${escapeHtml(f.category)}">${escapeHtml(f.category)}</span>
+                    <span class="feedback-stars">${starsText}</span>
+                  </div>
+                </div>
+                <p class="feedback-text">${escapeHtml(f.comment)}</p>
+              </div>
+            `;
+          }).join('');
+        } else {
+          listEl.innerHTML = '<div style="color:var(--text-muted); font-size:13px;">Seja o primeiro a avaliar o sistema!</div>';
+        }
+      } catch (err) {
+        listEl.innerHTML = '<div style="color:var(--text-muted); font-size:13px;">Nenhuma avaliação recente disponível.</div>';
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
+    // Submissão do Formulário de Feedback
+    const form = document.getElementById('feedback-form');
+    const msgEl = document.getElementById('feedback-msg');
+    const submitBtn = document.getElementById('btn-submit-feedback');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Enviando...';
+
+      const payload = {
+        rating: parseInt(ratingInput.value, 10),
+        category: document.getElementById('feedback-category').value,
+        author: document.getElementById('feedback-author').value.trim() || 'Anônimo',
+        comment: document.getElementById('feedback-comment').value.trim()
+      };
+
+      try {
+        const res = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          msgEl.style.display = 'block';
+          msgEl.style.color = '#34D399';
+          msgEl.innerText = '✓ Obrigado pelo feedback! Sua avaliação já está no mural.';
+          form.reset();
+          ratingInput.value = 5;
+          stars.forEach(s => s.classList.add('active'));
+          await loadFeedbacks();
+        } else {
+          const errData = await res.json();
+          msgEl.style.display = 'block';
+          msgEl.style.color = '#F87171';
+          msgEl.innerText = errData.error || 'Erro ao enviar feedback.';
+        }
+      } catch (err) {
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#F87171';
+        msgEl.innerText = 'Falha na conexão com o servidor.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Enviar Avaliação para o Squad';
+      }
+    });
+
+    loadFeedbacks();
+  </script>
+</body>
+</html>

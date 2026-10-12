@@ -217,8 +217,17 @@ export function createAppServer(port = DEFAULT_PORT) {
       req.on('end', async () => {
         try {
           const payload = body ? JSON.parse(body) : {};
-          const plan = payload.plan === 'anual' ? 'anual' : 'mensal';
-          const amount = plan === 'anual' ? 1970.00 : 197.00;
+          const plan = payload.plan || 'mensal';
+          let amount = 197.00;
+          if (plan === 'starter') {
+            amount = 89.00;
+          } else if (plan === 'starter_anual') {
+            amount = 790.00;
+          } else if (plan === 'anual') {
+            amount = 1970.00;
+          } else {
+            amount = 197.00;
+          }
           const orderId = `PED-${Date.now().toString(36).toUpperCase()}`;
           const pixCode = `00020126580014br.gov.bcb.pix0136fundador@exemplo.com520400005303986540${amount.toFixed(2)}5802BR5916DOC2FILL TECNOLOGIA6009SAO PAULO62070503***6304${orderId}`;
 
@@ -299,14 +308,100 @@ export function createAppServer(port = DEFAULT_PORT) {
       return;
     }
 
+    // 6.5. API: Hub de Feedback e Avaliações dos Beta Testers
+    if (reqPath === '/api/feedback') {
+      const feedbacksFilePath = path.join(ROOT_DIR, 'data', 'feedbacks.json');
+
+      if (req.method === 'GET') {
+        try {
+          let feedbacks = [];
+          if (fs.existsSync(feedbacksFilePath)) {
+            feedbacks = JSON.parse(fs.readFileSync(feedbacksFilePath, 'utf8'));
+          }
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: true, feedbacks }));
+        } catch (err) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Erro ao listar feedbacks' }));
+        }
+        return;
+      }
+
+      if (req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+          try {
+            const payload = JSON.parse(body || '{}');
+            const rating = Number(payload.rating);
+            const comment = typeof payload.comment === 'string' ? payload.comment.trim() : '';
+
+            if (isNaN(rating) || rating < 1 || rating > 5) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: false, error: 'O rating deve ser um número inteiro de 1 a 5' }));
+              return;
+            }
+
+            if (!comment) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: false, error: 'O comentário de feedback não pode estar vazio' }));
+              return;
+            }
+
+            const validCategories = ['elogio', 'critica', 'sugestao', 'erro'];
+            const category = validCategories.includes(payload.category) ? payload.category : 'elogio';
+            const author = typeof payload.author === 'string' && payload.author.trim() ? payload.author.trim() : 'Anônimo';
+
+            const newFeedback = {
+              id: `fb-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+              timestamp: new Date().toISOString(),
+              rating,
+              category,
+              author,
+              comment
+            };
+
+            let feedbacks = [];
+            if (fs.existsSync(feedbacksFilePath)) {
+              try {
+                feedbacks = JSON.parse(fs.readFileSync(feedbacksFilePath, 'utf8'));
+              } catch (_) {
+                feedbacks = [];
+              }
+            }
+
+            feedbacks.unshift(newFeedback);
+            if (feedbacks.length > 50) feedbacks = feedbacks.slice(0, 50);
+
+            const dataDir = path.join(ROOT_DIR, 'data');
+            if (!fs.existsSync(dataDir)) {
+              fs.mkdirSync(dataDir, { recursive: true });
+            }
+            fs.writeFileSync(feedbacksFilePath, JSON.stringify(feedbacks, null, 2), 'utf8');
+
+            res.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ success: true, feedback: newFeedback }));
+          } catch (err) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: 'Payload JSON malformado' }));
+          }
+        });
+        return;
+      }
+    }
+
     // 7. Arquivos Estáticos e Roteamento Amigável
     let staticPath = reqPath;
-    if (staticPath === '/' || staticPath === '/portal' || staticPath === '/demo') {
+    if (staticPath === '/' || staticPath === '/home') {
+      staticPath = '/site/index.html';
+    } else if (staticPath === '/portal' || staticPath === '/demo') {
       staticPath = '/demo-portal/index.html';
     } else if (staticPath === '/mobile' || staticPath === '/scanner') {
       staticPath = '/mobile-pwa/index.html';
     } else if (staticPath === '/checkout' || staticPath === '/vendas') {
       staticPath = '/demo-portal/checkout.html';
+    } else if (staticPath === '/download/doc2fill-beta.zip') {
+      staticPath = '/dist/doc2fill-v0.3.0-beta.zip';
     }
 
     const filePath = path.join(ROOT_DIR, staticPath);
