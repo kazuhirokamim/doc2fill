@@ -212,7 +212,8 @@ export function estimateSkewAngleFromProjection(
   // Itera sobre o espectro de ângulos avaliando a variância modularmente
   for (let angle = minAngle; angle <= maxAngle; angle += step) {
     const variance = calculateProjectionVarianceForAngle(pixels, width, height, angle, centerX);
-    if (variance > maxVariance) {
+    const isCloserToZero = Math.abs(variance - maxVariance) < 1e-4 && Math.abs(angle) < Math.abs(bestAngle);
+    if (variance > maxVariance || isCloserToZero) {
       maxVariance = variance;
       bestAngle = angle;
     }

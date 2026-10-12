@@ -124,11 +124,13 @@ describe('core/image-preprocessor.js - Preprocessamento e Auto-Deskew (TDD)', ()
     });
 
     it('Cenário 1.3 (Happy Path Passo Fracionário): suporta resolução angular refinada com step fracionário', () => {
-      const width = 80;
-      const height = 80;
+      const width = 120;
+      const height = 120;
       const pixels = new Uint8Array(width * height);
-      for (let x = 10; x < 70; x++) {
-        pixels[40 * width + x] = 1;
+      for (const y of [30, 60, 90]) {
+        for (let x = 15; x < 105; x++) {
+          pixels[y * width + x] = 1;
+        }
       }
       const angle = estimateSkewAngleFromProjection(pixels, width, height, -2, 2, 0.5);
       assert.equal(angle, 0);
