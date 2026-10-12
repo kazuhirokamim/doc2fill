@@ -54,3 +54,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
   }
 });
+
+// 4. Listener de comandos de teclado (Shortcuts Manifest V3)
+if (typeof chrome !== 'undefined' && chrome.commands && chrome.commands.onCommand) {
+  chrome.commands.onCommand.addListener(async (command) => {
+    if (command === 'fill_active_form') {
+      try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tab && tab.id) {
+          chrome.tabs.sendMessage(tab.id, { action: 'DOC2FILL_EXECUTE_SHORTCUT' });
+        }
+      } catch (err) {
+        console.warn('[doc2fill] Erro ao disparar comando fill_active_form:', err);
+      }
+    }
+  });
+}
+

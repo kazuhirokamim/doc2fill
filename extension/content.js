@@ -1,4 +1,29 @@
 // doc2fill - Content Script Autofill Engine (CCHA & Angular Material / Reactive Forms Edition)
+
+/**
+ * Aplica destaque visual temporário (Flow Cyan) com contorno e glow suave no elemento preenchido.
+ * @param {HTMLElement} el
+ * @param {number} [durationMs=1500]
+ */
+export function highlightFilledElement(el, durationMs = 1500) {
+  if (!el || !el.style) return;
+  const originalOutline = el.style.outline;
+  const originalBoxShadow = el.style.boxShadow;
+  const originalTransition = el.style.transition;
+
+  el.style.transition = 'all 0.3s ease';
+  el.style.outline = '2px solid #00D2FF';
+  el.style.boxShadow = '0 0 10px rgba(0, 210, 255, 0.45)';
+
+  setTimeout(() => {
+    try {
+      el.style.outline = originalOutline;
+      el.style.boxShadow = originalBoxShadow;
+      el.style.transition = originalTransition;
+    } catch (_) {}
+  }, durationMs);
+}
+
 (() => {
   const win = typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : null);
   const doc = typeof document !== 'undefined' ? document : null;
@@ -301,6 +326,9 @@
 
       setInputValueWithEvents(input, finalVal);
     }
+
+    // Aplica destaque visual reativo suave (Highlighter Flow Cyan)
+    highlightFilledElement(input);
   }
 
   // Injetor de propriedades nativas e despacho da cadeia reativa com bubbles e composed (S2-T3)
@@ -394,7 +422,8 @@
       fillInputElement,
       setInputValueWithEvents,
       executeAutofill,
-      attachFileToPage
+      attachFileToPage,
+      highlightFilledElement
     };
   }
 

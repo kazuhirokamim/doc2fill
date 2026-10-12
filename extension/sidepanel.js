@@ -581,6 +581,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (response && response.success) {
         btnAutofill.textContent = `✓ Preenchido (${response.count} campos)!`;
+        try {
+          const { saveDocumentToHistory } = await import('./core/history-store.js');
+          await saveDocumentToHistory(payload);
+        } catch (_) {}
+
         setTimeout(() => {
           btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
           btnAutofill.disabled = false;
@@ -595,6 +600,20 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Erro de conexão com a página. Recarregue a aba após atualizar a extensão.');
       btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
       btnAutofill.disabled = false;
+    }
+  });
+
+  // 7. Atalhos de teclado no Sidepanel (Ctrl+Enter para disparar autofill, Escape para fechar zoom)
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      if (btnAutofill && !btnAutofill.disabled) {
+        btnAutofill.click();
+      }
+    } else if (e.key === 'Escape') {
+      if (btnTogglePreview && documentPreviewContainer && !documentPreviewContainer.classList.contains('hidden')) {
+        btnTogglePreview.click();
+      }
     }
   });
 });

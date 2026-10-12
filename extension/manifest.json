@@ -40,6 +40,13 @@
         "mac": "Alt+Shift+D"
       },
       "description": "Abrir o painel lateral do doc2fill"
+    },
+    "fill_active_form": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+F",
+        "mac": "Command+Shift+F"
+      },
+      "description": "Preencher formulário ativo com os dados carregados"
     }
   },
   "content_scripts": [

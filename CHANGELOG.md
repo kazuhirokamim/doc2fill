@@ -21,6 +21,9 @@
 - **tests/extension/content.test.js**: Adicionados mocks `focus()` e `closest()` nos objetos de input simulados para compatibilidade com `fillInputElement`, que chama esses métodos nativos do DOM internamente. Corrige 3 testes que falhavam com `TypeError: input.focus is not a function`.
 
 ### Added
+- **Trilha A — Experiência Power-User e Atalhos de Teclado**: Declaração do comando `fill_active_form` (`Ctrl+Shift+F` / `Cmd+Shift+F`) no `manifest.json`, listener no background worker e atalho `Ctrl+Enter` / `Cmd+Enter` no Sidepanel para disparo instantâneo de autofill.
+- **Trilha A — Highlighter Visual de Formulários (`extension/content.js`)**: Aplicação suave de contorno ciano (`#00D2FF`) e glow difuso temporário (1500ms) nos campos preenchidos com restauração automática de estilos nativos.
+- **Trilha A — Histórico Local Rotativo (`core/history-store.js`)**: Armazenamento seguro dos últimos 10 documentos processados com descarte LRU e Zero Retenção na Nuvem em conformidade estrita com a LGPD.
 - **Trilha B — Auto-Deskew de Imagens (`core/image-preprocessor.js`)**: Detecção de orientação EXIF (1, 3, 6, 8) e estimativa de ângulo de inclinação angular (Radon-lite horizontal projection variance) de -20° a +20° com rotação nativa via Canvas 2D.
 - **Trilha B — Extrator Semântico e Tabular de Itens (`core/item-extractor.js`)**: Parser de itens de compra (NFC-e, DANFE e cupons) com extração de código, descrição, quantidade, valor unitário e valor total, além de validação matemática de somatórios.
 - **Design System Obsidian & Flow Cyan (TDD Suite)**: Validação contratual dos tokens canônicos (`--bg-app: #0A0D14`, `--bg-card: #111622`, `--brand-blue: #0052FF`, `--brand-cyan: #00D2FF`, `--text-primary: #F8FAFC`) com conformidade WCAG AA e rejeição de temas legados.
