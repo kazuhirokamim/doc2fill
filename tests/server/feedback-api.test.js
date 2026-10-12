@@ -56,11 +56,15 @@ function makeRequest(pathName, method = 'GET', data = null) {
 }
 
 describe('Landing Page, Feedback Hub & Pricing Routing Suite (TDD)', () => {
+  let originalFeedbacks = null;
   before(async () => {
     // Garante pasta data
     const dataDir = path.join(ROOT_DIR, 'data');
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
+    }
+    if (fs.existsSync(FEEDBACKS_FILE)) {
+      originalFeedbacks = fs.readFileSync(FEEDBACKS_FILE, 'utf8');
     }
     serverInstance = createAppServer(TEST_PORT);
     await new Promise(resolve => serverInstance.listen(TEST_PORT, resolve));
@@ -69,6 +73,9 @@ describe('Landing Page, Feedback Hub & Pricing Routing Suite (TDD)', () => {
   after(async () => {
     if (serverInstance) {
       await new Promise(resolve => serverInstance.close(resolve));
+    }
+    if (originalFeedbacks !== null) {
+      fs.writeFileSync(FEEDBACKS_FILE, originalFeedbacks, 'utf8');
     }
   });
 

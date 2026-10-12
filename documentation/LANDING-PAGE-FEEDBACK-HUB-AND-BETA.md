@@ -79,3 +79,10 @@ Para disponibilizar a extensão de forma determinística e limpa:
 - O script sincroniza o núcleo (`core/ -> extension/core/`), expurga arquivos temporários (`.DS_Store`, `__pycache__`) e gera:
   - `dist/doc2fill-v0.3.0-beta.zip` (~71.8 KB).
   - Alias `dist/doc2fill-beta.zip` para download direto pela Landing Page.
+
+---
+
+## 🧪 6. Isolamento de Testes e Limpeza de Estado (TDD)
+- A suíte `tests/server/feedback-api.test.js` realiza backup do arquivo `data/feedbacks.json` no hook `before()` e restauração estrita no hook `after()`.
+- Isso garante que execuções de testes automatizados não alterem o working tree do git nem causem invalidação por staleness nos portões de release.
+
