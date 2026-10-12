@@ -118,7 +118,7 @@ export async function initLicenseController() {
   
   // Se ainda não houver licença configurada, ativa automaticamente um Beta de 14 dias para o usuário inicial
   if (!validation.valid && !currentLicense.email) {
-    const defaultEmail = 'procurador.demo@doc2fill.com';
+    const defaultEmail = 'procurador.demo@exemplo.com';
     const autoBetaKey = generateLicenseKey(defaultEmail, 'BETA', getFutureDateString(14));
     await saveStoredLicense(defaultEmail, autoBetaKey);
     currentLicense = { email: defaultEmail, key: autoBetaKey };
@@ -185,7 +185,7 @@ export async function initLicenseController() {
     btnBeta.addEventListener('click', async () => {
       let email = normalizeLicenseEmail(inputEmail?.value || '');
       if (!email || !email.includes('@')) {
-        email = 'procurador.beta@doc2fill.com';
+        email = 'procurador.beta@exemplo.com';
         if (inputEmail) inputEmail.value = email;
       }
 

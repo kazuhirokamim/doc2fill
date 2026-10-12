@@ -40,7 +40,7 @@ O Doc2Fill atinge sua maturidade para o programa Beta Teste demandando dois refi
   4. Na Landing Page, um Showcase interativo no Hero simula em tempo real o fluxo de 6 segundos com opções de Cupom e DANFE.
 - **Prós:**
   - 100% Offline e determinístico: funciona sem conexão à internet.
-  - Vínculo inquebrável: uma chave gerada para `usuario@agu.gov.br` é matematicamente inválida para outro e-mail.
+  - Vínculo inquebrável: uma chave gerada para `usuario@exemplo.com` é matematicamente inválida para outro e-mail.
   - Conversão imediata no Hero com demonstração viva.
   - Orçamento estrito de linhas (< 700 linhas) per Regra #24.
 - **Contras:**
