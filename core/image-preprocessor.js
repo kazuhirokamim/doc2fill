@@ -129,6 +129,49 @@ export function getRotationDegreesFromOrientation(orientation) {
 }
 
 /**
+ * Calcula a variância do perfil de projeção para um ângulo específico.
+ * @param {Uint8Array|Array<number>} pixels
+ * @param {number} width
+ * @param {number} height
+ * @param {number} angle
+ * @param {number} centerX
+ * @returns {number}
+ */
+function calculateProjectionVarianceForAngle(pixels, width, height, angle, centerX) {
+  const rad = angle * (Math.PI / 180);
+  const tan = Math.tan(rad);
+  const profile = new Float32Array(height);
+  let activePixels = 0;
+
+  for (let y = 0; y < height; y++) {
+    const rowOffset = y * width;
+    for (let x = 0; x < width; x++) {
+      const val = pixels[rowOffset + x];
+      if (val > 0) {
+        const projectedY = Math.round(y - (x - centerX) * tan);
+        if (projectedY >= 0 && projectedY < height) {
+          profile[projectedY] += val;
+          activePixels++;
+        }
+      }
+    }
+  }
+
+  if (activePixels === 0) return 0;
+
+  let sum = 0;
+  let sumSq = 0;
+  for (let i = 0; i < height; i++) {
+    const count = profile[i];
+    sum += count;
+    sumSq += count * count;
+  }
+
+  const mean = sum / height;
+  return sumSq / height - mean * mean;
+}
+
+/**
  * Estima o ângulo de inclinação (skew) de uma matriz de pixels usando perfil de projeção horizontal.
  * Busca o ângulo que maximiza a variância das linhas de texto (Radon-lite).
  * @param {Uint8Array|Array<number>} pixels Matriz de pixels (1 = primeiro plano/tinta, 0 = fundo)
@@ -165,44 +208,10 @@ export function estimateSkewAngleFromProjection(
   let bestAngle = 0;
   let maxVariance = 0;
   const centerX = width / 2;
-  const centerY = height / 2;
 
-  // Itera sobre o espectro de ângulos especificado
+  // Itera sobre o espectro de ângulos avaliando a variância modularmente
   for (let angle = minAngle; angle <= maxAngle; angle += step) {
-    const rad = angle * (Math.PI / 180);
-    const tan = Math.tan(rad);
-    const profile = new Float32Array(height);
-
-    let activePixels = 0;
-    for (let y = 0; y < height; y++) {
-      const rowOffset = y * width;
-      for (let x = 0; x < width; x++) {
-        const val = pixels[rowOffset + x];
-        if (val > 0) {
-          // Desloca Y com base na inclinação em relação ao centro horizontal
-          const projectedY = Math.round(y - (x - centerX) * tan);
-          if (projectedY >= 0 && projectedY < height) {
-            profile[projectedY] += val;
-            activePixels++;
-          }
-        }
-      }
-    }
-
-    if (activePixels === 0) continue;
-
-    // Calcula a variância do perfil de projeção para o ângulo atual
-    let sum = 0;
-    let sumSq = 0;
-    for (let i = 0; i < height; i++) {
-      const count = profile[i];
-      sum += count;
-      sumSq += count * count;
-    }
-
-    const mean = sum / height;
-    const variance = sumSq / height - mean * mean;
-
+    const variance = calculateProjectionVarianceForAngle(pixels, width, height, angle, centerX);
     if (variance > maxVariance) {
       maxVariance = variance;
       bestAngle = angle;

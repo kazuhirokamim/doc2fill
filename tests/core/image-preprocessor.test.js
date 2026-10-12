@@ -123,6 +123,17 @@ describe('core/image-preprocessor.js - Preprocessamento e Auto-Deskew (TDD)', ()
       assert.ok(Math.abs(angle - 5) <= 1, `Ângulo detectado foi ${angle}, esperado ~5`);
     });
 
+    it('Cenário 1.3 (Happy Path Passo Fracionário): suporta resolução angular refinada com step fracionário', () => {
+      const width = 80;
+      const height = 80;
+      const pixels = new Uint8Array(width * height);
+      for (let x = 10; x < 70; x++) {
+        pixels[40 * width + x] = 1;
+      }
+      const angle = estimateSkewAngleFromProjection(pixels, width, height, -2, 2, 0.5);
+      assert.equal(angle, 0);
+    });
+
     it('Cenário 2 (Edge Case): imagem vazia (sem linhas) ou totalmente preta retorna 0', () => {
       const width = 50;
       const height = 50;
