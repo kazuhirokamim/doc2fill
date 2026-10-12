@@ -2,8 +2,12 @@
 import { translateClinicalProcedure } from './core/clinical-translator.js';
 import { classifyDocumentType } from './core/classifier.js';
 import { parseDocumentFields, extractTextFromPdfContent, normalizeCanonicalDocumentFields, isPdfEncrypted } from './core/document-parser.js';
+import { initLicenseController } from './license-controller.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Inicializa o gerenciador de licença híbrida offline
+  initLicenseController();
+
   // Elements
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabPanes = document.querySelectorAll('.tab-pane');

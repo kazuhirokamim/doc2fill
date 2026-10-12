@@ -1,0 +1,206 @@
+/* extension/license-modal.css */
+/* Modal de Gerenciamento e Ativação de Licença Híbrida Offline (HMAC-SHA256) */
+
+.license-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 13, 20, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.license-modal-backdrop.hidden {
+  display: none !important;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.license-card {
+  background: #111622;
+  border: 1px solid #222C3F;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 24px rgba(0, 210, 255, 0.15);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 360px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+}
+
+.license-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #1E293B;
+  padding-bottom: 10px;
+}
+
+.license-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.license-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #F8FAFC;
+  letter-spacing: -0.2px;
+}
+
+.license-close-btn {
+  background: transparent;
+  border: none;
+  color: #64748B;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.license-close-btn:hover {
+  color: #F8FAFC;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.license-status-banner {
+  background: #141A28;
+  border: 1px solid #1E293B;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #94A3B8;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.license-status-banner.is-valid {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.08);
+  color: #34D399;
+}
+
+.license-status-banner.is-invalid {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+  color: #F87171;
+}
+
+.license-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.license-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.license-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.license-input {
+  background: #0D111A;
+  border: 1px solid #1E293B;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #F8FAFC;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: inherit;
+}
+
+.license-input:focus {
+  border-color: #00D2FF;
+  box-shadow: 0 0 0 2px rgba(0, 210, 255, 0.15);
+}
+
+.license-input-key {
+  font-family: var(--font-numeric, monospace);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.license-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.btn-license-save {
+  background: linear-gradient(135deg, #0052FF 0%, #00D2FF 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn-license-save:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+.btn-license-save:active {
+  transform: translateY(0);
+}
+
+.btn-license-beta {
+  background: #141A28;
+  border: 1px solid #222C3F;
+  color: #00D2FF;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-license-beta:hover {
+  background: #192234;
+  border-color: #00D2FF;
+}
+
+.license-footnote {
+  font-size: 10px;
+  color: #64748B;
+  text-align: center;
+  line-height: 1.3;
+}
