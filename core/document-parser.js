@@ -2,6 +2,7 @@
 // Extração inteligente de campos essenciais (8 campos), honorários, procuradores, processos e dados fiscais/bancários
 
 import { classifyDocumentType } from './classifier.js';
+import { extractLineItemsFromText } from './item-extractor.js';
 
 /**
  * Detecta preventivamente se um buffer de PDF possui operador de criptografia / senha (/Encrypt)
@@ -450,6 +451,9 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     data.pix = pixMatch[1].trim();
   }
 
+  // 9. Extração estruturada de itens de compra (NFC-e, DANFE e cupons)
+  data.items = extractLineItemsFromText(rawText);
+
   return data;
 }
 
@@ -546,6 +550,7 @@ export function normalizeCanonicalDocumentFields(raw = {}) {
     cpf: formattedCpfCnpj,
     razao: fornecedor,
     descricao: descritivo,
+    items: Array.isArray(source.items) ? source.items : [],
     ...(source.processo ? { processo: source.processo.toString().trim() } : {}),
     ...(source.matricula || source.siape ? { matricula: (source.matricula || source.siape).toString().trim() } : {}),
     ...(source.beneficiario ? { beneficiario: source.beneficiario.toString().trim() } : {}),

@@ -21,6 +21,8 @@
 - **tests/extension/content.test.js**: Adicionados mocks `focus()` e `closest()` nos objetos de input simulados para compatibilidade com `fillInputElement`, que chama esses métodos nativos do DOM internamente. Corrige 3 testes que falhavam com `TypeError: input.focus is not a function`.
 
 ### Added
+- **Trilha B — Auto-Deskew de Imagens (`core/image-preprocessor.js`)**: Detecção de orientação EXIF (1, 3, 6, 8) e estimativa de ângulo de inclinação angular (Radon-lite horizontal projection variance) de -20° a +20° com rotação nativa via Canvas 2D.
+- **Trilha B — Extrator Semântico e Tabular de Itens (`core/item-extractor.js`)**: Parser de itens de compra (NFC-e, DANFE e cupons) com extração de código, descrição, quantidade, valor unitário e valor total, além de validação matemática de somatórios.
 - **Design System Obsidian & Flow Cyan (TDD Suite)**: Validação contratual dos tokens canônicos (`--bg-app: #0A0D14`, `--bg-card: #111622`, `--brand-blue: #0052FF`, `--brand-cyan: #00D2FF`, `--text-primary: #F8FAFC`) com conformidade WCAG AA e rejeição de temas legados.
 - **portal CCHA (Conselho Curador dos Honorários Advocatícios)**: Mapeamento integral para a advocacia pública federal (AGU, PGFN, PGF, PGBC).
 - **core/matcher.js**: Vocabulário CCHA integrado (matrícula SIAPE, número do processo judicial/administrativo, honorários sucumbenciais, rubrica orçamentária, banco/agência/conta/PIX).

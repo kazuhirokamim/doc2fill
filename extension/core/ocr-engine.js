@@ -1,5 +1,6 @@
 // core/ocr-engine.js - Motor Local de OCR e Extração de Documentos CCHA (Zero Retenção)
 import { parseDocumentFields } from './document-parser.js';
+import { detectExifOrientation, getRotationDegreesFromOrientation } from './image-preprocessor.js';
 
 /**
  * Higieniza o texto bruto devolvido pelo OCR, normalizando espaços, quebras e artefatos de scanner.
@@ -298,4 +299,16 @@ export async function performOcr(imageBufferOrBase64, lang = 'por') {
     return { text: '', confidence: 0, error: err.message };
   }
 }
+
+/**
+ * Detecta a orientação EXIF e calcula os graus de rotação necessários para o motor OCR.
+ * @param {Buffer|Uint8Array} buffer
+ * @returns {{ orientation: number, rotationDegrees: number }}
+ */
+export function detectAndPrepareImageOrientation(buffer) {
+  const orientation = detectExifOrientation(buffer);
+  const rotationDegrees = getRotationDegreesFromOrientation(orientation);
+  return { orientation, rotationDegrees };
+}
+
 
