@@ -64,7 +64,7 @@
         <button type="button" id="btn-select-file" class="btn-secondary btn-sm">
           <span>Selecionar Arquivo</span>
         </button>
-        <input type="file" id="file-input" accept="application/pdf,image/*" style="display:none;">
+        <input type="file" id="file-input" accept="application/pdf,image/*" multiple style="display:none;">
       </div>
     </section>
 
@@ -90,6 +90,21 @@
           <p class="section-subtitle">Conferência dos 8 campos essenciais para o CCHA</p>
         </div>
         <span class="badge-pill badge-status" id="validation-badge">Aguardando dados</span>
+      </div>
+
+      <!-- Widget de Navegação de Fila em Lote (Sprint A) -->
+      <div id="batch-carousel-container" class="clean-card hidden" style="margin-bottom: 12px; padding: 8px 12px; background: rgba(0, 82, 255, 0.06); border: 1px solid rgba(0, 210, 255, 0.25); border-radius: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <button type="button" id="btn-batch-prev" class="btn-subtle-action" title="Documento anterior" style="padding: 2px 8px; font-size: 11px;">◀</button>
+          <div id="batch-counter-label" style="font-size: 11.5px; font-weight: 600; color: var(--text-primary); text-align: center; display: flex; align-items: center; gap: 6px;">
+            <span>Lote: Nota <b id="batch-current-idx">1</b> de <b id="batch-total-count">1</b></span>
+            <span id="batch-status-badge" class="badge-status" style="font-size: 10px; padding: 2px 6px;">🟢 Pronto</span>
+          </div>
+          <button type="button" id="btn-batch-next" class="btn-subtle-action" title="Próximo documento" style="padding: 2px 8px; font-size: 11px;">▶</button>
+        </div>
+        <div id="batch-progress-bar" style="height: 3px; background: rgba(255,255,255,0.08); margin-top: 6px; border-radius: 2px; overflow: hidden;">
+          <div id="batch-progress-fill" style="width: 0%; height: 100%; background: #00D2FF; transition: width 0.3s ease;"></div>
+        </div>
       </div>
 
       <div class="split-view-container" id="document-preview-container" style="display:none;">

@@ -4,6 +4,8 @@ import { getRecentHistory, saveDocumentToHistory, clearHistory } from './core/hi
 import { performBrowserClientOcr } from './core/browser-ocr.js';
 import { initLicenseController } from './license-controller.js';
 import { showToast } from './toast-manager.js';
+import { BatchQueueManager } from './core/batch-queue.js';
+import { initBatchUi } from './batch-ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   initLicenseController();
@@ -56,6 +58,24 @@ document.addEventListener('DOMContentLoaded', () => {
   let attachedFile = null;
   let lastCanonicalData = null;
   let activeApiBaseUrl = 'http://localhost:3333';
+
+  // Gerenciador e Interface de Fila em Lote (Sprint A)
+  const batchQueue = new BatchQueueManager();
+  const batchUi = initBatchUi(batchQueue, {
+    container: document.getElementById('batch-carousel-container'),
+    btnPrev: document.getElementById('btn-batch-prev'),
+    btnNext: document.getElementById('btn-batch-next'),
+    currentIdxSpan: document.getElementById('batch-current-idx'),
+    totalCountSpan: document.getElementById('batch-total-count'),
+    statusBadge: document.getElementById('batch-status-badge'),
+    progressFill: document.getElementById('batch-progress-fill')
+  }, {
+    onSelectDocument: (batchItem) => {
+      if (batchItem && batchItem.data && batchItem.data.canonicalData) {
+        populateFormFields(batchItem.data.canonicalData, batchItem.data.filePayload);
+      }
+    }
+  });
 
   async function renderHistoryList() {
     if (!historyListEl) return;
@@ -249,13 +269,119 @@ document.addEventListener('DOMContentLoaded', () => {
     return await performBrowserClientOcr(base64Data, fileName);
   }
 
+  async function processSingleDocument(file) {
+    const base64Promise = new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+
+    let extractedText = '';
+    let ocrStructuredData = null;
+
+    if (file.type && (file.type.startsWith('image/') || file.name.match(/\.(png|jpe?g|webp|bmp)$/i))) {
+      const b64 = await base64Promise;
+      const ocrJson = await requestOcrWithClientFallback(b64, file.name);
+      if (ocrJson && ocrJson.success) {
+        if (ocrJson.text) extractedText = ocrJson.text;
+        if (ocrJson.data) ocrStructuredData = ocrJson.data;
+      }
+    } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+      const bufferPromise = new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsArrayBuffer(file);
+      });
+      const buffer = await bufferPromise;
+      if (isPdfEncrypted(buffer)) {
+        return {
+          canonicalData: normalizeCanonicalDocumentFields({}),
+          filePayload: { name: file.name, type: file.type || 'application/pdf', size: file.size, base64: await base64Promise },
+          isEncrypted: true
+        };
+      }
+
+      extractedText = await extractTextFromPdfContentAsync(buffer);
+      const preliminaryParsed = extractedText ? parseDocumentFields(extractedText, file.name) : null;
+      const hasCore = preliminaryParsed && (
+        preliminaryParsed.cnpj || preliminaryParsed.cpf || preliminaryParsed.valor || preliminaryParsed.numero_documento
+      );
+
+      if (!hasCore || !extractedText || extractedText.length < 50) {
+        const b64 = await base64Promise;
+        const ocrJson = await requestOcrWithClientFallback(b64, file.name);
+        if (ocrJson && ocrJson.success) {
+          if (ocrJson.text) extractedText = ocrJson.text;
+          if (ocrJson.data) ocrStructuredData = ocrJson.data;
+        }
+      }
+    }
+
+    const base64 = await base64Promise;
+    const filePayload = { name: file.name, type: file.type || 'application/pdf', size: file.size, base64 };
+    const parsed = parseDocumentFields(extractedText, file.name);
+    const mergedData = { ...parsed };
+    if (ocrStructuredData && typeof ocrStructuredData === 'object') {
+      for (const [key, val] of Object.entries(ocrStructuredData)) {
+        if (val && typeof val === 'string' && val.trim() !== '') mergedData[key] = val;
+        else if (val !== null && val !== undefined && typeof val !== 'string') mergedData[key] = val;
+      }
+    }
+
+    return {
+      canonicalData: normalizeCanonicalDocumentFields(mergedData),
+      filePayload,
+      isEncrypted: false
+    };
+  }
+
   async function handleDocumentFile(filesOrFile) {
     if (!filesOrFile) return;
     const fileList = Array.isArray(filesOrFile) ? filesOrFile : (filesOrFile.length !== undefined ? Array.from(filesOrFile) : [filesOrFile]);
     if (fileList.length === 0) return;
 
+    await resolveApiBaseUrl();
+
+    if (fileList.length > 1) {
+      batchQueue.clear();
+      batchQueue.addFiles(fileList);
+      batchUi.updateUi();
+      showToast(`📥 Fila em lote iniciada (${fileList.length} documentos)`, 'info', 2500);
+
+      dropTitle.textContent = `⏳ Processando lote de ${fileList.length} arquivos...`;
+      dropSubtitle.textContent = `Extraindo documentos em segundo plano...`;
+      if (dropZone) dropZone.style.pointerEvents = 'none';
+
+      try {
+        await batchQueue.processAll(async (f) => {
+          const res = await processSingleDocument(f);
+          batchUi.updateUi();
+          return res;
+        });
+
+        const first = batchQueue.getItemAt(0);
+        if (first?.data?.canonicalData) {
+          populateFormFields(first.data.canonicalData, first.data.filePayload);
+          dropTitle.textContent = `✓ Lote concluído (${batchQueue.getSummary().ready}/${fileList.length} prontos)`;
+          dropSubtitle.textContent = `Navegue pelas notas ou clique em preencher para avançar sequencialmente.`;
+        }
+      } catch (_) {
+        showToast('Alguns documentos do lote apresentaram falha de leitura.', 'warning');
+      } finally {
+        if (dropZone) dropZone.style.pointerEvents = 'auto';
+        batchUi.updateUi();
+      }
+      return;
+    }
+
+    // Processamento de arquivo único
+    batchQueue.clear();
+    batchUi.updateUi();
+
     const file = fileList[0];
-    const allowedExts = ['.pdf', '.png', '.jpg', '.jpeg'];
+    const allowedExts = ['.pdf', '.png', '.jpg', '.jpeg', '.webp'];
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     if (!allowedExts.includes(ext)) {
       dropTitle.textContent = `⚠️ Formato não suportado: ${ext}`;
@@ -275,78 +401,16 @@ document.addEventListener('DOMContentLoaded', () => {
     dropSubtitle.textContent = `Extraindo texto e campos em memória efêmera...`;
 
     try {
-      await resolveApiBaseUrl();
-
-      const base64Promise = new Promise((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(r.result);
-        r.onerror = reject;
-        r.readAsDataURL(file);
-      });
-
-      let extractedText = '';
-      let ocrStructuredData = null;
-
-      if (file.type.startsWith('image/') || file.name.match(/\.(png|jpe?g|webp|bmp)$/i)) {
-        dropSubtitle.textContent = 'Processando imagem com motor óptico local...';
-        const b64 = await base64Promise;
-        const ocrJson = await requestOcrWithClientFallback(b64, file.name);
-        if (ocrJson && ocrJson.success) {
-          if (ocrJson.text) extractedText = ocrJson.text;
-          if (ocrJson.data) ocrStructuredData = ocrJson.data;
-        }
-      } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-        const bufferPromise = new Promise((resolve, reject) => {
-          const r = new FileReader();
-          r.onload = () => resolve(r.result);
-          r.onerror = reject;
-          r.readAsArrayBuffer(file);
-        });
-        const buffer = await bufferPromise;
-        if (isPdfEncrypted(buffer)) {
-          dropTitle.textContent = `🔒 PDF protegido por senha`;
-          dropSubtitle.textContent = 'Não foi possível identificar o texto. Preencha manualmente ou envie outra foto.';
-          populateFormFields(normalizeCanonicalDocumentFields({}), {
-            name: file.name, type: file.type || 'application/pdf', size: file.size, base64: await base64Promise
-          });
-          return;
-        }
-
-        extractedText = await extractTextFromPdfContentAsync(buffer);
-
-        const preliminaryParsed = extractedText ? parseDocumentFields(extractedText, file.name) : null;
-        const hasCoreFiscalFields = preliminaryParsed && (
-          preliminaryParsed.cnpj || preliminaryParsed.cpf || preliminaryParsed.valor || preliminaryParsed.numero_documento
-        );
-
-        if (!hasCoreFiscalFields || !extractedText || extractedText.length < 50) {
-          dropSubtitle.textContent = 'PDF digitalizado detectado: processando com OCR óptico local...';
-          const b64 = await base64Promise;
-          const ocrJson = await requestOcrWithClientFallback(b64, file.name);
-          if (ocrJson && ocrJson.success) {
-            if (ocrJson.text) extractedText = ocrJson.text;
-            if (ocrJson.data) ocrStructuredData = ocrJson.data;
-          }
-        }
+      const res = await processSingleDocument(file);
+      if (res.isEncrypted) {
+        dropTitle.textContent = `🔒 PDF protegido por senha`;
+        dropSubtitle.textContent = 'Não foi possível identificar o texto. Preencha manualmente ou envie outra foto.';
+      } else {
+        dropTitle.textContent = `✓ ${file.name}`;
+        dropSubtitle.textContent = `Arquivo lido • ${(file.size / 1024).toFixed(1)} KB • 8 Campos canônicos extraídos`;
       }
-
-      const base64 = await base64Promise;
-      const filePayload = { name: file.name, type: file.type || 'application/pdf', size: file.size, base64 };
-
-      const parsed = parseDocumentFields(extractedText, file.name);
-      const mergedData = { ...parsed };
-      if (ocrStructuredData && typeof ocrStructuredData === 'object') {
-        for (const [key, val] of Object.entries(ocrStructuredData)) {
-          if (val && typeof val === 'string' && val.trim() !== '') mergedData[key] = val;
-          else if (val !== null && val !== undefined && typeof val !== 'string') mergedData[key] = val;
-        }
-      }
-
-      const canonicalData = normalizeCanonicalDocumentFields(mergedData);
-      dropTitle.textContent = `✓ ${file.name}`;
-      dropSubtitle.textContent = `Arquivo lido • ${(file.size / 1024).toFixed(1)} KB • 8 Campos canônicos extraídos`;
-      populateFormFields(canonicalData, filePayload);
-    } catch (err) {
+      populateFormFields(res.canonicalData, res.filePayload);
+    } catch (_) {
       dropTitle.textContent = `⚠️ Documento ilegível`;
       dropSubtitle.textContent = 'Não foi possível identificar o texto. Preencha manualmente ou envie outra foto.';
       populateFormFields(normalizeCanonicalDocumentFields({}), null);
@@ -481,6 +545,17 @@ document.addEventListener('DOMContentLoaded', () => {
           await saveDocumentToHistory(payload);
           await renderHistoryList();
         } catch (_) {}
+
+        if (batchQueue.size() > 1) {
+          batchQueue.markCurrentAsFilled();
+          const hasMore = batchUi.advanceToNext();
+          if (hasMore) {
+            const summary = batchQueue.getSummary();
+            showToast(`Avançado para Nota ${summary.currentIndex + 1} de ${summary.total}`, 'info', 2000);
+          } else {
+            showToast('🎉 Todas as notas do lote foram preenchidas no CCHA!', 'success', 3000);
+          }
+        }
 
         setTimeout(() => {
           btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';

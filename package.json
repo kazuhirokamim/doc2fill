@@ -5,6 +5,8 @@
   "description": "Smart document capture and autofill with zero data retention for government portals",
   "scripts": {
     "sync-core": "cp -r core/* extension/core/",
+    "build": "node scripts/build-extension.js",
+    "package": "npm run build && node scripts/package-beta.js",
     "test": "npm run sync-core && node --test tests/**/*.test.js tests/*.test.js && (.venv/bin/python -m unittest discover -s tests/python -p 'test_*.py' || true)",
     "test:python": ".venv/bin/python -m unittest discover -s tests/python -p 'test_*.py'",
     "benchmark:sroie": ".venv/bin/python src/pipeline_ocr.py",
@@ -23,5 +25,8 @@
   "dependencies": {
     "qrcode": "^1.5.4",
     "tesseract.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
   }
 }

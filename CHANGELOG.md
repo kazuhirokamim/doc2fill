@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- **Sprint A: Modo Fila em Lote (Batch Queue) & Processamento Paralelo (`core/batch-queue.js`, `extension/batch-ui.js`)**: Criação do gerenciador de fila de documentos em memória volátil com processamento concorrente via `Promise.allSettled()`, somado ao widget visual de carrossel no Sidepanel (`[ ◀ Nota X de N ▶ ]`) com barra de progresso e badge de status em tempo real.
+- **Sprint A: Preenchimento Sequencial Contínuo no CCHA (`extension/sidepanel.js`, `extension/sidepanel.html`)**: Suporte nativo a seleção múltipla (`<input multiple>`) e arrasto em lote de arquivos fiscais, com avanço automático para o próximo comprovante da fila após o preenchimento com sucesso no portal estatal.
+- **Sprint A: Pipeline de Compilação e Minificação via esbuild (`scripts/build-extension.js`)**: Adição de script de empacotamento otimizado gerando bundles minificados em `dist/extension/` sem duplicações manuais de código.
+- **Sprint A: Suíte TDD de Fila em Lote (`tests/core/batch-queue.test.js`)**: 3 cenários canônicos cobrindo processamento paralelo, resiliência contra falhas parciais em lotes mistos e chamadas defensivas com limites ultrapassados.
+
+### Added
 - **Visão Computacional Client-Side & Detecção Nativa de Barcodes (`core/browser-ocr.js`)**: Criação de motor OCR e decodificação client-side usando a API nativa `globalThis.BarcodeDetector` do Chrome, permitindo leitura de QR Codes SEFAZ e códigos de barra de boletos em < 15ms sem dependência de servidor local e com fallback resiliente.
 - **Suíte TDD de Autonomia do Browser e Anti-Glosa (`tests/core/browser-autonomy.test.js`)**: Criação da suíte cobrindo Happy Path com FlateDecode assíncrono e tradução TUSS, Edge Case com BarcodeDetector simulado para chaves SEFAZ offline e Error Path para entradas nulas/inválidas.
 - **Gaveta Visual de Histórico Local Recente (`extension/sidepanel.html`, `extension/sidepanel.js`)**: Integração da gaveta de histórico de preenchimentos recentes (máximo 10 itens em memória volátil) com botão de purga manual e restauração instantânea nos campos.

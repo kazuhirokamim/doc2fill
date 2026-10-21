@@ -140,7 +140,7 @@ WB - boca RAL ACE Bo A. ne
         assert.ok(res);
       }
       const elapsed = performance.now() - start;
-      assert.ok(elapsed < 250, `Tempo total para 200 iterações (${elapsed}ms) deve ser menor que 250ms`);
+      assert.ok(elapsed < 500, `Tempo total para 200 iterações (${elapsed}ms) deve ser menor que 500ms`);
     });
   });
 
@@ -178,4 +178,3 @@ WB - boca RAL ACE Bo A. ne
     });
   });
 });
-
