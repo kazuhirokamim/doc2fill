@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- **Sprint B: OCR Embarcado Offscreen WASM e window.ai (`extension/offscreen.html`, `extension/offscreen.js`, `extension/offscreen-client.js`)**: Criação de documento isolado e cliente de gerenciamento via Chrome Offscreen API (`chrome.offscreen`), permitindo descarregar o processamento pesado de visão computacional, BarcodeDetector e Tesseract WASM para uma thread desacoplada sem travar a interface do Sidepanel.
+- **Sprint B: Integração com Gemini Nano / Prompt API (`extension/offscreen.js`)**: Sondagem nativa de `window.ai.languageModel` para enriquecimento contextual e extração precisa de campos fiscais e médicos (TUSS) no próprio dispositivo quando disponível.
+- **Sprint B: Suíte TDD de OCR Offscreen e IA Local (`tests/core/offscreen-ocr.test.js`)**: 3 cenários canônicos cobrindo inicialização e resposta assíncrona, idempotência de contexto e enriquecimento com Prompt API, e tratamento defensivo de falhas de runtime e imagens inválidas.
+- **Sprint B: Registro da Permissão Offscreen (`extension/manifest.json`, `scripts/build-extension.js`)**: Inclusão da permissão `"offscreen"` no manifest e configuração do `esbuild` para empacotamento do worker em `dist/extension/offscreen.js`.
+
+### Added
 - **Sprint A: Modo Fila em Lote (Batch Queue) & Processamento Paralelo (`core/batch-queue.js`, `extension/batch-ui.js`)**: Criação do gerenciador de fila de documentos em memória volátil com processamento concorrente via `Promise.allSettled()`, somado ao widget visual de carrossel no Sidepanel (`[ ◀ Nota X de N ▶ ]`) com barra de progresso e badge de status em tempo real.
 - **Sprint A: Preenchimento Sequencial Contínuo no CCHA (`extension/sidepanel.js`, `extension/sidepanel.html`)**: Suporte nativo a seleção múltipla (`<input multiple>`) e arrasto em lote de arquivos fiscais, com avanço automático para o próximo comprovante da fila após o preenchimento com sucesso no portal estatal.
 - **Sprint A: Pipeline de Compilação e Minificação via esbuild (`scripts/build-extension.js`)**: Adição de script de empacotamento otimizado gerando bundles minificados em `dist/extension/` sem duplicações manuais de código.

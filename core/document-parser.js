@@ -83,6 +83,7 @@ export function parseDocumentFields(rawText = '', fileName = '') {
 
   const sefazData = extractSefazAccessKey(rawText);
   if (sefazData) {
+    data.chave_acesso = sefazData.chave;
     data.cpf_cnpj = sefazData.cnpj;
     data.cnpj = sefazData.cnpj;
     data.numero_documento = sefazData.numero_documento;

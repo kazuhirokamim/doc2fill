@@ -44,12 +44,26 @@ async function buildExtension() {
     sourcemap: false
   });
 
-  // 4. Copia arquivos estáticos
+  // 4. Bundle do Worker Offscreen (WASM & OCR)
+  console.log('📦 Empacotando offscreen.js...');
+  await esbuild.build({
+    entryPoints: ['extension/offscreen.js'],
+    bundle: true,
+    minify: true,
+    format: 'esm',
+    target: ['chrome110'],
+    outfile: path.join(outDir, 'offscreen.js'),
+    sourcemap: false
+  });
+
+  // 5. Copia arquivos estáticos
   console.log('📋 Copiando manifest, HTML, CSS e ativos visuais...');
   const staticFiles = [
     'manifest.json',
     'sidepanel.html',
     'sidepanel.css',
+    'offscreen.html',
+    'offscreen-client.js',
     'toasts.css',
     'license-modal.css',
     'toast-manager.js',

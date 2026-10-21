@@ -2,6 +2,7 @@
 import { parseDocumentFields, extractTextFromPdfContentAsync, normalizeCanonicalDocumentFields, isPdfEncrypted } from './core/document-parser.js';
 import { getRecentHistory, saveDocumentToHistory, clearHistory } from './core/history-store.js';
 import { performBrowserClientOcr } from './core/browser-ocr.js';
+import { executeOffscreenOcr } from './offscreen-client.js';
 import { initLicenseController } from './license-controller.js';
 import { showToast } from './toast-manager.js';
 import { BatchQueueManager } from './core/batch-queue.js';
@@ -266,6 +267,12 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (ocrRes.ok) return await ocrRes.json();
     } catch (_) {}
+
+    try {
+      const offscreenRes = await executeOffscreenOcr(base64Data, fileName);
+      if (offscreenRes && offscreenRes.success) return offscreenRes;
+    } catch (_) {}
+
     return await performBrowserClientOcr(base64Data, fileName);
   }
 
