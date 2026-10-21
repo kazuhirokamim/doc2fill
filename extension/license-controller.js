@@ -3,6 +3,7 @@
 
 import {
   validateLicenseKey,
+  validateLicenseKeyAsync,
   generateLicenseKey,
   formatLicenseDisplay,
   normalizeLicenseEmail
@@ -114,7 +115,7 @@ export async function initLicenseController() {
   }
 
   // Validação inicial
-  let validation = validateLicenseKey(currentLicense.email, currentLicense.key);
+  let validation = await validateLicenseKeyAsync(currentLicense.email, currentLicense.key);
   
   // Se ainda não houver licença configurada, ativa automaticamente um Beta de 14 dias para o usuário inicial
   if (!validation.valid && !currentLicense.email) {
@@ -122,7 +123,7 @@ export async function initLicenseController() {
     const autoBetaKey = generateLicenseKey(defaultEmail, 'BETA', getFutureDateString(14));
     await saveStoredLicense(defaultEmail, autoBetaKey);
     currentLicense = { email: defaultEmail, key: autoBetaKey };
-    validation = validateLicenseKey(currentLicense.email, currentLicense.key);
+    validation = await validateLicenseKeyAsync(currentLicense.email, currentLicense.key);
   }
 
   updateUi(validation);
@@ -161,7 +162,7 @@ export async function initLicenseController() {
       const email = normalizeLicenseEmail(inputEmail?.value || '');
       const key = (inputKey?.value || '').trim();
 
-      const res = validateLicenseKey(email, key);
+      const res = await validateLicenseKeyAsync(email, key);
       if (res.valid) {
         await saveStoredLicense(email, key);
         updateUi(res);

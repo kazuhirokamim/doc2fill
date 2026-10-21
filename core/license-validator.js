@@ -247,3 +247,173 @@ export function formatLicenseDisplay(res) {
 
   return `Doc2Fill ${res.plan} (Válido até ${res.expiresAt} · ${res.daysRemaining} dias)`;
 }
+
+// ============================================================================
+// Licenciamento Digital Assimétrico ECDSA (NIST P-256 / SHA-256)
+// ============================================================================
+
+export const DOC2FILL_PUBLIC_ECDSA_KEY = {
+  kty: 'EC',
+  crv: 'P-256',
+  x: 'ZjWdA9thtUiLtD04BBXIAAG9X4I2EjuCA9-BmBZwMJE',
+  y: 'amyAutgbqWD1mxOD5DikSNYMLTyLQ9mS7kTo36Fp23s',
+  ext: true
+};
+
+export const DOC2FILL_PRIVATE_ECDSA_KEY_DEFAULT = {
+  kty: 'EC',
+  crv: 'P-256',
+  x: 'ZjWdA9thtUiLtD04BBXIAAG9X4I2EjuCA9-BmBZwMJE',
+  y: 'amyAutgbqWD1mxOD5DikSNYMLTyLQ9mS7kTo36Fp23s',
+  d: 'KN8oggxCxF2MA7_uYEQeByO8mCq9YMqx549tpw52hSs',
+  ext: true
+};
+
+const subtle = (typeof globalThis !== 'undefined' && globalThis.crypto && globalThis.crypto.subtle)
+  ? globalThis.crypto.subtle
+  : null;
+
+function bytesToBase64Url(bytes) {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  const base64 = typeof btoa === 'function' ? btoa(binary) : Buffer.from(binary, 'binary').toString('base64');
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function base64UrlToBytes(base64url) {
+  const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  const pad = base64.length % 4 === 0 ? '' : '='.repeat(4 - (base64.length % 4));
+  const binary = typeof atob === 'function' ? atob(base64 + pad) : Buffer.from(base64 + pad, 'base64').toString('binary');
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+/**
+ * Gera uma chave de licença digital assinada com ECDSA (Chave Privada).
+ * Formato: D2F-<PLANO>-<VALIDADE>-E_<ASSINATURA_BASE64URL>
+ */
+export async function generateAsymmetricLicenseKeyAsync(email, plan, expiresAt, privateKeyJwk = DOC2FILL_PRIVATE_ECDSA_KEY_DEFAULT) {
+  if (!subtle) throw new Error('WebCrypto subtle indisponível');
+  const normEmail = normalizeLicenseEmail(email);
+  const normPlan = String(plan).trim().toUpperCase();
+  const normExp = String(expiresAt).trim().toUpperCase();
+
+  const payload = `${normEmail}:${normPlan}:${normExp}`;
+  const privKey = await subtle.importKey(
+    'jwk',
+    privateKeyJwk,
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    false,
+    ['sign']
+  );
+
+  const signatureBuf = await subtle.sign(
+    { name: 'ECDSA', hash: { name: 'SHA-256' } },
+    privKey,
+    new TextEncoder().encode(payload)
+  );
+
+  const sigB64 = bytesToBase64Url(new Uint8Array(signatureBuf));
+  return `D2F-${normPlan}-${normExp}-E_${sigB64}`;
+}
+
+/**
+ * Valida uma chave de licença utilizando ECDSA (Chave Pública) com fallback transparente para HMAC.
+ */
+export async function validateLicenseKeyAsync(email, licenseKey, publicKeyJwk = DOC2FILL_PUBLIC_ECDSA_KEY) {
+  if (!email || !licenseKey || typeof email !== 'string' || typeof licenseKey !== 'string') {
+    return { valid: false, reason: 'PARAMETROS_INVALIDOS' };
+  }
+
+  const normEmail = normalizeLicenseEmail(email);
+  if (!normEmail || !normEmail.includes('@')) {
+    return { valid: false, reason: 'EMAIL_INVALIDO' };
+  }
+
+  const cleanKey = licenseKey.trim();
+
+  // Verifica se é uma chave ECDSA
+  const ecdsaMatch = cleanKey.match(/^D2F-([A-Z0-9]+)-([A-Z0-9]+)-E_([A-Za-z0-9_-]+)$/);
+  if (ecdsaMatch) {
+    if (!subtle) return { valid: false, reason: 'CRYPTO_UNAVAILABLE' };
+
+    const [, rawPlan, rawExpiresAt, sigB64] = ecdsaMatch;
+    const plan = rawPlan.toUpperCase();
+    const expiresAtStr = rawExpiresAt.toUpperCase();
+    const payload = `${normEmail}:${plan}:${expiresAtStr}`;
+
+    try {
+      const pubKey = await subtle.importKey(
+        'jwk',
+        publicKeyJwk,
+        { name: 'ECDSA', namedCurve: 'P-256' },
+        false,
+        ['verify']
+      );
+
+      const sigBytes = base64UrlToBytes(sigB64);
+      const isVerified = await subtle.verify(
+        { name: 'ECDSA', hash: { name: 'SHA-256' } },
+        pubKey,
+        sigBytes,
+        new TextEncoder().encode(payload)
+      );
+
+      if (!isVerified) {
+        return { valid: false, reason: 'ASSINATURA_ECDSA_INVALIDA' };
+      }
+
+      if (expiresAtStr === 'LIFETIME') {
+        return {
+          valid: true,
+          plan,
+          expiresAt: 'Vitalícia',
+          daysRemaining: Infinity,
+          isLifetime: true,
+          algorithm: 'ECDSA-P256'
+        };
+      }
+
+      if (/^\d{8}$/.test(expiresAtStr)) {
+        const year = parseInt(expiresAtStr.substring(0, 4), 10);
+        const month = parseInt(expiresAtStr.substring(4, 6), 10);
+        const day = parseInt(expiresAtStr.substring(6, 8), 10);
+
+        const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const expDate = new Date(year, month - 1, day, 23, 59, 59, 999);
+        const now = new Date();
+
+        if (now.getTime() > expDate.getTime()) {
+          return {
+            valid: false,
+            reason: 'LICENCA_EXPIRADA',
+            plan,
+            expiresAt: formattedDate,
+            daysRemaining: 0,
+            algorithm: 'ECDSA-P256'
+          };
+        }
+
+        const diffMs = expDate.getTime() - now.getTime();
+        const daysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+
+        return {
+          valid: true,
+          plan,
+          expiresAt: formattedDate,
+          daysRemaining,
+          isLifetime: false,
+          algorithm: 'ECDSA-P256'
+        };
+      }
+
+      return { valid: false, reason: 'DATA_INVALIDA' };
+    } catch (_) {
+      return { valid: false, reason: 'FALHA_VERIFICACAO_ECDSA' };
+    }
+  }
+
+  // Fallback para validação HMAC legada síncrona
+  return validateLicenseKey(email, licenseKey);
+}

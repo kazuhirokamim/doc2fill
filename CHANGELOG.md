@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- **Sprint D: Licenciamento Digital Assimétrico ECDSA NIST P-256 (`core/license-validator.js`, `extension/license-controller.js`, `server/demo-server.js`)**: Implementação de assinatura digital com par de chaves assimétricas (curva P-256 com SHA-256) via Web Crypto API nativa. A chave pública embutida no client valida instantaneamente a autenticidade e validade das licenças emitidas sem risco de engenharia reversa ou forjamento de HMAC, mantendo fallback transparente para licenças legadas.
+- **Sprint D: Suíte TDD de Licenciamento Assimétrico (`tests/core/license-asymmetric.test.js`)**: 3 cenários canônicos cobrindo geração/validação de licenças PRO e Vitalícias, rejeição de chaves com dados adulterados ou forjados e tratamento de licenças expiradas.
+- **Sprint C: Criptografia P2P Ponta a Ponta Zero-Knowledge (`core/e2ee-crypto.js`)**: Motor de cifra ponta a ponta utilizando troca de chaves efêmeras ECDH (P-256) e canal de dados cifrado com AES-256-GCM com IV de 12 bytes aleatórios, garantindo tráfego inviolável sem retenção em nós intermediários.
+- **Sprint C: Orquestração WebRTC DataChannel & Fatiamento de Payloads (`core/webrtc-peer.js`)**: Gestão de canais P2P com fatiamento determinístico de payloads em blocos de 16KB (`chunkPayload`), remontador ordenado (`PayloadReassembler`) e sessão segura (`SecurePeerSession`).
+- **Sprint C: Suíte TDD de WebRTC e E2EE (`tests/core/webrtc-e2ee.test.js`)**: 3 cenários canônicos cobrindo troca de chaves e cifragem simétrica, fatiamento/remontagem de payloads de 65KB com detecção de adulteração de ciphertext e tratamento defensivo de falhas de canal.
+
+### Added
 - **Sprint B: OCR Embarcado Offscreen WASM e window.ai (`extension/offscreen.html`, `extension/offscreen.js`, `extension/offscreen-client.js`)**: Criação de documento isolado e cliente de gerenciamento via Chrome Offscreen API (`chrome.offscreen`), permitindo descarregar o processamento pesado de visão computacional, BarcodeDetector e Tesseract WASM para uma thread desacoplada sem travar a interface do Sidepanel.
 - **Sprint B: Integração com Gemini Nano / Prompt API (`extension/offscreen.js`)**: Sondagem nativa de `window.ai.languageModel` para enriquecimento contextual e extração precisa de campos fiscais e médicos (TUSS) no próprio dispositivo quando disponível.
 - **Sprint B: Suíte TDD de OCR Offscreen e IA Local (`tests/core/offscreen-ocr.test.js`)**: 3 cenários canônicos cobrindo inicialização e resposta assíncrona, idempotência de contexto e enriquecimento com Prompt API, e tratamento defensivo de falhas de runtime e imagens inválidas.

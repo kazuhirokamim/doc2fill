@@ -6,7 +6,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import QRCode from 'qrcode';
 import { processOcrText, performOcr } from '../core/ocr-engine.js';
-import { generateLicenseKey } from '../core/license-validator.js';
+import { generateLicenseKey, generateAsymmetricLicenseKeyAsync } from '../core/license-validator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -235,11 +235,15 @@ export function createAppServer(port = DEFAULT_PORT) {
         const expStr = `${nextYear.getFullYear()}${String(nextYear.getMonth() + 1).padStart(2, '0')}${String(nextYear.getDate()).padStart(2, '0')}`;
 
         const cryptographicLicenseKey = generateLicenseKey(email, plan, expStr);
+        let ecdsaLicenseKey = '';
+        try {
+          ecdsaLicenseKey = await generateAsymmetricLicenseKeyAsync(email, plan, expStr);
+        } catch (_) {}
         const licenseKey = payload.useCryptoFormat ? cryptographicLicenseKey : `DOC2FILL-FUNDADOR-${cryptographicLicenseKey}`;
 
         const ssePayload = JSON.stringify({
           event: 'payment_confirmed', orderId, email,
-          licenseKey: cryptographicLicenseKey, legacyLicenseKey: licenseKey,
+          licenseKey: cryptographicLicenseKey, ecdsaLicenseKey, legacyLicenseKey: licenseKey,
           downloadUrl: '/download/doc2fill-beta.zip', timestamp: Date.now()
         });
 
@@ -248,7 +252,7 @@ export function createAppServer(port = DEFAULT_PORT) {
         }
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, orderId, email, licenseKey, cryptographicLicenseKey }));
+        res.end(JSON.stringify({ success: true, orderId, email, licenseKey, cryptographicLicenseKey, ecdsaLicenseKey }));
       } catch (err) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Erro ao confirmar pedido' }));
