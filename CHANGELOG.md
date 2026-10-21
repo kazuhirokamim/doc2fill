@@ -21,6 +21,7 @@
 - **tests/extension/content.test.js**: Adicionados mocks `focus()` e `closest()` nos objetos de input simulados para compatibilidade com `fillInputElement`, que chama esses métodos nativos do DOM internamente. Corrige 3 testes que falhavam com `TypeError: input.focus is not a function`.
 
 ### Added
+- **Descompressão de Streams PDF FlateDecode (`core/pdf-stream-decoder.js` e `core/document-parser.js`)**: Implementação de descompressor determinístico em memória de streams `/FlateDecode` (zlib deflate) para leitura e extração de texto digital em 100% de DANFEs e PDFs fiscais gerados por ERPs ou navegadores modernos, eliminando a cegueira de regex sobre bytes comprimidos. Suíte TDD com 3 cenários canônicos adicionada em `tests/core/flatedecode-parser.test.js`.
 - **Trilha A — Experiência Power-User e Atalhos de Teclado**: Declaração do comando `fill_active_form` (`Ctrl+Shift+F` / `Cmd+Shift+F`) no `manifest.json`, listener no background worker e atalho `Ctrl+Enter` / `Cmd+Enter` no Sidepanel para disparo instantâneo de autofill.
 - **Trilha A — Highlighter Visual de Formulários (`extension/content.js`)**: Aplicação suave de contorno ciano (`#00D2FF`) e glow difuso temporário (1500ms) nos campos preenchidos com restauração automática de estilos nativos.
 - **Trilha A — Histórico Local Rotativo (`core/history-store.js`)**: Armazenamento seguro dos últimos 10 documentos processados com descarte LRU e Zero Retenção na Nuvem em conformidade estrita com a LGPD.

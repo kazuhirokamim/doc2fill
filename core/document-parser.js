@@ -3,6 +3,7 @@
 
 import { classifyDocumentType } from './classifier.js';
 import { extractLineItemsFromText } from './item-extractor.js';
+import { extractAllStreamsText, extractTextFromOperators } from './pdf-stream-decoder.js';
 
 /**
  * Detecta preventivamente se um buffer de PDF possui operador de criptografia / senha (/Encrypt)
@@ -46,48 +47,20 @@ export function extractTextFromPdfContent(input) {
     return '';
   }
 
-  let text = '';
   if (typeof input === 'string') {
-    text = input;
-  } else if (input instanceof ArrayBuffer || ArrayBuffer.isView(input)) {
-    const bytes = new Uint8Array(input instanceof ArrayBuffer ? input : input.buffer);
-    const decoder = new TextDecoder('latin1');
-    text = decoder.decode(bytes);
-  } else {
-    return '';
+    const chunks = extractTextFromOperators(input);
+    return chunks.length > 0 ? chunks.join('\n') : '';
   }
 
-  // Coleta texto contido em operadores de texto do PDF: (Texto) Tj ou [(T)(e)(x)(t)(o)] TJ
-  const extractedChunks = [];
-  
-  // 1. Strings literais (Texto) Tj
-  const literalMatches = text.match(/\(([^()]{2,})\)\s*Tj/g) || [];
-  for (const m of literalMatches) {
-    const val = m.replace(/^\(/, '').replace(/\)\s*Tj$/, '').trim();
-    if (val) extractedChunks.push(val);
+  if (input instanceof ArrayBuffer || ArrayBuffer.isView(input)) {
+    const bytes = input instanceof ArrayBuffer
+      ? new Uint8Array(input)
+      : new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+    const chunks = extractAllStreamsText(bytes);
+    return chunks.length > 0 ? chunks.join('\n') : '';
   }
 
-  // 2. Arrays de strings [(T) -10 (exto)] TJ
-  const arrayMatches = text.match(/\[([^\]]+)\]\s*TJ/g) || [];
-  for (const m of arrayMatches) {
-    const innerStrings = m.match(/\(([^()]+)\)/g) || [];
-    const joined = innerStrings.map(s => s.slice(1, -1)).join('').trim();
-    if (joined) extractedChunks.push(joined);
-  }
-
-  // 3. Fallback: Se não encontrou operadores específicos, busca todas as strings legíveis do PDF
-  if (extractedChunks.length === 0) {
-    const rawStrings = text.match(/\(([^()]{3,})\)/g) || [];
-    for (const s of rawStrings) {
-      const clean = s.slice(1, -1).trim();
-      // Ignora metadados binários ou fontes
-      if (/^[a-zA-Z0-9\s\.,;:/\-–—ºª§R$\(\)]+$/.test(clean) && clean.length >= 3) {
-        extractedChunks.push(clean);
-      }
-    }
-  }
-
-  return extractedChunks.length > 0 ? extractedChunks.join('\n') : '';
+  return '';
 }
 
 /**
