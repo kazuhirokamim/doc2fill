@@ -2,6 +2,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import zlib from 'node:zlib';
+import { execSync } from 'node:child_process';
 import { extractTextFromPdfContentAsync, parseDocumentFields } from '../../core/document-parser.js';
 import { performBrowserClientOcr } from '../../core/browser-ocr.js';
 
@@ -64,5 +65,11 @@ describe('doc2fill Browser Autonomy, Clinical Anti-Glosa Integration & Crypto Ch
     const resNull = await performBrowserClientOcr(null);
     assert.equal(resNull.success, false);
     assert.equal(resNull.source, 'invalid_input');
+  });
+
+  it('Cenário 4 (Static Integrity): scripts da extensão e sidepanel compilam com sintaxe válida', () => {
+    assert.doesNotThrow(() => {
+      execSync('node -c extension/sidepanel.js extension/content.js', { encoding: 'utf-8' });
+    });
   });
 });

@@ -8,6 +8,7 @@
 - **Gaveta Visual de Histórico Local Recente (`extension/sidepanel.html`, `extension/sidepanel.js`)**: Integração da gaveta de histórico de preenchimentos recentes (máximo 10 itens em memória volátil) com botão de purga manual e restauração instantânea nos campos.
 
 ### Fixed
+- **Integridade Sintática e Higienização do Sidepanel (`extension/sidepanel.js`)**: Correção de corrupção sintática e remoção de trechos órfãos/duplicados no controlador do sidepanel, garantindo compilação limpa no V8 e adicionando asserção estática na suíte TDD.
 - **Descompressão Nativa no Navegador via `DecompressionStream` (`core/pdf-stream-decoder.js`)**: Adição de `decompressPdfStreamAsync` e `extractAllStreamsTextAsync` com `DecompressionStream('deflate')` e `'deflate-raw'` nativos do navegador, permitindo leitura autônoma de PDFs comprimidos no Chrome sem necessidade do Node.js.
 - **Integração do Motor Clínico Anti-Glosa TUSS/ANS (`core/document-parser.js`)**: Conexão de `translateClinicalProcedure` diretamente em `parseDocumentFields` para preenchimento de descritivo e motivo de necessidade clínica, garantindo conformidade contra glosas de operadoras de saúde.
 - **Resolução de Disputa de Frames no SEI/AGU (`extension/content.js`)**: Implementação de filtro `isTopFrame` impedindo que iframes vazios respondam com falha antes do frame alvo que contém o formulário.
