@@ -338,3 +338,79 @@ describe('doc2fill S2-T4: matchSemanticSelectOption (Mapeador de Selects com Fal
   });
 });
 
+describe('doc2fill Wave 2: Cross-Frame (Iframe) & Keyboard Events Support (TDD)', () => {
+  it('Cenário 1 (Happy Path): varre recursivamente inputs dentro de iframe governamental (SEI/AGU)', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const iframeInput = { tagName: 'INPUT', type: 'text', id: 'txtNumeroProcesso', name: 'processo' };
+    const mockIframeDoc = {
+      querySelectorAll: (sel) => {
+        if (sel.includes('input')) return [iframeInput];
+        return [];
+      }
+    };
+    const mockIframe = {
+      contentDocument: mockIframeDoc
+    };
+
+    const mainInput = { tagName: 'INPUT', type: 'text', id: 'field_main' };
+    const mockMainDoc = {
+      querySelectorAll: (sel) => {
+        if (sel === 'iframe, frame') return [mockIframe];
+        if (sel.includes('input')) return [mainInput];
+        return [mainInput, mockIframe];
+      }
+    };
+
+    const elements = engine.getAllFormElements(mockMainDoc);
+    assert.ok(elements.includes(mainInput), 'Deve incluir input da página principal');
+    assert.ok(elements.includes(iframeInput), 'Deve incluir input de dentro do iframe do SEI');
+    assert.equal(elements.length, 2);
+  });
+
+  it('Cenário 2 (Edge Case): despacha keydown e keyup para compatibilidade com jQuery Mask e vanilla masks', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const dispatched = [];
+    const mockInput = {
+      tagName: 'INPUT',
+      type: 'text',
+      value: '',
+      focus: () => {},
+      closest: () => null,
+      dispatchEvent: (e) => dispatched.push({ type: e.type, key: e.key, bubbles: e.bubbles })
+    };
+
+    // Global KeyboardEvent mock if not in node
+    globalThis.KeyboardEvent = globalThis.KeyboardEvent || class KeyboardEvent extends globalThis.Event {
+      constructor(t, o) { super(t, o); this.key = o?.key; }
+    };
+
+    engine.setInputValueWithEvents(mockInput, '14.850,00');
+    assert.equal(mockInput.value, '14.850,00');
+
+    const keydownEvent = dispatched.find(e => e.type === 'keydown');
+    const keyupEvent = dispatched.find(e => e.type === 'keyup');
+    assert.ok(keydownEvent, 'Deve disparar evento keydown');
+    assert.ok(keyupEvent, 'Deve disparar evento keyup');
+  });
+
+  it('Cenário 3 (Error Path): iframe inacessível por sandbox ou cross-origin não lança erro', () => {
+    const engine = globalThis.__doc2fill_content_engine;
+    const restrictedIframe = {
+      get contentDocument() {
+        throw new Error('SecurityError: Blocked a frame with origin from accessing a cross-origin frame.');
+      }
+    };
+    const mockDoc = {
+      querySelectorAll: (sel) => {
+        if (sel === 'iframe, frame') return [restrictedIframe];
+        return [];
+      }
+    };
+
+    assert.doesNotThrow(() => {
+      const res = engine.getAllFormElements(mockDoc);
+      assert.ok(Array.isArray(res));
+    });
+  });
+});
+

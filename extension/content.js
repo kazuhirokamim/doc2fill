@@ -136,7 +136,7 @@ export function highlightFilledElement(el, durationMs = 1500) {
     return null;
   }
 
-  // Coleta profunda de elementos de formulário, incluindo Angular Reactive Forms, ng-select e Shadow DOM
+  // Coleta profunda de elementos de formulário, incluindo Angular Reactive Forms, ng-select, Shadow DOM e Iframes (Wave 2)
   function getAllFormElements(root = document) {
     if (!root || !root.querySelectorAll) return [];
     const selector = 'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([disabled]), textarea:not([disabled]), select:not([disabled]), ng-select:not([disabled]), mat-select:not([disabled]), [formcontrolname]:not([disabled])';
@@ -148,16 +148,47 @@ export function highlightFilledElement(el, durationMs = 1500) {
         elements = elements.concat(getAllFormElements(node.shadowRoot));
       }
     }
+
+    // Varredura recursiva defensiva de iframes e frames de mesma origem (SEI / AGU)
+    const allFrames = root.querySelectorAll('iframe, frame');
+    for (const frame of allFrames) {
+      try {
+        const frameDoc = frame.contentDocument || frame.contentWindow?.document;
+        if (frameDoc && frameDoc !== root) {
+          elements = elements.concat(getAllFormElements(frameDoc));
+        }
+      } catch (_) {
+        // Silencia restrições cross-origin com segurança
+      }
+    }
+
     return elements;
   }
 
-  // Listener para mensagens do Side Panel (Operação 100% Headless)
+  // Listener para mensagens do Side Panel e Atalhos Globais (Operação 100% Headless)
   if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage?.addListener) {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       if (request.action === 'DOC2FILL_EXECUTE') {
         const result = executeAutofill(request.data, request.file);
         sendResponse(result);
         return true;
+      }
+
+      if (request.action === 'DOC2FILL_EXECUTE_SHORTCUT') {
+        if (typeof chrome !== 'undefined' && chrome.storage?.local?.get) {
+          chrome.storage.local.get(['d2f_active_payload'], (items) => {
+            if (items && items.d2f_active_payload && items.d2f_active_payload.data) {
+              const res = executeAutofill(items.d2f_active_payload.data, items.d2f_active_payload.file);
+              sendResponse(res);
+            } else {
+              sendResponse({ success: false, reason: 'Nenhum documento ativo em memória para preencher via atalho.' });
+            }
+          });
+          return true;
+        } else {
+          sendResponse({ success: false, reason: 'Armazenamento local da extensão indisponível.' });
+          return true;
+        }
       }
     });
   }
@@ -347,6 +378,13 @@ export function highlightFilledElement(el, durationMs = 1500) {
     }
 
     // Disparo da cadeia completa de eventos do ciclo reativo com bubbles e composed
+    try {
+      if (typeof KeyboardEvent !== 'undefined') {
+        const lastChar = String(val).slice(-1) || '0';
+        input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, composed: true, key: lastChar }));
+      }
+    } catch (_) {}
+
     input.dispatchEvent(new Event('input', { bubbles: true, cancelable: true, composed: true }));
     try {
       if (typeof InputEvent !== 'undefined') {
@@ -354,6 +392,14 @@ export function highlightFilledElement(el, durationMs = 1500) {
       }
     } catch (_) {}
     input.dispatchEvent(new Event('change', { bubbles: true, cancelable: true, composed: true }));
+
+    try {
+      if (typeof KeyboardEvent !== 'undefined') {
+        const lastChar = String(val).slice(-1) || '0';
+        input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true, composed: true, key: lastChar }));
+      }
+    } catch (_) {}
+
     input.dispatchEvent(new Event('blur', { bubbles: true, cancelable: true, composed: true }));
 
     // Se estiver em <mat-form-field>, ajusta estado flutuante do label

@@ -60,7 +60,17 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["sidepanel.html", "sidepanel.css", "sidepanel.js", "core/*", "icons/*"],
+      "resources": [
+        "sidepanel.html",
+        "sidepanel.css",
+        "sidepanel.js",
+        "toasts.css",
+        "toast-manager.js",
+        "license-modal.css",
+        "license-controller.js",
+        "core/*",
+        "icons/*"
+      ],
       "matches": ["<all_urls>"]
     }
   ]

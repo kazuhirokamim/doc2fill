@@ -3,6 +3,7 @@ import { translateClinicalProcedure } from './core/clinical-translator.js';
 import { classifyDocumentType } from './core/classifier.js';
 import { parseDocumentFields, extractTextFromPdfContent, normalizeCanonicalDocumentFields, isPdfEncrypted } from './core/document-parser.js';
 import { initLicenseController } from './license-controller.js';
+import { showToast } from './toast-manager.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Inicializa o gerenciador de licença híbrida offline
@@ -175,6 +176,13 @@ document.addEventListener('DOMContentLoaded', () => {
     validationBadge.textContent = '✓ 8 Campos Prontos';
     validationBadge.classList.add('valid');
     btnAutofill.disabled = false;
+
+    // Sincroniza payload com o armazenamento de sessão/local para atalho global Cmd+Shift+F
+    if (typeof chrome !== 'undefined' && chrome.storage?.local?.set) {
+      try {
+        chrome.storage.local.set({ d2f_active_payload: { data: { ...data }, file: fileData } });
+      } catch (_) {}
+    }
   }
 
   // Controles de Zoom do Split-View (S2-T1)
@@ -548,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (!tab || !tab.id) {
-        alert('Nenhuma aba ativa encontrada.');
+        showToast('Nenhuma aba ativa encontrada no navegador.', 'warning');
         btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
         btnAutofill.disabled = false;
         return;
@@ -595,13 +603,13 @@ document.addEventListener('DOMContentLoaded', () => {
           btnAutofill.disabled = false;
         }, 2200);
       } else {
-        alert('Não foi possível preencher. Verifique se a página aberta possui um formulário compatível.');
+        showToast('Não foi possível preencher. Verifique se a página aberta possui um formulário compatível.', 'warning');
         btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
         btnAutofill.disabled = false;
       }
     } catch (err) {
       console.error('doc2fill error:', err);
-      alert('Erro de conexão com a página. Recarregue a aba após atualizar a extensão.');
+      showToast('Erro de conexão com a página. Recarregue a aba após atualizar a extensão.', 'error');
       btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
       btnAutofill.disabled = false;
     }
