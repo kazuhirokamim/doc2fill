@@ -1,21 +1,18 @@
 // doc2fill - Sidepanel Controller (CCHA Honorários & Real File Parsing Edition)
-import { translateClinicalProcedure } from './core/clinical-translator.js';
-import { classifyDocumentType } from './core/classifier.js';
-import { parseDocumentFields, extractTextFromPdfContent, normalizeCanonicalDocumentFields, isPdfEncrypted } from './core/document-parser.js';
+import { parseDocumentFields, extractTextFromPdfContentAsync, normalizeCanonicalDocumentFields, isPdfEncrypted } from './core/document-parser.js';
+import { getRecentHistory, saveDocumentToHistory, clearHistory } from './core/history-store.js';
+import { performBrowserClientOcr } from './core/browser-ocr.js';
 import { initLicenseController } from './license-controller.js';
 import { showToast } from './toast-manager.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Inicializa o gerenciador de licença híbrida offline
   initLicenseController();
 
-  // Elements
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabPanes = document.querySelectorAll('.tab-pane');
   const btnAutofill = document.getElementById('btn-autofill');
   const validationBadge = document.getElementById('validation-badge');
 
-  // File Upload Elements
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input');
   const btnSelectFile = document.getElementById('btn-select-file');
@@ -24,14 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const attachmentStatusBox = document.getElementById('attachment-status-box');
   const attachmentText = document.getElementById('attachment-text');
 
-  // QR Code Elements
   const qrBox = document.getElementById('qr-box');
   const qrLinkContainer = document.getElementById('qr-link-container');
   const qrDirectLink = document.getElementById('qr-direct-link');
   const btnCopyLink = document.getElementById('btn-copy-link');
   const qrRelayStatus = document.getElementById('qr-relay-status');
 
-  // Input Fields & CCHA Controls (8 Campos Focados)
   const fTipoDoc = document.getElementById('field-tipo-doc');
   const fCnpj = document.getElementById('field-cnpj');
   const fRazao = document.getElementById('field-razao');
@@ -42,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const fMotivo = document.getElementById('field-motivo');
   const badgeAntiGlosa = document.getElementById('badge-anti-glosa');
 
-  // Split-View Elements (S2-T1)
   const documentPreviewContainer = document.getElementById('document-preview-container');
   const previewDocImage = document.getElementById('preview-doc-image');
   const previewViewport = document.getElementById('preview-viewport');
@@ -51,9 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnZoom200 = document.getElementById('btn-zoom-200');
   const btnTogglePreview = document.getElementById('btn-toggle-preview');
 
-  // Toolbar de Edição Manual (S2-T2)
   const btnRestoreFields = document.getElementById('btn-restore-fields');
   const btnClearFields = document.getElementById('btn-clear-fields');
+
+  const historyListEl = document.getElementById('history-list');
+  const btnPurgeHistory = document.getElementById('btn-purge-history');
 
   let activeSessionId = null;
   let relayPollInterval = null;
@@ -61,13 +57,48 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastCanonicalData = null;
   let activeApiBaseUrl = 'http://localhost:3333';
 
-  // Descobre dinamicamente a porta ativa do servidor local (3333, 8080, 3334, 3030...)
+  async function renderHistoryList() {
+    if (!historyListEl) return;
+    const list = await getRecentHistory();
+    if (!list || list.length === 0) {
+      historyListEl.innerHTML = '<span style="font-size:11px; color:var(--text-muted);">Nenhum comprovante recente salvo na sessão.</span>';
+      return;
+    }
+
+    historyListEl.innerHTML = '';
+    for (const item of list) {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'btn-subtle-action';
+      row.style.cssText = 'justify-content: space-between; width: 100%; text-align: left; padding: 6px 10px;';
+      row.innerHTML = `
+        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">${item.fornecedor || 'Comprovante'}</span>
+        <span style="color:var(--brand-cyan); font-family:var(--font-numeric); font-weight:600;">${item.valor || ''}</span>
+      `;
+      row.addEventListener('click', () => {
+        populateFormFields(normalizeCanonicalDocumentFields(item), null);
+        showToast(`Carregado do histórico: ${item.fornecedor}`, 'info', 2000);
+      });
+      historyListEl.appendChild(row);
+    }
+  }
+
+  if (btnPurgeHistory) {
+    btnPurgeHistory.addEventListener('click', async () => {
+      await clearHistory();
+      await renderHistoryList();
+      showToast('Histórico local expurgado com segurança.', 'info', 2000);
+    });
+  }
+
+  renderHistoryList().catch(() => {});
+
   async function resolveApiBaseUrl() {
     const candidatePorts = [3333, 8080, 3334, 3030, 4040];
     for (const port of candidatePorts) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 600);
+        const timeoutId = setTimeout(() => controller.abort(), 500);
         const res = await fetch(`http://localhost:${port}/api/session`, { signal: controller.signal });
         clearTimeout(timeoutId);
         if (res && res.ok) {
@@ -79,10 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return { baseUrl: activeApiBaseUrl, sessionData: null };
   }
 
-  // Inicializa a descoberta da porta ativa da API imediatamente no carregamento
   resolveApiBaseUrl().catch(() => {});
 
-  // 1. Tab switching
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       tabBtns.forEach(b => b.classList.remove('active'));
@@ -91,15 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const target = document.getElementById(`pane-${btn.dataset.tab}`);
       if (target) target.classList.add('active');
 
-      if (btn.dataset.tab === 'qr') {
-        initQrSession();
-      } else {
-        stopRelayPolling();
-      }
+      if (btn.dataset.tab === 'qr') initQrSession();
+      else stopRelayPolling();
     });
   });
 
-  // 2. Preenchimento dos 8 campos focados
   function populateFormFields(data, fileData = null) {
     if (data.tipo_documento && fTipoDoc) {
       fTipoDoc.value = data.tipo_documento;
@@ -107,50 +132,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const norm = (data.tipo_documento || '').toLowerCase();
         for (const opt of fTipoDoc.options) {
           const optVal = opt.value.toLowerCase();
-          if (norm.includes('cupom') && optVal.includes('cupom')) {
-            fTipoDoc.value = opt.value;
-            break;
-          }
-          if (norm.includes('nota') && optVal.includes('nota')) {
-            fTipoDoc.value = opt.value;
-            break;
-          }
-          if (norm.includes('recibo') && optVal.includes('recibo')) {
-            fTipoDoc.value = opt.value;
-            break;
-          }
-          if (norm.includes('guia') && optVal.includes('guia')) {
-            fTipoDoc.value = opt.value;
-            break;
-          }
-          if (norm.includes('boleto') && optVal.includes('boleto')) {
-            fTipoDoc.value = opt.value;
-            break;
-          }
+          if (norm.includes('cupom') && optVal.includes('cupom')) { fTipoDoc.value = opt.value; break; }
+          if (norm.includes('nota') && optVal.includes('nota')) { fTipoDoc.value = opt.value; break; }
+          if (norm.includes('recibo') && optVal.includes('recibo')) { fTipoDoc.value = opt.value; break; }
+          if (norm.includes('guia') && optVal.includes('guia')) { fTipoDoc.value = opt.value; break; }
+          if (norm.includes('boleto') && optVal.includes('boleto')) { fTipoDoc.value = opt.value; break; }
         }
       }
     }
-    if (fCnpj) {
-      fCnpj.value = data.cpf_cnpj || data.cnpj || data.cpf || '';
-    }
-    if (fRazao) {
-      fRazao.value = data.fornecedor || data.razao || data.nome || '';
-    }
-    if (fNumDoc) {
-      fNumDoc.value = data.numero_documento || data.processo || '';
-    }
-    if (fData) {
-      fData.value = data.data || '';
-    }
-    if (fValor) {
-      fValor.value = data.valor || '';
-    }
-    if (fDescricao) {
-      fDescricao.value = data.descritivo || data.descricao || '';
-    }
-    if (fMotivo) {
-      fMotivo.value = data.motivo || '';
-    }
+    if (fCnpj) fCnpj.value = data.cpf_cnpj || data.cnpj || data.cpf || '';
+    if (fRazao) fRazao.value = data.fornecedor || data.razao || data.nome || '';
+    if (fNumDoc) fNumDoc.value = data.numero_documento || data.processo || '';
+    if (fData) fData.value = data.data || '';
+    if (fValor) fValor.value = data.valor || '';
+    if (fDescricao) fDescricao.value = data.descritivo || data.descricao || '';
+    if (fMotivo) fMotivo.value = data.motivo || '';
 
     if (badgeAntiGlosa) {
       badgeAntiGlosa.textContent = '⚖️ CCHA Validado';
@@ -166,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
         attachmentText.textContent = `📎 ${fileData.name} (${(fileData.size / 1024).toFixed(1)} KB) pronto para anexar`;
       }
 
-      // Renderiza Split-View visual da imagem em memória efêmera se for imagem
       if (documentPreviewContainer && previewDocImage && fileData.base64 && (fileData.type?.startsWith('image/') || fileData.name?.match(/\.(png|jpe?g|webp)$/i))) {
         previewDocImage.src = fileData.base64;
         documentPreviewContainer.style.display = 'flex';
@@ -177,15 +172,11 @@ document.addEventListener('DOMContentLoaded', () => {
     validationBadge.classList.add('valid');
     btnAutofill.disabled = false;
 
-    // Sincroniza payload com o armazenamento de sessão/local para atalho global Cmd+Shift+F
     if (typeof chrome !== 'undefined' && chrome.storage?.local?.set) {
-      try {
-        chrome.storage.local.set({ d2f_active_payload: { data: { ...data }, file: fileData } });
-      } catch (_) {}
+      try { chrome.storage.local.set({ d2f_active_payload: { data: { ...data }, file: fileData } }); } catch (_) {}
     }
   }
 
-  // Controles de Zoom do Split-View (S2-T1)
   function setPreviewZoom(level) {
     if (!previewDocImage) return;
     previewDocImage.classList.remove('zoom-100', 'zoom-150', 'zoom-200');
@@ -207,12 +198,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Ações Rápidas de Edição Manual (S2-T2)
   if (btnRestoreFields) {
     btnRestoreFields.addEventListener('click', () => {
-      if (lastCanonicalData) {
-        populateFormFields(lastCanonicalData, attachedFile);
-      }
+      if (lastCanonicalData) populateFormFields(lastCanonicalData, attachedFile);
     });
   }
 
@@ -231,41 +219,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 3. Seleção e Drag & Drop de Arquivos com Leitura em Memória
   if (btnSelectFile && fileInput) {
-    btnSelectFile.addEventListener('click', (e) => {
-      e.stopPropagation();
-      fileInput.click();
-    });
+    btnSelectFile.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
   }
 
   if (dropZone && fileInput) {
-    dropZone.addEventListener('click', () => {
-      fileInput.click();
-    });
-
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.classList.add('drag-over');
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('drag-over');
-    });
-
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
     dropZone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropZone.classList.remove('drag-over');
-      if (e.dataTransfer && e.dataTransfer.files) {
-        handleDocumentFile(e.dataTransfer.files);
-      }
+      if (e.dataTransfer && e.dataTransfer.files) handleDocumentFile(e.dataTransfer.files);
     });
-
     fileInput.addEventListener('change', (e) => {
-      if (e.target && e.target.files) {
-        handleDocumentFile(e.target.files);
-      }
+      if (e.target && e.target.files) handleDocumentFile(e.target.files);
     });
+  }
+
+  async function requestOcrWithClientFallback(base64Data, fileName) {
+    try {
+      const ocrRes = await fetch(`${activeApiBaseUrl}/api/ocr`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64Data, name: fileName })
+      });
+      if (ocrRes.ok) return await ocrRes.json();
+    } catch (_) {}
+    return await performBrowserClientOcr(base64Data, fileName);
   }
 
   async function handleDocumentFile(filesOrFile) {
@@ -274,10 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (fileList.length === 0) return;
 
     const file = fileList[0];
-    if (fileList.length > 1) {
-      console.warn(`[doc2fill] Múltiplos arquivos detectados (${fileList.length}). Processando apenas o primeiro: ${file.name}`);
-    }
-
     const allowedExts = ['.pdf', '.png', '.jpg', '.jpeg'];
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     if (!allowedExts.includes(ext)) {
@@ -298,10 +275,8 @@ document.addEventListener('DOMContentLoaded', () => {
     dropSubtitle.textContent = `Extraindo texto e campos em memória efêmera...`;
 
     try {
-      // 1. Assegura conexão ativa com a API local
       await resolveApiBaseUrl();
 
-      // 2. Converte para base64 para anexo e eventual envio ao OCR
       const base64Promise = new Promise((resolve, reject) => {
         const r = new FileReader();
         r.onload = () => resolve(r.result);
@@ -309,26 +284,16 @@ document.addEventListener('DOMContentLoaded', () => {
         r.readAsDataURL(file);
       });
 
-      // 3. Extrai texto bruto (Imagens via OCR, PDF ou texto)
       let extractedText = '';
       let ocrStructuredData = null;
 
       if (file.type.startsWith('image/') || file.name.match(/\.(png|jpe?g|webp|bmp)$/i)) {
-        dropSubtitle.textContent = 'Processando com OCR óptico em português...';
-        try {
-          const b64 = await base64Promise;
-          const ocrRes = await fetch(`${activeApiBaseUrl}/api/ocr`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: b64, name: file.name })
-          });
-          const ocrJson = await ocrRes.json();
-          if (ocrJson.success) {
-            if (ocrJson.text) extractedText = ocrJson.text;
-            if (ocrJson.data) ocrStructuredData = ocrJson.data;
-          }
-        } catch (ocrErr) {
-          console.warn('[doc2fill sidepanel] OCR fallback:', ocrErr);
+        dropSubtitle.textContent = 'Processando imagem com motor óptico local...';
+        const b64 = await base64Promise;
+        const ocrJson = await requestOcrWithClientFallback(b64, file.name);
+        if (ocrJson && ocrJson.success) {
+          if (ocrJson.text) extractedText = ocrJson.text;
+          if (ocrJson.data) ocrStructuredData = ocrJson.data;
         }
       } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
         const bufferPromise = new Promise((resolve, reject) => {
@@ -342,85 +307,46 @@ document.addEventListener('DOMContentLoaded', () => {
           dropTitle.textContent = `🔒 PDF protegido por senha`;
           dropSubtitle.textContent = 'Não foi possível identificar o texto. Preencha manualmente ou envie outra foto.';
           populateFormFields(normalizeCanonicalDocumentFields({}), {
-            name: file.name,
-            type: file.type || 'application/pdf',
-            size: file.size,
-            base64: await base64Promise
+            name: file.name, type: file.type || 'application/pdf', size: file.size, base64: await base64Promise
           });
           return;
         }
-        extractedText = extractTextFromPdfContent(buffer);
 
-        // Avaliação preliminar de integridade do texto digital do PDF
+        extractedText = await extractTextFromPdfContentAsync(buffer);
+
         const preliminaryParsed = extractedText ? parseDocumentFields(extractedText, file.name) : null;
         const hasCoreFiscalFields = preliminaryParsed && (
-          preliminaryParsed.cnpj ||
-          preliminaryParsed.cpf ||
-          preliminaryParsed.valor ||
-          preliminaryParsed.numero_documento
+          preliminaryParsed.cnpj || preliminaryParsed.cpf || preliminaryParsed.valor || preliminaryParsed.numero_documento
         );
 
-        // Se o PDF for digitalizado/escaneado, sem dados fiscais ou texto insuficiente, chama OCR local
         if (!hasCoreFiscalFields || !extractedText || extractedText.length < 50) {
           dropSubtitle.textContent = 'PDF digitalizado detectado: processando com OCR óptico local...';
-          try {
-            const b64 = await base64Promise;
-            const ocrRes = await fetch(`${activeApiBaseUrl}/api/ocr`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ image: b64, name: file.name })
-            });
-            const ocrJson = await ocrRes.json();
-            if (ocrJson.success) {
-              if (ocrJson.text) extractedText = ocrJson.text;
-              if (ocrJson.data) ocrStructuredData = ocrJson.data;
-            }
-          } catch (ocrErr) {
-            console.warn('[doc2fill sidepanel] OCR fallback no PDF:', ocrErr);
+          const b64 = await base64Promise;
+          const ocrJson = await requestOcrWithClientFallback(b64, file.name);
+          if (ocrJson && ocrJson.success) {
+            if (ocrJson.text) extractedText = ocrJson.text;
+            if (ocrJson.data) ocrStructuredData = ocrJson.data;
           }
         }
-      } else if (file.type.startsWith('text/') || file.name.match(/\.(txt|csv|json|xml|html)$/i)) {
-        const textPromise = new Promise((resolve, reject) => {
-          const r = new FileReader();
-          r.onload = () => resolve(r.result);
-          r.onerror = reject;
-          r.readAsText(file);
-        });
-        extractedText = await textPromise;
       }
 
       const base64 = await base64Promise;
-      const filePayload = {
-        name: file.name,
-        type: file.type || 'application/pdf',
-        size: file.size,
-        base64
-      };
+      const filePayload = { name: file.name, type: file.type || 'application/pdf', size: file.size, base64 };
 
-      // 4. Extrai campos estruturados (CCHA / Honorários) e mescla com dados do OCR se houver
       const parsed = parseDocumentFields(extractedText, file.name);
-      
-      // Mesclagem com prioridade estrita: campos válidos do OCR nunca são esmagados por fallbacks locais
       const mergedData = { ...parsed };
       if (ocrStructuredData && typeof ocrStructuredData === 'object') {
         for (const [key, val] of Object.entries(ocrStructuredData)) {
-          if (val && typeof val === 'string' && val.trim() !== '') {
-            mergedData[key] = val;
-          } else if (val !== null && val !== undefined && typeof val !== 'string') {
-            mergedData[key] = val;
-          }
+          if (val && typeof val === 'string' && val.trim() !== '') mergedData[key] = val;
+          else if (val !== null && val !== undefined && typeof val !== 'string') mergedData[key] = val;
         }
       }
 
-      // 5. Normalização canônica estrita dos 8 campos (S1-T2)
       const canonicalData = normalizeCanonicalDocumentFields(mergedData);
-
       dropTitle.textContent = `✓ ${file.name}`;
       dropSubtitle.textContent = `Arquivo lido • ${(file.size / 1024).toFixed(1)} KB • 8 Campos canônicos extraídos`;
-
       populateFormFields(canonicalData, filePayload);
     } catch (err) {
-      console.warn('[doc2fill] Erro ao processar arquivo:', err);
       dropTitle.textContent = `⚠️ Documento ilegível`;
       dropSubtitle.textContent = 'Não foi possível identificar o texto. Preencha manualmente ou envie outra foto.';
       populateFormFields(normalizeCanonicalDocumentFields({}), null);
@@ -429,50 +355,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 4. Sessão P2P com QR Code Real e Escaneável via Câmera Mobile
   async function initQrSession() {
-    if (qrBox) {
-      qrBox.innerHTML = '<div style="font-size:12px; color:#6B7280; padding:16px;">⏳ Gerando QR Code escaneável...</div>';
-    }
-
+    if (qrBox) qrBox.innerHTML = '<div style="font-size:12px; color:#6B7280; padding:16px;">⏳ Gerando QR Code escaneável...</div>';
     try {
       const { baseUrl, sessionData } = await resolveApiBaseUrl();
       let data = sessionData;
-
       if (!data) {
         const res = await fetch(`${baseUrl}/api/session`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         data = await res.json();
       }
-
       activeSessionId = data.sessionId;
-
-      if (qrBox && data.qrSvg) {
-        qrBox.innerHTML = data.qrSvg;
-      }
-
+      if (qrBox && data.qrSvg) qrBox.innerHTML = data.qrSvg;
       if (qrLinkContainer && qrDirectLink) {
         qrLinkContainer.style.display = 'flex';
         qrDirectLink.href = data.mobileUrl;
         qrDirectLink.textContent = data.mobileUrl;
       }
-
       if (qrRelayStatus) {
         qrRelayStatus.style.display = 'flex';
         qrRelayStatus.innerHTML = '<span class="pulse-dot">●</span> Aguardando captura do smartphone...';
       }
-
       startRelayPolling(data.sessionId);
-
     } catch (err) {
-      console.warn('[doc2fill] Servidor local não respondeu em /api/session:', err);
       if (qrBox) {
-        qrBox.innerHTML = `
-          <div style="font-size:11.5px; color:#4B5563; padding:10px; line-height:1.4;">
-            💡 <strong>Inicie o Servidor Local:</strong><br>
-            Execute <code>npm run dev</code> no terminal para ativar o pareamento P2P e gerar o QR Code.
-          </div>
-        `;
+        qrBox.innerHTML = `<div style="font-size:11.5px; color:#4B5563; padding:10px; line-height:1.4;">💡 <strong>Inicie o Servidor Local:</strong><br>Execute <code>npm run dev</code> no terminal para ativar o pareamento P2P e gerar o QR Code.</div>`;
       }
     }
   }
@@ -486,43 +393,53 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 5. Polling efêmero de dados do celular
   function startRelayPolling(sessionId) {
     stopRelayPolling();
-
     relayPollInterval = setInterval(async () => {
       if (!sessionId) return;
-
       try {
         const res = await fetch(`${activeApiBaseUrl}/api/relay/poll?session=${sessionId}`);
         if (!res.ok) return;
-
         const payload = await res.json();
         if (payload.hasData && payload.data) {
           const canonical = normalizeCanonicalDocumentFields(payload.data);
           populateFormFields(canonical, payload.file || null);
-
           if (qrRelayStatus) {
             qrRelayStatus.innerHTML = '✓ Dados & Foto recebidos do smartphone em tempo real!';
             qrRelayStatus.style.color = '#059669';
           }
-
           stopRelayPolling();
         }
-      } catch (e) {
-        // Silencia erros de polling transitórios
-      }
+      } catch (_) {}
     }, 1500);
   }
 
   function stopRelayPolling() {
+    if (relayPollInterval
+
+Cortou bem no finalzinho da resposta anterior por causa do limite de caracteres
+de uma única mensagem!
+
+Aqui está o fechamento exato do comando (final do sidepanel.js + o teste novo)
+e, logo abaixo, a PARTE 2 completa (o Plano Diretor com O Que fazer, Como fazer,
+Meios, Métodos e Tecnologias para chegarmos no produto final de alto nível).
+
+🔧 Fechamento da Parte 1 (Se você quiser rodar apenas o finalzinho que cortou):
+
+Se você copiou o bloco anterior, faltaram apenas as últimas 70 linhas do
+extension/sidepanel.js e o arquivo de teste tests/core/browser-autonomy.test.js.
+Basta colar este complemento no seu Terminal:
+
+cd /Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill && \
+
+# Complementa o final do extension/sidepanel.js e cria a suíte de testes de autonomia
+cat << 'EOF' >> extension/sidepanel.js
     if (relayPollInterval) {
       clearInterval(relayPollInterval);
       relayPollInterval = null;
     }
   }
 
-  // 6. Autofill trigger para a aba ativa (Preenchimento dos 8 campos + Anexação)
   btnAutofill.addEventListener('click', async () => {
     const payload = {
       tipo_documento: fTipoDoc ? fTipoDoc.value : 'Nota Fiscal de Serviços (NFS-e)',
@@ -551,10 +468,99 @@ document.addEventListener('DOMContentLoaded', () => {
         tab = tabs && tabs.length > 0 ? tabs[0] : null;
       }
       if (!tab || !tab.id) {
-        const allTabs = await chrome.tabs.query({ active: true });
-        tab = allTabs && allTabs.length > 0 ? allTabs[0] : null;
+        showToast('Nenhuma aba ativa encontrada no navegador.', 'warning');
+        btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
+        btnAutofill.disabled = false;
+        return;
       }
 
+      let response = null;
+      try {
+        response = await chrome.tabs.sendMessage(tab.id, {
+          action: 'DOC2FILL_EXECUTE',
+          data: payload,
+          file: attachedFile
+        });
+      } catch (sendErr) {
+        if (typeof chrome !== 'undefined' && chrome.scripting && chrome.scripting.executeScript) {
+          await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
+          response = await chrome.tabs.sendMessage(tab.id, {
+            action: 'DOC2FILL_EXECUTE',
+            data: payload,
+            file: attachedFile
+          });
+        } else {
+          throw sendErr;
+        }
+      }
+
+      if (response && response.success) {
+        btnAutofill.textContent = `✓ Preenchido (${response.count} campos)!`;
+        try {
+          await saveDocumentToHistory(payload);
+          await renderHistoryList();
+        } catch (_) {}
+
+        setTimeout(() => {
+          btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
+          btnAutofill.disabled = false;
+        }, 2200);
+      } else {
+        showToast('Não foi possível preencher. Verifique se a página aberta possui um formulário compatível.', 'warning');
+        btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
+        btnAutofill.disabled = false;
+      }
+    } catch (err) {
+      showToast('Erro de conexão com a página. Recarregue a aba após atualizar a extensão.', 'error');
+      btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
+      btnAutofill.disabled = false;
+    }
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      if (btnAutofill && !btnAutofill.disabled) btnAutofill.click();
+    } else if (e.key === 'Escape') {
+      if (btnTogglePreview && documentPreviewContainer && !documentPreviewContainer.classList.contains('hidden')) {
+        btnTogglePreview.click();
+      }
+    }
+  });
+});
+    if (relayPollInterval) {
+      clearInterval(relayPollInterval);
+      relayPollInterval = null;
+    }
+  }
+
+  btnAutofill.addEventListener('click', async () => {
+    const payload = {
+      tipo_documento: fTipoDoc ? fTipoDoc.value : 'Nota Fiscal de Serviços (NFS-e)',
+      cpf_cnpj: fCnpj ? fCnpj.value.trim() : '',
+      cnpj: fCnpj ? fCnpj.value.trim() : '',
+      cpf: fCnpj ? fCnpj.value.trim() : '',
+      fornecedor: fRazao ? fRazao.value.trim() : '',
+      razao: fRazao ? fRazao.value.trim() : '',
+      nome: fRazao ? fRazao.value.trim() : '',
+      numero_documento: fNumDoc ? fNumDoc.value.trim() : '',
+      processo: fNumDoc ? fNumDoc.value.trim() : '',
+      data: fData ? fData.value.trim() : '',
+      valor: fValor ? fValor.value.trim() : '',
+      descritivo: fDescricao ? fDescricao.value.trim() : '',
+      descricao: fDescricao ? fDescricao.value.trim() : '',
+      motivo: fMotivo ? fMotivo.value.trim() : ''
+    };
+
+    btnAutofill.textContent = 'Preenchendo no CCHA...';
+    btnAutofill.disabled = true;
+
+    try {
+      let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab || !tab.id) {
+        const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+        tab = tabs && tabs.length > 0 ? tabs[0] : null;
+      }
       if (!tab || !tab.id) {
         showToast('Nenhuma aba ativa encontrada no navegador.', 'warning');
         btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
@@ -570,22 +576,13 @@ document.addEventListener('DOMContentLoaded', () => {
           file: attachedFile
         });
       } catch (sendErr) {
-        // Se a página foi aberta antes do reload da extensão, auto-injeta o content script
         if (typeof chrome !== 'undefined' && chrome.scripting && chrome.scripting.executeScript) {
-          try {
-            await chrome.scripting.executeScript({
-              target: { tabId: tab.id },
-              files: ['content.js']
-            });
-            response = await chrome.tabs.sendMessage(tab.id, {
-              action: 'DOC2FILL_EXECUTE',
-              data: payload,
-              file: attachedFile
-            });
-          } catch (injectErr) {
-            console.warn('[doc2fill] Falha na auto-injeção programática:', injectErr);
-            throw sendErr;
-          }
+          await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
+          response = await chrome.tabs.sendMessage(tab.id, {
+            action: 'DOC2FILL_EXECUTE',
+            data: payload,
+            file: attachedFile
+          });
         } else {
           throw sendErr;
         }
@@ -594,8 +591,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (response && response.success) {
         btnAutofill.textContent = `✓ Preenchido (${response.count} campos)!`;
         try {
-          const { saveDocumentToHistory } = await import('./core/history-store.js');
           await saveDocumentToHistory(payload);
+          await renderHistoryList();
         } catch (_) {}
 
         setTimeout(() => {
@@ -608,20 +605,16 @@ document.addEventListener('DOMContentLoaded', () => {
         btnAutofill.disabled = false;
       }
     } catch (err) {
-      console.error('doc2fill error:', err);
       showToast('Erro de conexão com a página. Recarregue a aba após atualizar a extensão.', 'error');
       btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
       btnAutofill.disabled = false;
     }
   });
 
-  // 7. Atalhos de teclado no Sidepanel (Ctrl+Enter para disparar autofill, Escape para fechar zoom)
   window.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
-      if (btnAutofill && !btnAutofill.disabled) {
-        btnAutofill.click();
-      }
+      if (btnAutofill && !btnAutofill.disabled) btnAutofill.click();
     } else if (e.key === 'Escape') {
       if (btnTogglePreview && documentPreviewContainer && !documentPreviewContainer.classList.contains('hidden')) {
         btnTogglePreview.click();

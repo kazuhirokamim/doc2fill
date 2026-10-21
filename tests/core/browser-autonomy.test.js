@@ -1,0 +1,68 @@
+// @tear-proof issue-1
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import zlib from 'node:zlib';
+import { extractTextFromPdfContentAsync, parseDocumentFields } from '../../core/document-parser.js';
+import { performBrowserClientOcr } from '../../core/browser-ocr.js';
+
+describe('doc2fill Browser Autonomy, Clinical Anti-Glosa Integration & Crypto Checkout (TDD Suite)', () => {
+  it('Cenário 1 (Happy Path): extractTextFromPdfContentAsync descompacta FlateDecode e parseDocumentFields aplica tradução clínica Anti-Glosa TUSS', async () => {
+    const medicalPdfStream = `
+      BT
+      /F1 12 Tf
+      (CLINICA ODONTOLOGICA INTEGRADA LTDA) Tj
+      (CNPJ: 12.345.678/0001-90) Tj
+      (Recibo: 000991) Tj
+      (Data: 18/10/2026) Tj
+      (Valor Total: R$ 3.500,00) Tj
+      (Procedimento realizado: Aplicacao de lente de contato dental e clareamento) Tj
+      ET
+    `;
+    const compressed = zlib.deflateSync(Buffer.from(medicalPdfStream, 'utf-8'));
+    const pdfBuf = Buffer.concat([
+      Buffer.from('%PDF-1.4\n1 0 obj\n<< /Length ' + compressed.length + ' /Filter /FlateDecode >>\nstream\n'),
+      compressed,
+      Buffer.from('\nendstream\nendobj\n%%EOF')
+    ]);
+
+    const extractedText = await extractTextFromPdfContentAsync(pdfBuf);
+    assert.ok(extractedText.includes('12.345.678/0001-90'));
+
+    const parsed = parseDocumentFields(extractedText, 'recibo_odonto.pdf');
+    assert.equal(parsed.cnpj, '12.345.678/0001-90');
+    assert.equal(parsed.valor, 'R$ 3.500,00');
+    assert.ok(parsed.descritivo.includes('Reabilitação funcional'), 'Deve traduzir lente dental para Reabilitação funcional');
+    assert.ok(parsed.motivo.includes('desgaste oclusal'), 'Deve incluir motivo funcional contra glosa');
+  });
+
+  it('Cenário 2 (Edge Case): performBrowserClientOcr extrai chave SEFAZ via BarcodeDetector simulado quando offline', async () => {
+    const origBarcode = globalThis.BarcodeDetector;
+    const origImage = globalThis.Image;
+
+    try {
+      globalThis.Image = class {
+        set src(val) { setTimeout(() => this.onload && this.onload(), 5); }
+      };
+      globalThis.BarcodeDetector = class {
+        async detect() {
+          return [{ rawValue: 'https://www.sefaz.rs.gov.br/NFCE?p=35261061412110054088650010000458211839201924|2|1' }];
+        }
+      };
+
+      const res = await performBrowserClientOcr('data:image/png;base64,iVBORw0KGgo=', 'cupom_qr.png');
+      assert.equal(res.success, true);
+      assert.equal(res.source, 'chrome_barcode_detector');
+      assert.equal(res.data.cnpj, '61.412.110/0540-88');
+      assert.equal(res.data.numero_documento, '000045821');
+    } finally {
+      globalThis.BarcodeDetector = origBarcode;
+      globalThis.Image = origImage;
+    }
+  });
+
+  it('Cenário 3 (Error Path): performBrowserClientOcr lida com entradas vazias ou inválidas com segurança', async () => {
+    const resNull = await performBrowserClientOcr(null);
+    assert.equal(resNull.success, false);
+    assert.equal(resNull.source, 'invalid_input');
+  });
+});

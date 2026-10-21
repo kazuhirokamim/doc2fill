@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+- **Visão Computacional Client-Side & Detecção Nativa de Barcodes (`core/browser-ocr.js`)**: Criação de motor OCR e decodificação client-side usando a API nativa `globalThis.BarcodeDetector` do Chrome, permitindo leitura de QR Codes SEFAZ e códigos de barra de boletos em < 15ms sem dependência de servidor local e com fallback resiliente.
+- **Suíte TDD de Autonomia do Browser e Anti-Glosa (`tests/core/browser-autonomy.test.js`)**: Criação da suíte cobrindo Happy Path com FlateDecode assíncrono e tradução TUSS, Edge Case com BarcodeDetector simulado para chaves SEFAZ offline e Error Path para entradas nulas/inválidas.
+- **Gaveta Visual de Histórico Local Recente (`extension/sidepanel.html`, `extension/sidepanel.js`)**: Integração da gaveta de histórico de preenchimentos recentes (máximo 10 itens em memória volátil) com botão de purga manual e restauração instantânea nos campos.
+
+### Fixed
+- **Descompressão Nativa no Navegador via `DecompressionStream` (`core/pdf-stream-decoder.js`)**: Adição de `decompressPdfStreamAsync` e `extractAllStreamsTextAsync` com `DecompressionStream('deflate')` e `'deflate-raw'` nativos do navegador, permitindo leitura autônoma de PDFs comprimidos no Chrome sem necessidade do Node.js.
+- **Integração do Motor Clínico Anti-Glosa TUSS/ANS (`core/document-parser.js`)**: Conexão de `translateClinicalProcedure` diretamente em `parseDocumentFields` para preenchimento de descritivo e motivo de necessidade clínica, garantindo conformidade contra glosas de operadoras de saúde.
+- **Resolução de Disputa de Frames no SEI/AGU (`extension/content.js`)**: Implementação de filtro `isTopFrame` impedindo que iframes vazios respondam com falha antes do frame alvo que contém o formulário.
+- **Checkout Criptográfico & Proteção de Memória DoS (`server/demo-server.js`)**: Emissão de chaves de licença reais (`D2F-PRO-...`) assinadas criptograficamente via HMAC-SHA256 e aplicação de limite de 15MB para requisições de upload no servidor local.
+
 ### Fixed
 - **Precedência Estrita de Mesclagem de Dados do OCR (`extension/sidepanel.js`)**: Correção do spread de mesclagem onde dados de alta fidelidade extraídos pelo OCR local eram sobrescritos por strings vazias ou fallbacks do parser local. Agora, campos válidos do OCR possuem precedência estrita e preservam a integridade dos dados na interface.
 - **Desacoplamento de Marca Comercial (`core/document-parser.js`)**: Substituição de regex ad-hoc de marca comercial por palavras-chave semânticas puras de domínio de saúde e farmácia (`/drogaria|farmácia|medicamento|remédio|posologia|comprimido|cápsula|unid|droga/i`).

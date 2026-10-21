@@ -168,8 +168,11 @@ export function highlightFilledElement(el, durationMs = 1500) {
   // Listener para mensagens do Side Panel e Atalhos Globais (Operação 100% Headless)
   if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage?.addListener) {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      const isTopFrame = !win || !win.top || win === win.top;
+
       if (request.action === 'DOC2FILL_EXECUTE') {
         const result = executeAutofill(request.data, request.file);
+        if (!result.success && !isTopFrame) return false;
         sendResponse(result);
         return true;
       }
@@ -179,13 +182,13 @@ export function highlightFilledElement(el, durationMs = 1500) {
           chrome.storage.local.get(['d2f_active_payload'], (items) => {
             if (items && items.d2f_active_payload && items.d2f_active_payload.data) {
               const res = executeAutofill(items.d2f_active_payload.data, items.d2f_active_payload.file);
-              sendResponse(res);
-            } else {
+              if (res.success || isTopFrame) sendResponse(res);
+            } else if (isTopFrame) {
               sendResponse({ success: false, reason: 'Nenhum documento ativo em memória para preencher via atalho.' });
             }
           });
           return true;
-        } else {
+        } else if (isTopFrame) {
           sendResponse({ success: false, reason: 'Armazenamento local da extensão indisponível.' });
           return true;
         }
