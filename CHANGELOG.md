@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Added
+- **Ingress de Webhooks de Pagamento & Emissão Autônoma de Licenças (`server/webhook-handler.js`, `server/demo-server.js`)**: Criação de subsistema de ingress para Asaas (Pix nativo) e Stripe com validação timing-safe de tokens contra timing attacks (`verifyWebhookSecret`), tabela volátil de idempotência para descarte imediato de retries (`IdempotencyStore`), emissão instantânea de chaves assimétricas ECDSA P-256 e broadcast de confirmação em tempo real via Server-Sent Events (SSE).
+- **Suíte TDD de Webhooks e Idempotência (`tests/server/webhook-handler.test.js`)**: 3 cenários canônicos cobrindo processamento de pagamento Pix com emissão de chave válida, descarte de retries idempotentes e eventos não-financeiros, e rejeição de tokens forjados com validação do endpoint HTTP.
+
+### Added
 - **Sprint D: Licenciamento Digital Assimétrico ECDSA NIST P-256 (`core/license-validator.js`, `extension/license-controller.js`, `server/demo-server.js`)**: Implementação de assinatura digital com par de chaves assimétricas (curva P-256 com SHA-256) via Web Crypto API nativa. A chave pública embutida no client valida instantaneamente a autenticidade e validade das licenças emitidas sem risco de engenharia reversa ou forjamento de HMAC, mantendo fallback transparente para licenças legadas.
 - **Sprint D: Suíte TDD de Licenciamento Assimétrico (`tests/core/license-asymmetric.test.js`)**: 3 cenários canônicos cobrindo geração/validação de licenças PRO e Vitalícias, rejeição de chaves com dados adulterados ou forjados e tratamento de licenças expiradas.
 - **Sprint C: Criptografia P2P Ponta a Ponta Zero-Knowledge (`core/e2ee-crypto.js`)**: Motor de cifra ponta a ponta utilizando troca de chaves efêmeras ECDH (P-256) e canal de dados cifrado com AES-256-GCM com IV de 12 bytes aleatórios, garantindo tráfego inviolável sem retenção em nós intermediários.

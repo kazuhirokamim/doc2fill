@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import QRCode from 'qrcode';
 import { processOcrText, performOcr } from '../core/ocr-engine.js';
 import { generateLicenseKey, generateAsymmetricLicenseKeyAsync } from '../core/license-validator.js';
+import { verifyWebhookSecret, handleWebhookEvent, DEFAULT_ASAAS_WEBHOOK_SECRET } from './webhook-handler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -256,6 +257,53 @@ export function createAppServer(port = DEFAULT_PORT) {
       } catch (err) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Erro ao confirmar pedido' }));
+      }
+      return;
+    }
+
+    if (reqPath === '/api/webhook/asaas' || reqPath === '/api/webhook/payment') {
+      if (req.method !== 'POST') {
+        res.writeHead(405, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Método não permitido' }));
+        return;
+      }
+
+      const token = req.headers['asaas-access-token'] || req.headers['x-webhook-token'] || req.headers['authorization'];
+      const secret = process.env.ASAAS_WEBHOOK_SECRET || DEFAULT_ASAAS_WEBHOOK_SECRET;
+
+      if (!token || !verifyWebhookSecret(String(token), secret)) {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Webhook token inválido ou ausente' }));
+        return;
+      }
+
+      try {
+        const body = await readRequestBody(req);
+        const rawPayload = JSON.parse(body || '{}');
+        const webhookResult = await handleWebhookEvent(rawPayload);
+
+        if (webhookResult.status === 'license_issued') {
+          const ssePayload = JSON.stringify({
+            event: 'payment_confirmed',
+            orderId: webhookResult.eventId,
+            email: webhookResult.email,
+            plan: webhookResult.plan,
+            licenseKey: webhookResult.fallbackHmacKey,
+            ecdsaLicenseKey: webhookResult.licenseKey,
+            downloadUrl: '/download/doc2fill-beta.zip',
+            timestamp: Date.now()
+          });
+
+          for (const client of sseClients) {
+            try { client.write(`data: ${ssePayload}\n\n`); } catch (_) { sseClients.delete(client); }
+          }
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(webhookResult));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Falha no processamento do webhook' }));
       }
       return;
     }
