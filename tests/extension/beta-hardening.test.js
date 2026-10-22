@@ -30,4 +30,11 @@ describe('doc2fill Beta Hardening & Autonomy Suite (TDD)', () => {
     const resNull = await performBrowserClientOcr(null, 'documento.jpg');
     assert.strictEqual(resNull.success, false);
   });
+
+  it('Cenário 4 (Security Audit): script de empacotamento não utiliza interpolação de shell insegura', () => {
+    const scriptPath = path.resolve('scripts/package-beta.js');
+    const content = fs.readFileSync(scriptPath, 'utf8');
+    assert.ok(content.includes('execFileSync'), 'Deve utilizar execFileSync com argumentos seguros em array');
+    assert.ok(!content.includes('execSync(`'), 'Não deve utilizar execSync com template strings interpoladas');
+  });
 });

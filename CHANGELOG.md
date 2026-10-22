@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **Autonomia de OCR Offscreen WASM Local & Hardening do Pacote Beta (`core/browser-ocr.js`, `extension/offscreen.html`, `scripts/build-extension.js`, `scripts/package-beta.js`)**: Inclusão de runtime Tesseract WASM e modelo treinado em português (`extension/vendor/`) para processamento ótico 100% autônomo e offline no navegador sem dependência de terminal ou servidores Node ativos.
+- **Higienização de Injeção DOM e Proteção de Abas do Sistema (`extension/sidepanel.js`, `extension/content.js`)**: Correção de erros de sintaxe de módulo clássico e interceptação amigável em URLs restritas (`chrome://`, `edge://`) orientando o usuário a abrir a página do CCHA.
+- **Aviso Visual de Conectividade Wi-Fi para Scanner P2P (`extension/sidepanel.html`)**: Inserção de card com instruções passo a passo e alerta explícito de que smartphone e computador devem residir na mesma rede local para transmissão P2P sem nuvem (100% LGPD).
+- **Sanitização de Execução Shell no Empacotador (`scripts/package-beta.js`)**: Migração de chamadas de shell com template string para `execFileSync` parametrizado imune a injeções de comando.
+- **Suíte TDD de Hardening e Autonomia Beta (`tests/extension/beta-hardening.test.js`)**: Cobertura de testes para OCR client offline, integridade do pacote gerado (>2MB com WASM) e auditoria de segurança de execução.
+- **ADR-031 & PLAN-023**: Documentação formal de decisões arquiteturais e matriz de rastreabilidade per padrão SDD e Tear Canon.
+
+### Added
 - **Ingress de Webhooks de Pagamento & Emissão Autônoma de Licenças (`server/webhook-handler.js`, `server/demo-server.js`)**: Criação de subsistema de ingress para Asaas (Pix nativo) e Stripe com validação timing-safe de tokens contra timing attacks (`verifyWebhookSecret`), tabela volátil de idempotência para descarte imediato de retries (`IdempotencyStore`), emissão instantânea de chaves assimétricas ECDSA P-256 e broadcast de confirmação em tempo real via Server-Sent Events (SSE).
 - **Suíte TDD de Webhooks e Idempotência (`tests/server/webhook-handler.test.js`)**: 3 cenários canônicos cobrindo processamento de pagamento Pix com emissão de chave válida, descarte de retries idempotentes e eventos não-financeiros, e rejeição de tokens forjados com validação do endpoint HTTP.
 
