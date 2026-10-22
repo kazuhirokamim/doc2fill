@@ -52,11 +52,26 @@ export async function performBrowserClientOcr(base64Image, fileName = 'documento
     }
   }
 
-  if (typeof globalThis.Tesseract !== 'undefined' && globalThis.Tesseract.recognize) {
+  if (typeof globalThis.Tesseract !== 'undefined') {
     try {
-      const ret = await globalThis.Tesseract.recognize(base64Image, 'por');
-      if (ret?.data?.text) {
-        combinedText += '\n' + cleanOcrText(ret.data.text);
+      let ocrTextResult = '';
+      if (typeof chrome !== 'undefined' && chrome.runtime?.getURL && typeof globalThis.Tesseract.createWorker === 'function') {
+        const worker = await globalThis.Tesseract.createWorker('por', 1, {
+          workerPath: chrome.runtime.getURL('vendor/worker.min.js'),
+          corePath: chrome.runtime.getURL('vendor/tesseract-core-simd-lstm.wasm.js'),
+          langPath: chrome.runtime.getURL('vendor/'),
+          gzip: false
+        });
+        const ret = await worker.recognize(base64Image);
+        ocrTextResult = ret?.data?.text || '';
+        await worker.terminate();
+      } else if (typeof globalThis.Tesseract.recognize === 'function') {
+        const ret = await globalThis.Tesseract.recognize(base64Image, 'por');
+        ocrTextResult = ret?.data?.text || '';
+      }
+
+      if (ocrTextResult) {
+        combinedText += '\n' + cleanOcrText(ocrTextResult);
         sourceUsed = 'browser_tesseract_wasm';
       }
     } catch (_) {}

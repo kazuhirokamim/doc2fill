@@ -260,11 +260,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function requestOcrWithClientFallback(base64Data, fileName) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 400);
       const ocrRes = await fetch(`${activeApiBaseUrl}/api/ocr`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: base64Data, name: fileName })
+        body: JSON.stringify({ image: base64Data, name: fileName }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       if (ocrRes.ok) return await ocrRes.json();
     } catch (_) {}
 
@@ -450,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
       startRelayPolling(data.sessionId);
     } catch (err) {
       if (qrBox) {
-        qrBox.innerHTML = `<div style="font-size:11.5px; color:#4B5563; padding:10px; line-height:1.4;">💡 <strong>Inicie o Servidor Local:</strong><br>Execute <code>npm run dev</code> no terminal para ativar o pareamento P2P e gerar o QR Code.</div>`;
+        qrBox.innerHTML = `<div style="font-size:11.5px; color:#4B5563; padding:10px; line-height:1.4;">💡 <strong>Servidor de Pareamento Offline:</strong><br>A captura direta via smartphone requer o servidor local de relay ativo.<br>Para testar a extensão no navegador, utilize a aba <strong>PDF / Comprovante</strong>.</div>`;
       }
     }
   }
@@ -521,6 +525,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (!tab || !tab.id) {
         showToast('Nenhuma aba ativa encontrada no navegador.', 'warning');
+        btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
+        btnAutofill.disabled = false;
+        return;
+      }
+
+      if (tab.url && (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://') || tab.url.startsWith('about:'))) {
+        showToast('Navegue até a página de requerimento no portal do CCHA para preencher os dados.', 'warning', 4500);
         btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
         btnAutofill.disabled = false;
         return;

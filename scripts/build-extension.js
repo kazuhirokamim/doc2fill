@@ -84,6 +84,30 @@ async function buildExtension() {
     fs.cpSync(iconSrc, iconDest, { recursive: true });
   }
 
+  // Popula pasta vendor/ com binários WASM e dicionários locais (autonomia 100% offline)
+  const vendorDest = path.join(outDir, 'vendor');
+  fs.mkdirSync(vendorDest, { recursive: true });
+  const tesseractMin = path.resolve('node_modules/tesseract.js/dist/tesseract.min.js');
+  const workerMin = path.resolve('node_modules/tesseract.js/dist/worker.min.js');
+  const wasmFile = path.resolve('node_modules/tesseract.js-core/tesseract-core-simd-lstm.wasm');
+  const wasmJsFile = path.resolve('node_modules/tesseract.js-core/tesseract-core-simd-lstm.wasm.js');
+  const langFile = path.resolve('por.traineddata');
+
+  if (fs.existsSync(tesseractMin)) fs.copyFileSync(tesseractMin, path.join(vendorDest, 'tesseract.min.js'));
+  if (fs.existsSync(workerMin)) fs.copyFileSync(workerMin, path.join(vendorDest, 'worker.min.js'));
+  if (fs.existsSync(wasmFile)) fs.copyFileSync(wasmFile, path.join(vendorDest, 'tesseract-core-simd-lstm.wasm'));
+  if (fs.existsSync(wasmJsFile)) fs.copyFileSync(wasmJsFile, path.join(vendorDest, 'tesseract-core-simd-lstm.wasm.js'));
+  if (fs.existsSync(langFile)) fs.copyFileSync(langFile, path.join(vendorDest, 'por.traineddata'));
+
+  // Copia também para extension/vendor para desenvolvimento local unpack
+  const extVendorDir = path.resolve('extension/vendor');
+  fs.mkdirSync(extVendorDir, { recursive: true });
+  if (fs.existsSync(tesseractMin)) fs.copyFileSync(tesseractMin, path.join(extVendorDir, 'tesseract.min.js'));
+  if (fs.existsSync(workerMin)) fs.copyFileSync(workerMin, path.join(extVendorDir, 'worker.min.js'));
+  if (fs.existsSync(wasmFile)) fs.copyFileSync(wasmFile, path.join(extVendorDir, 'tesseract-core-simd-lstm.wasm'));
+  if (fs.existsSync(wasmJsFile)) fs.copyFileSync(wasmJsFile, path.join(extVendorDir, 'tesseract-core-simd-lstm.wasm.js'));
+  if (fs.existsSync(langFile)) fs.copyFileSync(langFile, path.join(extVendorDir, 'por.traineddata'));
+
   // Copia core/ para retrocompatibilidade
   const coreSrc = path.join('extension', 'core');
   const coreDest = path.join(outDir, 'core');

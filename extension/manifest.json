@@ -73,7 +73,8 @@
         "license-modal.css",
         "license-controller.js",
         "core/*",
-        "icons/*"
+        "icons/*",
+        "vendor/*"
       ],
       "matches": ["<all_urls>"]
     }
