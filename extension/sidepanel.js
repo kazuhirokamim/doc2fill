@@ -2,6 +2,7 @@
 import { parseDocumentFields, extractTextFromPdfContentAsync, normalizeCanonicalDocumentFields, isPdfEncrypted } from './core/document-parser.js';
 import { getRecentHistory, saveDocumentToHistory, clearHistory } from './core/history-store.js';
 import { performBrowserClientOcr } from './core/browser-ocr.js';
+import { evaluateOcrConfidence, performCloudVisionOcr } from './core/cloud-ocr-client.js';
 import { executeOffscreenOcr } from './offscreen-client.js';
 import { initLicenseController } from './license-controller.js';
 import { showToast } from './toast-manager.js';
@@ -53,6 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const historyListEl = document.getElementById('history-list');
   const btnPurgeHistory = document.getElementById('btn-purge-history');
+  const ocrQualityBanner = document.getElementById('ocr-quality-banner');
+  const ocrQualityIcon = document.getElementById('ocr-quality-icon');
+  const ocrQualityText = document.getElementById('ocr-quality-text');
+  const btnCloudBoost = document.getElementById('btn-cloud-boost');
 
   let activeSessionId = null;
   let relayPollInterval = null;
@@ -193,23 +198,112 @@ document.addEventListener('DOMContentLoaded', () => {
     validationBadge.classList.add('valid');
     btnAutofill.disabled = false;
 
+    // Atualiza o indicador de qualidade da leitura OCR (Híbrido)
+    updateOcrQualityBadge(data);
+
     if (typeof chrome !== 'undefined' && chrome.storage?.local?.set) {
       try { chrome.storage.local.set({ d2f_active_payload: { data: { ...data }, file: fileData } }); } catch (_) {}
     }
   }
 
-  function setPreviewZoom(level) {
-    if (!previewDocImage) return;
-    previewDocImage.classList.remove('zoom-100', 'zoom-150', 'zoom-200');
-    previewDocImage.classList.add(`zoom-${level}`);
-    [btnZoom100, btnZoom150, btnZoom200].forEach((b) => {
-      if (b) b.classList.toggle('active', b.dataset.zoom === String(level));
+  function updateOcrQualityBadge(data, isCloud = false) {
+    if (!ocrQualityBanner || !ocrQualityIcon || !ocrQualityText) return;
+    if (!attachedFile && !lastCanonicalData) {
+      ocrQualityBanner.style.display = 'none';
+      return;
+    }
+
+    const confidence = evaluateOcrConfidence(data);
+    ocrQualityBanner.style.display = 'flex';
+
+    if (isCloud) {
+      ocrQualityIcon.textContent = '⚡';
+      ocrQualityText.textContent = 'Extração via Nuvem (Acurácia Superior >95%)';
+      if (btnCloudBoost) btnCloudBoost.style.display = 'none';
+      return;
+    }
+
+    if (confidence >= 70) {
+      ocrQualityIcon.textContent = '🟢';
+      ocrQualityText.textContent = `Leitura Local Confiável (${confidence}%)`;
+      if (btnCloudBoost) btnCloudBoost.style.display = 'none';
+    } else {
+      ocrQualityIcon.textContent = '🟡';
+      ocrQualityText.textContent = `Leitura Local Parcial (${confidence}%)`;
+      if (btnCloudBoost) {
+        btnCloudBoost.style.display = 'inline-block';
+        btnCloudBoost.textContent = '⚡ Turbinar com Nuvem';
+      }
+    }
+  }
+
+  if (btnCloudBoost) {
+    btnCloudBoost.addEventListener('click', async () => {
+      if (!attachedFile || !attachedFile.base64) {
+        showToast('Nenhum documento carregado para turbinar.', 'warning');
+        return;
+      }
+
+      btnCloudBoost.textContent = '⏳ Turbinando...';
+      btnCloudBoost.disabled = true;
+
+      try {
+        let apiKey = null;
+        if (typeof chrome !== 'undefined' && chrome.storage?.local?.get) {
+          const res = await chrome.storage.local.get(['d2f_google_vision_key']);
+          apiKey = res?.d2f_google_vision_key || null;
+        }
+
+        if (!apiKey) {
+          apiKey = window.prompt('Para usar o Cloud Boost com 100% de precisão, insira sua Google Cloud Vision API Key (ou deixe em branco para tentar via servidor local):');
+          if (apiKey && typeof chrome !== 'undefined' && chrome.storage?.local?.set) {
+            await chrome.storage.local.set({ d2f_google_vision_key: apiKey.trim() });
+          }
+        }
+
+        let cloudResult = null;
+        if (apiKey) {
+          cloudResult = await performCloudVisionOcr({ base64Image: attachedFile.base64, apiKey });
+        } else {
+          // Tenta via servidor local com flag cloudBoost
+          const res = await fetch(`${activeApiBaseUrl}/api/ocr`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: attachedFile.base64, name: attachedFile.name, cloudBoost: true })
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && json.data) cloudResult = { success: true, text: json.text, data: json.data };
+          }
+        }
+
+        if (cloudResult && cloudResult.success && cloudResult.text) {
+          const parsed = parseDocumentFields(cloudResult.text, attachedFile.name);
+          const canonical = normalizeCanonicalDocumentFields(parsed);
+          populateFormFields(canonical, attachedFile);
+          updateOcrQualityBadge(canonical, true);
+          showToast('⚡ Leitura turbinada via Nuvem aplicada com sucesso!', 'success', 3000);
+        } else {
+          showToast('Não foi possível obter resposta da nuvem. Mantidos dados locais.', 'warning', 3500);
+        }
+      } catch (err) {
+        showToast(`Erro ao turbinar com nuvem: ${err.message}`, 'error', 3500);
+      } finally {
+        btnCloudBoost.disabled = false;
+        btnCloudBoost.textContent = '⚡ Turbinar com Nuvem';
+      }
     });
   }
 
-  if (btnZoom100) btnZoom100.addEventListener('click', () => setPreviewZoom(100));
-  if (btnZoom150) btnZoom150.addEventListener('click', () => setPreviewZoom(150));
-  if (btnZoom200) btnZoom200.addEventListener('click', () => setPreviewZoom(200));
+  function setPreviewZoom(level) {
+    if (!previewDocImage) return;
+    previewDocImage.className = `zoom-${level}`;
+    [btnZoom100, btnZoom150, btnZoom200].forEach((b) => b?.classList.toggle('active', b.dataset.zoom === String(level)));
+  }
+
+  [btnZoom100, btnZoom150, btnZoom200].forEach((btn) => {
+    if (btn) btn.addEventListener('click', () => setPreviewZoom(Number(btn.dataset.zoom)));
+  });
 
   if (btnTogglePreview && previewViewport) {
     btnTogglePreview.addEventListener('click', () => {
@@ -228,15 +322,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnClearFields) {
     btnClearFields.addEventListener('click', () => {
       if (fTipoDoc) fTipoDoc.selectedIndex = 0;
-      if (fCnpj) fCnpj.value = '';
-      if (fRazao) fRazao.value = '';
-      if (fNumDoc) fNumDoc.value = '';
-      if (fData) fData.value = '';
-      if (fValor) fValor.value = '';
-      if (fDescricao) fDescricao.value = '';
-      if (fMotivo) fMotivo.value = '';
+      [fCnpj, fRazao, fNumDoc, fData, fValor, fDescricao, fMotivo].forEach((f) => { if (f) f.value = ''; });
       validationBadge.textContent = 'Edição manual livre';
       validationBadge.classList.remove('valid');
+      if (ocrQualityBanner) ocrQualityBanner.style.display = 'none';
     });
   }
 

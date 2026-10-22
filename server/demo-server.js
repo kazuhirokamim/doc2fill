@@ -6,6 +6,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import QRCode from 'qrcode';
 import { processOcrText, performOcr } from '../core/ocr-engine.js';
+import { performCloudVisionOcr, evaluateOcrConfidence } from '../core/cloud-ocr-client.js';
 import { generateLicenseKey, generateAsymmetricLicenseKeyAsync } from '../core/license-validator.js';
 import { verifyWebhookSecret, handleWebhookEvent, DEFAULT_ASAAS_WEBHOOK_SECRET } from './webhook-handler.js';
 
@@ -115,12 +116,29 @@ export function createAppServer(port = DEFAULT_PORT) {
         }
 
         let ocrText = payload.mockText || '';
+        let sourceUsed = 'local_tesseract';
+
+        // 1. Se Cloud Boost for expressamente solicitado ou se houver chave configurada
+        const apiKey = payload.apiKey || process.env.GOOGLE_VISION_API_KEY;
+        if (payload.cloudBoost && apiKey && !ocrText) {
+          try {
+            const cloudRes = await performCloudVisionOcr({ base64Image: payload.image, apiKey });
+            if (cloudRes.success && cloudRes.text) {
+              ocrText = cloudRes.text;
+              sourceUsed = 'cloud_boost';
+            }
+          } catch (_) {}
+        }
+
+        // 2. Se nuvem não foi chamada ou falhou, executa o motor Tesseract local
         if (!ocrText) {
           const ocrRes = await performOcr(payload.image);
           ocrText = ocrRes.text;
         }
 
         const extractedData = processOcrText(ocrText, payload.name || 'foto.jpg');
+        const confidence = evaluateOcrConfidence(extractedData, ocrText);
+
         if (payload.session) {
           relaySessions.set(payload.session, {
             data: extractedData,
@@ -130,7 +148,14 @@ export function createAppServer(port = DEFAULT_PORT) {
         }
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, text: ocrText, data: extractedData }));
+        res.end(JSON.stringify({
+          success: true,
+          text: ocrText,
+          confidence,
+          needsCloudBoost: confidence < 70,
+          source: sourceUsed,
+          data: extractedData
+        }));
       } catch (e) {
         const status = e.message === 'PAYLOAD_TOO_LARGE' ? 413 : 400;
         res.writeHead(status, { 'Content-Type': 'application/json' });

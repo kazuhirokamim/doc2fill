@@ -5,7 +5,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Security](https://img.shields.io/badge/Security-Zero_Retention_LGPD-green.svg)]()
 [![Cryptography](https://img.shields.io/badge/Licensing-HMAC--SHA256_Offline-orange.svg)]()
-[![Tests](https://img.shields.io/badge/Tests-210_Passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-248_Passed-brightgreen.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Status: Showcase](https://img.shields.io/badge/Status-Audited_&_Certified-orange.svg)]()
 
@@ -56,8 +56,9 @@ graph LR
 - **Side Panel Nativo Manifest V3:** Operação sob demanda sem injeção residual no DOM da página web governamental.
 - **Motor Anti-Glosa & Decodificador SEFAZ:** Mapeamento automático de procedimentos médicos/fiscais e decodificação determinística de chaves de 44 dígitos.
 - **Licenciamento Offline HMAC-SHA256:** Funciona perfeitamente em ambientes governamentais fechados (*air-gapped*) sem necessidade de conexão com nuvem para validar assinaturas.
+- **Engine Híbrida de Escaneamento (Local-First + Cloud-Boost Opt-in):** Combina Tesseract WASM local com rotação EXIF planar no Canvas e binarização Otsu adaptativa. Em documentos de extrema complexidade ou cupons térmicos ilegíveis, oferece turbo em 1 clique via Google Cloud Vision com Zero Retenção no servidor.
 - **Pipeline Óptico & Upscaling Adaptativo:** Ampliação automática em Canvas e estiramento de contraste para leitura de cupons de baixa resolução e PDFs escaneados com Zero Retenção.
-- **Qualidade Rigorosa (Tear / Noesis):** 237 testes unitários e de integração verdes e 100% de precisão em documentos heterogêneos reais.
+- **Qualidade Rigorosa (Tear / Noesis):** 248 testes unitários e de integração verdes e 100% de precisão em documentos heterogêneos reais.
 
 ---
 

@@ -1,6 +1,31 @@
 // core/browser-ocr.js
-// Motor de Visão Computacional Client-Side (Browser Fallback para quando localhost:3333 estiver offline)
+// Motor de Visão Computacional Client-Side (Browser Fallback com Auto-Rotação e Avaliação de Confiança)
 import { cleanOcrText, processOcrText } from './ocr-engine.js';
+import {
+  detectExifOrientation,
+  getRotationDegreesFromOrientation,
+  rotateCanvasByDegrees
+} from './image-preprocessor.js';
+import { evaluateOcrConfidence } from './cloud-ocr-client.js';
+
+function base64ToUint8Array(base64Str) {
+  if (!base64Str || typeof base64Str !== 'string') return null;
+  try {
+    const raw = base64Str.includes(',') ? base64Str.split(',')[1] : base64Str;
+    if (typeof Buffer !== 'undefined') {
+      return Buffer.from(raw, 'base64');
+    }
+    if (typeof atob === 'function') {
+      const binary = atob(raw);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes;
+    }
+  } catch (_) {}
+  return null;
+}
 
 function loadImageFromBase64(base64DataUrl) {
   return new Promise((resolve) => {
@@ -100,8 +125,18 @@ export async function performBrowserClientOcr(base64Image, fileName = 'documento
       combinedText += barcodeText + '\n';
       sourceUsed = 'chrome_barcode_detector';
     }
-    const upscaledCanvas = upscaleAndEnhanceImageElement(imgEl);
-    if (upscaledCanvas) ocrTargetInput = upscaledCanvas;
+    let upscaledCanvas = upscaleAndEnhanceImageElement(imgEl);
+    if (upscaledCanvas) {
+      const bytes = base64ToUint8Array(base64Image);
+      if (bytes) {
+        const orientation = detectExifOrientation(bytes);
+        const rotationDegrees = getRotationDegreesFromOrientation(orientation);
+        if (rotationDegrees > 0) {
+          upscaledCanvas = rotateCanvasByDegrees(upscaledCanvas, rotationDegrees);
+        }
+      }
+      ocrTargetInput = upscaledCanvas;
+    }
   }
 
   if (typeof globalThis.Tesseract !== 'undefined') {
@@ -131,9 +166,12 @@ export async function performBrowserClientOcr(base64Image, fileName = 'documento
 
   const cleaned = cleanOcrText(combinedText);
   const parsedData = processOcrText(cleaned, fileName);
+  const confidence = evaluateOcrConfidence(parsedData, cleaned);
 
   return {
     success: Boolean(cleaned.length > 0 || parsedData.cpf_cnpj || parsedData.valor),
+    confidence,
+    needsCloudBoost: confidence < 70,
     text: cleaned,
     data: parsedData,
     source: sourceUsed

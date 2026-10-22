@@ -243,3 +243,116 @@ export function calculateRotatedDimensions(width, height, angleDegrees) {
     height: Math.round(width * sin + height * cos)
   };
 }
+
+/**
+ * Calcula o limiar ótimo de Otsu para binarização a partir de um histograma de 256 níveis de cinza.
+ * @param {Array<number>|Uint32Array} histogram Array de 256 posições com a contagem de pixels
+ * @param {number} totalPixels Total de pixels na amostra
+ * @returns {number} Limiar ótimo entre 0 e 255
+ */
+export function computeOtsuThreshold(histogram, totalPixels) {
+  if (!histogram || (!Array.isArray(histogram) && !(histogram instanceof Uint32Array)) || totalPixels <= 0) {
+    return 128;
+  }
+
+  let sum = 0;
+  for (let i = 0; i < 256; i++) {
+    sum += i * (histogram[i] || 0);
+  }
+
+  let sumB = 0;
+  let wB = 0;
+  let wF = 0;
+  let maxVariance = 0;
+  let thresholdMin = 128;
+  let thresholdMax = 128;
+
+  for (let t = 0; t < 256; t++) {
+    wB += histogram[t] || 0;
+    if (wB === 0) continue;
+    wF = totalPixels - wB;
+    if (wF === 0) break;
+
+    sumB += t * (histogram[t] || 0);
+    const mB = sumB / wB;
+    const mF = (sum - sumB) / wF;
+
+    const betweenVariance = wB * wF * (mB - mF) * (mB - mF);
+    if (betweenVariance > maxVariance) {
+      maxVariance = betweenVariance;
+      thresholdMin = t;
+      thresholdMax = t;
+    } else if (betweenVariance === maxVariance && maxVariance > 0) {
+      thresholdMax = t;
+    }
+  }
+
+  return Math.round((thresholdMin + thresholdMax) / 2);
+}
+
+/**
+ * Aplica binarização adaptativa Otsu-lite em um array RGBA de pixels (ex: ImageData.data).
+ * @param {Uint8ClampedArray|Uint8Array} rgba Buffer de pixels no formato RGBA intercalado
+ * @returns {Uint8ClampedArray|Uint8Array} Mesma referência com canais RGB binarizados (0 ou 255)
+ */
+export function applyOtsuBinarizationToPixels(rgba) {
+  if (!rgba || rgba.length < 4) return rgba;
+
+  const totalPixels = Math.floor(rgba.length / 4);
+  const histogram = new Uint32Array(256);
+
+  // 1. Calcula escala de cinza e preenche histograma
+  for (let i = 0; i < rgba.length; i += 4) {
+    const gray = Math.round(0.299 * rgba[i] + 0.587 * rgba[i + 1] + 0.114 * rgba[i + 2]);
+    histogram[gray]++;
+  }
+
+  // 2. Determina limiar ótimo
+  const threshold = computeOtsuThreshold(histogram, totalPixels);
+
+  // 3. Aplica limiarização estrita preservando canal alfa
+  for (let i = 0; i < rgba.length; i += 4) {
+    const gray = 0.299 * rgba[i] + 0.587 * rgba[i + 1] + 0.114 * rgba[i + 2];
+    const binVal = gray >= threshold ? 255 : 0;
+    rgba[i] = binVal;
+    rgba[i + 1] = binVal;
+    rgba[i + 2] = binVal;
+  }
+
+  return rgba;
+}
+
+/**
+ * Rotaciona um canvas de imagem pelo número especificado de graus (90, 180, 270) em memória.
+ * @param {HTMLCanvasElement|OffscreenCanvas} canvas Canvas original
+ * @param {number} degrees Graus de rotação (0, 90, 180, 270)
+ * @returns {HTMLCanvasElement|OffscreenCanvas} Canvas com imagem rotacionada
+ */
+export function rotateCanvasByDegrees(canvas, degrees) {
+  if (!canvas || !degrees || degrees % 360 === 0) return canvas;
+
+  const deg = ((degrees % 360) + 360) % 360;
+  const rad = (deg * Math.PI) / 180;
+  const isSwap = deg === 90 || deg === 270;
+  const newW = isSwap ? canvas.height : canvas.width;
+  const newH = isSwap ? canvas.width : canvas.height;
+
+  let newCanvas;
+  if (typeof OffscreenCanvas !== 'undefined') {
+    newCanvas = new OffscreenCanvas(newW, newH);
+  } else if (typeof document !== 'undefined' && document.createElement) {
+    newCanvas = document.createElement('canvas');
+    newCanvas.width = newW;
+    newCanvas.height = newH;
+  } else {
+    return canvas;
+  }
+
+  const ctx = newCanvas.getContext('2d');
+  ctx.translate(newW / 2, newH / 2);
+  ctx.rotate(rad);
+  ctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+
+  return newCanvas;
+}
+
