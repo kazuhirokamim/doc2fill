@@ -190,6 +190,48 @@ export function isPdfBuffer(input) {
 }
 
 /**
+ * Redimensiona a imagem para ~1800px se a largura for inferior a 1400px para maximizar a acurácia de OCR.
+ * Opera exclusivamente em RAM / arquivos temporários efêmeros destruídos imediatamente (Zero Retenção).
+ * @param {Buffer} imageBuffer
+ * @param {number} [targetWidth=1800]
+ * @returns {Buffer}
+ */
+export async function upscaleImageBufferIfNeeded(imageBuffer, targetWidth = 1800) {
+  if (!imageBuffer || !Buffer.isBuffer(imageBuffer) || imageBuffer.length === 0) return imageBuffer;
+  try {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const os = await import('node:os');
+    const cp = await import('node:child_process');
+
+    const tempId = `d2f_scale_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const tempDir = os.tmpdir();
+    const tempIn = path.join(tempDir, `${tempId}_in`);
+    const tempOut = path.join(tempDir, `${tempId}_out.png`);
+
+    fs.writeFileSync(tempIn, imageBuffer);
+    try {
+      if (fs.existsSync('/usr/bin/sips')) {
+        const info = cp.execFileSync('/usr/bin/sips', ['-g', 'pixelWidth', tempIn], { encoding: 'utf8', timeout: 3000 });
+        const m = info.match(/pixelWidth:\s*(\d+)/);
+        const curW = m ? parseInt(m[1], 10) : 0;
+        if (curW > 0 && curW < 1400) {
+          cp.execFileSync('/usr/bin/sips', ['-s', 'format', 'png', '--resampleWidth', String(targetWidth), tempIn, '--out', tempOut], { timeout: 5000 });
+          if (fs.existsSync(tempOut)) {
+            const upscaled = fs.readFileSync(tempOut);
+            return upscaled;
+          }
+        }
+      }
+    } finally {
+      try { if (fs.existsSync(tempIn)) fs.unlinkSync(tempIn); } catch (_) {}
+      try { if (fs.existsSync(tempOut)) fs.unlinkSync(tempOut); } catch (_) {}
+    }
+  } catch (_) {}
+  return imageBuffer;
+}
+
+/**
  * Converte a primeira página de um PDF em buffer de imagem PNG utilizando utilitários locais do SO (sips / pdftoppm).
  * Opera exclusivamente em memória/arquivos temporários efêmeros com destruição imediata (Zero Retenção).
  * @param {Buffer} pdfBuffer Buffer binário do PDF
@@ -283,6 +325,9 @@ export async function performOcr(imageBufferOrBase64, lang = 'por') {
       return { text: '', confidence: 0, error: 'Formato PDF requer conversão para imagem' };
     }
   }
+
+  // Aplica upscaling adaptativo com interpolação bicúbica se a imagem for menor que 1400px
+  inputData = await upscaleImageBufferIfNeeded(inputData, 1800);
 
   try {
     const { createWorker } = await import('tesseract.js');

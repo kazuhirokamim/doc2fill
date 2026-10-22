@@ -162,7 +162,13 @@ export function classifyDocumentType(textConteudo, fileName = '') {
     combined.includes('nota fiscal') ||
     combined.includes('prefeitura') ||
     combined.includes('issqn') ||
-    combined.includes('prestador de servicos')
+    combined.includes('prestador de servicos') ||
+    combined.includes('numero da nota') ||
+    combined.includes('discriminacao') ||
+    combined.includes('discrinina') ||
+    combined.includes('valor dos servicos') ||
+    combined.includes('iss retido') ||
+    combined.includes('tomador')
   ) {
     return {
       type: DOCUMENT_TYPES.NFSE,

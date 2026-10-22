@@ -35,6 +35,55 @@ async function detectNativeBarcodes(imgElement) {
   }
 }
 
+export function upscaleAndEnhanceImageElement(imgEl, minTargetDim = 1600) {
+  if (!imgEl) return null;
+  const w = imgEl.naturalWidth || imgEl.width || 0;
+  const h = imgEl.naturalHeight || imgEl.height || 0;
+  if (w === 0 || h === 0) return null;
+
+  const maxDim = Math.max(w, h);
+  let scale = 1.0;
+  if (maxDim < minTargetDim) {
+    scale = Math.min(4.0, minTargetDim / maxDim);
+  }
+
+  const targetW = Math.round(w * scale);
+  const targetH = Math.round(h * scale);
+
+  let canvas;
+  if (typeof OffscreenCanvas !== 'undefined') {
+    canvas = new OffscreenCanvas(targetW, targetH);
+  } else if (typeof document !== 'undefined' && document.createElement) {
+    canvas = document.createElement('canvas');
+    canvas.width = targetW;
+    canvas.height = targetH;
+  } else {
+    return null;
+  }
+
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(imgEl, 0, 0, targetW, targetH);
+
+  try {
+    const imgData = ctx.getImageData(0, 0, targetW, targetH);
+    const d = imgData.data;
+    const factor = (259 * (1.5 + 255)) / (255 * (259 - 1.5));
+    for (let i = 0; i < d.length; i += 4) {
+      const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      const contrasted = factor * (gray - 128) + 128;
+      const clamped = contrasted > 255 ? 255 : (contrasted < 0 ? 0 : contrasted);
+      d[i] = clamped;
+      d[i + 1] = clamped;
+      d[i + 2] = clamped;
+    }
+    ctx.putImageData(imgData, 0, 0);
+  } catch (_) {}
+
+  return canvas;
+}
+
 export async function performBrowserClientOcr(base64Image, fileName = 'documento.jpg') {
   if (!base64Image || typeof base64Image !== 'string') {
     return { success: false, text: '', data: {}, source: 'invalid_input' };
@@ -42,6 +91,7 @@ export async function performBrowserClientOcr(base64Image, fileName = 'documento
 
   let combinedText = '';
   let sourceUsed = 'browser_heuristic';
+  let ocrTargetInput = base64Image;
 
   const imgEl = await loadImageFromBase64(base64Image);
   if (imgEl) {
@@ -50,6 +100,8 @@ export async function performBrowserClientOcr(base64Image, fileName = 'documento
       combinedText += barcodeText + '\n';
       sourceUsed = 'chrome_barcode_detector';
     }
+    const upscaledCanvas = upscaleAndEnhanceImageElement(imgEl);
+    if (upscaledCanvas) ocrTargetInput = upscaledCanvas;
   }
 
   if (typeof globalThis.Tesseract !== 'undefined') {
@@ -62,11 +114,11 @@ export async function performBrowserClientOcr(base64Image, fileName = 'documento
           langPath: chrome.runtime.getURL('vendor/'),
           gzip: false
         });
-        const ret = await worker.recognize(base64Image);
+        const ret = await worker.recognize(ocrTargetInput);
         ocrTextResult = ret?.data?.text || '';
         await worker.terminate();
       } else if (typeof globalThis.Tesseract.recognize === 'function') {
-        const ret = await globalThis.Tesseract.recognize(base64Image, 'por');
+        const ret = await globalThis.Tesseract.recognize(ocrTargetInput, 'por');
         ocrTextResult = ret?.data?.text || '';
       }
 

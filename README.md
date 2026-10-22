@@ -56,7 +56,8 @@ graph LR
 - **Side Panel Nativo Manifest V3:** Operação sob demanda sem injeção residual no DOM da página web governamental.
 - **Motor Anti-Glosa & Decodificador SEFAZ:** Mapeamento automático de procedimentos médicos/fiscais e decodificação determinística de chaves de 44 dígitos.
 - **Licenciamento Offline HMAC-SHA256:** Funciona perfeitamente em ambientes governamentais fechados (*air-gapped*) sem necessidade de conexão com nuvem para validar assinaturas.
-- **Qualidade Rigorosa (Tear / Noesis):** 210 testes unitários e de integração verdes e 100% de precisão no benchmark SROIE.
+- **Pipeline Óptico & Upscaling Adaptativo:** Ampliação automática em Canvas e estiramento de contraste para leitura de cupons de baixa resolução e PDFs escaneados com Zero Retenção.
+- **Qualidade Rigorosa (Tear / Noesis):** 237 testes unitários e de integração verdes e 100% de precisão em documentos heterogêneos reais.
 
 ---
 

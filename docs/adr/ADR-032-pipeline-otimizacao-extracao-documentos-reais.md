@@ -2,7 +2,7 @@
 numero: 32
 titulo: Pipeline de Otimização Óptica, Upscaling Adaptativo e Refatoração Forense de Extração para Documentos Reais
 data: 2026-10-22
-status: Proposto
+status: Aceito
 autores:
   - Kazuhiro
   - Tear Maestro

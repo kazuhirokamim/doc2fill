@@ -124,10 +124,61 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     }
   }
 
+  const STOPWORDS_NUM_DOC = new Set([
+    'TEM', 'ITEM', 'DE', 'DO', 'DA', 'PARA', 'COM', 'EM', 'POR', 'TA', 'NOTA',
+    'RECIBO', 'FATURA', 'EXTRATO', 'SERIE', 'VIA', 'PAGINA', 'ENTRADA', 'SAIDA',
+    'VALOR', 'TOTAL', 'FISCAL', 'CONSUMIDOR', 'MODELO', 'DOCUMENTO', 'PROTOCOLO',
+    'CODIGO', 'DESCRICAO', 'DADOS', 'SERVICO', 'SERVICOS', 'COMPETENCIA'
+  ]);
+
+  function isValidNumDoc(val) {
+    if (!val || typeof val !== 'string') return false;
+    const clean = val.replace(/^[Nn][º°o\.\:\s]+/, '').trim();
+    if (clean.length < 2 || clean.length > 35) return false;
+    if (!/\d/.test(clean)) return false;
+    if (STOPWORDS_NUM_DOC.has(clean.toUpperCase())) return false;
+    return true;
+  }
+
+  // 1. Prioriza Razão Social e Nomes Empresariais canônicos
   const razaoMatch = text.match(/(?:Raz[aã]o\s+Social|Nome\s+Empresarial|Nome\s+Fantasia)[: \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i);
-  if (razaoMatch && !/^(?:prestador|servicos|cliente)/i.test(razaoMatch[1].trim())) {
-    data.fornecedor = razaoMatch[1].trim();
+  let explicitRazao = null;
+
+  if (razaoMatch) {
+    const rawMatch = razaoMatch[1].trim();
+    if (/(?:CNPJ|INSCRI[CÇ][AÃ]O|ESTADUAL|DATA|ENDERE[CÇ]O|BAIRRO)/i.test(rawMatch)) {
+      const lines = text.split(/[\r\n]+/);
+      for (let i = 0; i < lines.length; i++) {
+        if (/Raz[aã]o\s+Social/i.test(lines[i]) && i + 1 < lines.length) {
+          const next = lines[i + 1].trim();
+          const cleanNext = next.replace(/\b\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}.*$/, '').trim();
+          if (cleanNext.length >= 3 && !/^(?:Endere[cç]o|Destinat[aá]rio)/i.test(cleanNext)) {
+            explicitRazao = cleanNext;
+            break;
+          }
+        }
+      }
+    } else if (!/^(?:prestador|servicos|cliente|dados|tomador|consumidor|n[uú]mero\s+da\s+nota|compet[eê]ncia)/i.test(rawMatch)) {
+      explicitRazao = rawMatch;
+    }
+  }
+
+  if (explicitRazao) {
+    data.fornecedor = explicitRazao;
   } else {
+    let corporateSuffixMatch = null;
+    const lines = text.split(/[\r\n]+/);
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) continue;
+      if (/^(?:CNPJ|INSCRI[CÇ][AÃ]O|ESTADUAL|ENDERE[CÇ]O|BAIRRO|MUNIC[IÍ]PIO|VALOR|TOTAL|C[AÁ]LCULO|DOCUMENTO|PROTOCOLO|N[UÚ]MERO|DATA|—)/i.test(line)) continue;
+      const corpMatch = line.match(/\b([A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s,\.\-]{3,60}\s+(?:LTDA|S\/A|S\.A\.|EIRELI|EPP|ME))\b/i);
+      if (corpMatch) {
+        corporateSuffixMatch = corpMatch[1].trim();
+        break;
+      }
+    }
+
     let cnpjAdjacentMatch = null;
     const cnpjLine = text.match(/cnpj[^\n\r\d]*[\d\.\s\/-]{14,24}[ \t]+([A-ZÁÉÍÓÚÂÊÔÃÕ][A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{2,50}\b(?:LTDA|S\/A|ME|EPP)?)/i);
     if (cnpjLine) {
@@ -139,20 +190,38 @@ export function parseDocumentFields(rawText = '', fileName = '') {
 
     const pharmacyHeaderMatch = text.match(/\b((?:DROGARIA|FARM[AÁ]CIA|REDE\s+POPULAR\s+DROGA)\s+[A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{2,40}(?:LTDA|S\/A|ME)?)\b/i);
 
-    const fornecedorPrefixMatch =
+    let tomadorLine = null;
+    for (let i = 0; i < lines.length; i++) {
+      if (/(?:DADOS DO TOMADOR|FOME RAD[AÃ]O SOC|TOMADOR)/i.test(lines[i])) {
+        for (let j = i + 1; j < Math.min(i + 3, lines.length); j++) {
+          const l = lines[j].trim();
+          if (l.length >= 3 && !/^(?:FOME|RAD[AÃ]O|ENDERE|CPF|CNPJ|ISENTO)/i.test(l)) {
+            tomadorLine = l.replace(/^CUENTE\s+/i, 'CLIENTE ');
+            break;
+          }
+        }
+      }
+    }
+
+    const servicePrestadorMatch = text.match(/(?:DADOS\s+DO\s+(?:PRESTADOR|TOMADOR)|NOME\s*\/?\s*RAZ[AÃ]O\s+SOCIAL)[: \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i);
+    const retailBrandMatch = text.match(/^(?:LOJAS\s+[A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{2,30}|SUPERMERCADO\s+[A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{2,30})/im);
+
+    const candidateSupplier =
+      corporateSuffixMatch ||
+      tomadorLine ||
       cnpjAdjacentMatch ||
       (pharmacyHeaderMatch ? pharmacyHeaderMatch[1].split(/[\n\r]/)[0].trim() : null) ||
-      text.match(/(?:Prestador(?:\s+de\s+Servi[cç]os)?|Emitente|Estabelecimento|Fornecedor|Benefici[aá]rio(?:\s*\/\s*Destinat[aá]rio)?|Destinat[aá]rio|Requerente|Nome)[: \t]*(?:Dr\.|Dra\.)?[ \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i) ||
-      text.match(/(?:Dr\.|Dra\.)[ \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+(?:[ \t]+[A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+)+)/) ||
-      text.match(/\b([A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{3,40}\s+(?:LTDA|S\/A|S\.A\.|EIRELI|EPP|ME))\b/i);
+      (servicePrestadorMatch && !/^(?:n[uú]mero\s+da\s+nota|compet[eê]ncia)/i.test(servicePrestadorMatch[1].trim()) ? servicePrestadorMatch[1].trim() : null) ||
+      (retailBrandMatch ? retailBrandMatch[0].trim() : null) ||
+      text.match(/(?:Prestador(?:\s+de\s+Servi[cç]os)?|Emitente|Estabelecimento|Fornecedor|Benefici[aá]rio(?:\s*\/\s*Destinat[aá]rio)?|Destinat[aá]rio|Requerente|Nome)[: \t]*(?:Dr\.|Dra\.)?[ \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i)?.[1]?.trim() ||
+      text.match(/(?:Dr\.|Dra\.)[ \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+(?:[ \t]+[A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+)+)/)?.[1]?.trim();
 
-    if (fornecedorPrefixMatch) {
-      let rawVal = typeof fornecedorPrefixMatch === 'string'
-        ? fornecedorPrefixMatch
-        : (Array.isArray(fornecedorPrefixMatch) ? fornecedorPrefixMatch[1] : null);
-      let val = (rawVal || '').split(/[\n\r]/)[0].trim();
-      val = val.replace(/^de\s+servi[cç]os\s*/i, '').trim();
-      if (val && val.length >= 2) data.fornecedor = val;
+    if (candidateSupplier) {
+      let val = candidateSupplier.split(/[\n\r]/)[0].trim();
+      val = val.replace(/^de\s+servi[cç]os\s*/i, '').replace(/^—\s*=\s*/, '').trim();
+      if (val && val.length >= 2 && !/^(?:era|cnpj|inscricao|dados)/i.test(val)) {
+        data.fornecedor = val;
+      }
     }
   }
 
@@ -161,20 +230,29 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     data.nome = data.fornecedor;
   }
 
-  const numDocMatch =
-    text.match(/(?:NFC-e|NFCe)\s*(?:n[º°o]|n\.|n|num)?[:\s]*([0-9]{3,20})/i) ||
-    text.match(/(?:N[uú]mero\s+(?:da\s+)?Nota(?:\s+Fiscal)?|N[uú]mero\s+do\s+Documento|N[uú]mero\s+do\s+Extrato|N[uú]mero)[:\s]*([0-9A-Za-z\.\-\/]{2,25})/i) ||
-    text.match(/(?:Nota\s+Fiscal|NFS-e|NF-e|DANFE)\s*(?:[A-Za-z\s]+)?(?:N[º°o]|N\.|N[:\s]|N[uú]mero)[:\s]*([0-9A-Za-z\.\-\/]{2,25})/i) ||
-    text.match(/(?:Extrato\s*(?:N[º°o]|N\.)?\s*([0-9A-Za-z\.\-\/]{3,20})\s+do\s+Cupom)/i) ||
-    text.match(/(?:Cupom\s+(?:Fiscal|Eletr[oô]nico)?)\s*(?:N[º°o]|N\.|N[uú]mero)?[:\s]*([0-9A-Za-z\.\-\/]{3,20})/i) ||
-    text.match(/(?:Recibo)\s*(?:N[º°o]|N\.|N[uú]mero)?[:\s]*([0-9A-Za-z\.\-\/]{2,20})/i) ||
-    text.match(/(?:Fatura)\s*(?:N[º°o]|N\.|N[uú]mero)?[:\s]*([0-9A-Za-z\.\-\/]{3,25})/i) ||
-    text.match(/(?:Identificador\s*\/?\s*Protocolo|Protocolo(?:\s+CCHA)?|Autentica[cç][aã]o(?:\s+Banc[aá]ria)?|ID\s+(?:da\s+)?Transa[cç][aã]o)[:\s]*([0-9A-Za-z\.\-\/]{6,35})/i) ||
-    text.match(/\b(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})\b/);
+  // 2. Extração Resiliente de Número do Documento com Validação Obrigatória de Dígitos
+  const numDanfeDirect = text.match(/\bN[º°o][\.\s]*([0-9]{3,9})\b/i);
+  const numDocCandidates = [
+    numDanfeDirect ? numDanfeDirect[1] : null,
+    text.match(/(?:NFC-e|NFCe)\s*(?:n[º°o]|n\.|n|num)?[:\s]*([0-9]{3,20})/i)?.[1],
+    text.match(/(?:N[uú]mero\s+(?:da\s+)?Nota(?:\s+Fiscal)?|N[uú]mero\s+do\s+Documento|N[uú]mero\s+do\s+Extrato|N[uú]mero)[:\s]*([0-9A-Za-z\.\-\/]{2,25})/i)?.[1],
+    text.match(/(?:Nota\s+Fiscal|NFS-e|NF-e|DANFE)\s*(?:[A-Za-z\s]+)?(?:N[º°o]|N\.|N[:\s]|N[uú]mero)[:\s]*([0-9A-Za-z\.\-\/]{2,25})/i)?.[1],
+    text.match(/(?:Extrato\s*(?:N[º°o]|N\.)?\s*([0-9A-Za-z\.\-\/]{3,20})\s+do\s+Cupom)/i)?.[1],
+    text.match(/(?:Cupom\s+(?:Fiscal|Eletr[oô]nico)?)\s*(?:N[º°o]|N\.|N[uú]mero)[:\s]*([0-9A-Za-z\.\-\/]{3,20})/i)?.[1],
+    text.match(/(?:COO|CCF)[:\s]*([0-9]{3,10})/i)?.[1],
+    text.match(/(?:Recibo)\s*(?:N[º°o]|N\.|N[uú]mero)[:\s]*([0-9A-Za-z\.\-\/]{2,20})/i)?.[1],
+    text.match(/(?:Fatura)\s*(?:N[º°o]|N\.|N[uú]mero)[:\s]*([0-9A-Za-z\.\-\/]{3,25})/i)?.[1],
+    text.match(/(?:Identificador\s*\/?\s*Protocolo|Protocolo(?:\s+CCHA)?|Autentica[cç][aã]o(?:\s+Banc[aá]ria)?|ID\s+(?:da\s+)?Transa[cç][aã]o)[:\s]*([0-9A-Za-z\.\-\/]{6,35})/i)?.[1]
+  ];
 
-  if (numDocMatch) {
-    data.numero_documento = numDocMatch[1].trim();
-  } else if (!data.numero_documento) {
+  for (const cand of numDocCandidates) {
+    if (cand && isValidNumDoc(cand)) {
+      data.numero_documento = cand.trim();
+      break;
+    }
+  }
+
+  if (!data.numero_documento) {
     const lines = text.split(/[\r\n]+/);
     for (let i = 0; i < lines.length; i++) {
       const l = lines[i];
@@ -196,15 +274,18 @@ export function parseDocumentFields(rawText = '', fileName = '') {
 
           if (clean.length >= 35) {
             const nNf = clean.substring(25, 34);
-            data.numero_documento = (nNf && !/^0+$/.test(nNf)) ? nNf : clean.substring(0, 10);
-            break;
+            const chosen = (nNf && !/^0+$/.test(nNf)) ? nNf : clean.substring(0, 10);
+            if (isValidNumDoc(chosen)) {
+              data.numero_documento = chosen;
+              break;
+            }
           }
         }
       }
     }
     if (!data.numero_documento) {
       const opMatch = text.match(/(?:OP|VD|CX|C[oó]d)[:\s]*([0-9]{3,10})/i);
-      if (opMatch) data.numero_documento = opMatch[1].trim();
+      if (opMatch && isValidNumDoc(opMatch[1])) data.numero_documento = opMatch[1].trim();
     }
   }
 
@@ -219,7 +300,8 @@ export function parseDocumentFields(rawText = '', fileName = '') {
   }
 
   const valorMatch =
-    text.match(/(?:VALOR\s+TOTAL(?:\s+DA\s+NOTA|\s+R\$)?|VALOR\s+L[IÍ]QUIDO|VALOR\s+PAGO|VALOR\s+BRUTO|TOTAL|VALOR)[^\d\n\r]*R?\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}|[0-9]+,[0-9]{2})/i) ||
+    text.match(/(?:VALOR\s+TOTAL(?:\s+DA\s+NOTA|\s+DOS\s+SERVI[CÇ]OS|\s+R\$)?|VALOR\s+L[IÍ]QUIDO|VALOR\s+PAGO|VALOR\s+BRUTO|TOTAL(?:\s+R\$)?|VALOR)[^\d\n\r]*R?\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}|[0-9]+,[0-9]{2})/i) ||
+    text.match(/(?:VALOR\s+TOTAL(?:\s+DA\s+NOTA|\s+DOS\s+SERVI[CÇ]OS)?|TOTAL)[^\d]*?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i) ||
     text.match(/R\$\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i) ||
     text.match(/valor[:_\s]*R?\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}|[0-9]+,[0-9]{2})/i);
 

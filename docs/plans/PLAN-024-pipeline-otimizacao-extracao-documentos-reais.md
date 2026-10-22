@@ -1,7 +1,7 @@
 # PLAN-024: Pipeline de Otimização Óptica, Upscaling Adaptativo e Refatoração Forense de Extração para Documentos Reais
 
-- **status:** Proposto
-- **rev:** pendente
+- **status:** Ratificado
+- **rev:** 042424f
 - **autor:** Kazuhiro & Tear Maestro
 - **data:** 22/10/2026
 - **tearform:** respostas/024.md

@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function requestOcrWithClientFallback(base64Data, fileName) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 400);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
       const ocrRes = await fetch(`${activeApiBaseUrl}/api/ocr`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

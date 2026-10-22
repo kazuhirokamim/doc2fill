@@ -67,6 +67,22 @@ export async function decompressPdfStreamAsync(streamBytes) {
   return '';
 }
 
+export function isCleanTextStream(text) {
+  if (!text || typeof text !== 'string') return false;
+  const trimmed = text.trim();
+  if (trimmed.length === 0) return false;
+  let nonPrintable = 0;
+  for (let i = 0; i < trimmed.length; i++) {
+    const code = trimmed.charCodeAt(i);
+    if (code === 9 || code === 10 || code === 13) continue;
+    if (code >= 32 && code <= 126) continue;
+    if (code >= 160 && code <= 255) continue;
+    nonPrintable++;
+  }
+  if (nonPrintable / trimmed.length > 0.08) return false;
+  return /[a-zA-Z0-9]{2,}/.test(trimmed);
+}
+
 export function extractTextFromOperators(rawPdfText) {
   if (!rawPdfText || typeof rawPdfText !== 'string') return [];
   const chunks = [];
@@ -75,14 +91,14 @@ export function extractTextFromOperators(rawPdfText) {
   const literalMatches = rawPdfText.match(/\(([^()]{2,})\)\s*(?:Tj|'|")/g) || [];
   for (const m of literalMatches) {
     const val = m.replace(/^\(/, '').replace(/\)\s*(?:Tj|'|")$/, '').trim();
-    if (val && !seen.has(val)) { seen.add(val); chunks.push(val); }
+    if (val && isCleanTextStream(val) && !seen.has(val)) { seen.add(val); chunks.push(val); }
   }
 
   const arrayMatches = rawPdfText.match(/\[([^\]]+)\]\s*TJ/gi) || [];
   for (const m of arrayMatches) {
     const innerStrings = m.match(/\(([^()]+)\)/g) || [];
     const joined = innerStrings.map(s => s.slice(1, -1)).join('').trim();
-    if (joined && !seen.has(joined)) { seen.add(joined); chunks.push(joined); }
+    if (joined && isCleanTextStream(joined) && !seen.has(joined)) { seen.add(joined); chunks.push(joined); }
   }
 
   const btBlocks = rawPdfText.match(/BT[\s\S]*?ET/gi) || [rawPdfText];
@@ -91,7 +107,7 @@ export function extractTextFromOperators(rawPdfText) {
     for (const s of rawStrings) {
       const clean = s.slice(1, -1).trim();
       if (/^[a-zA-Z0-9\s\.,;:/\-–—ºª§R$\(\)]+$/.test(clean) && clean.length >= 3) {
-        if (!seen.has(clean)) { seen.add(clean); chunks.push(clean); }
+        if (!seen.has(clean) && isCleanTextStream(clean)) { seen.add(clean); chunks.push(clean); }
       }
     }
   }
@@ -107,6 +123,8 @@ export function extractAllStreamsText(bytes) {
   const streamDictRegex = /<<([\s\S]*?\/Filter\s*(?:\/FlateDecode|\[[\s/a-zA-Z0-9]*FlateDecode[\s/a-zA-Z0-9]*\])[\s\S]*?)>>\s*stream(?:\r\n|\n|\r)/gi;
   let match;
   while ((match = streamDictRegex.exec(latin1Text)) !== null) {
+    const dictText = match[1];
+    if (/\/Subtype\s*\/Image\b/i.test(dictText)) continue;
     const streamStart = match.index + match[0].length;
     const endstreamIndex = latin1Text.indexOf('endstream', streamStart);
     if (endstreamIndex !== -1) {
@@ -130,6 +148,8 @@ export async function extractAllStreamsTextAsync(bytes) {
   const streamDictRegex = /<<([\s\S]*?\/Filter\s*(?:\/FlateDecode|\[[\s/a-zA-Z0-9]*FlateDecode[\s/a-zA-Z0-9]*\])[\s\S]*?)>>\s*stream(?:\r\n|\n|\r)/gi;
   let match;
   while ((match = streamDictRegex.exec(latin1Text)) !== null) {
+    const dictText = match[1];
+    if (/\/Subtype\s*\/Image\b/i.test(dictText)) continue;
     const streamStart = match.index + match[0].length;
     const endstreamIndex = latin1Text.indexOf('endstream', streamStart);
     if (endstreamIndex !== -1) {
