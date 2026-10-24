@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Pipeline Óptico Autônomo e Extração Client-Side de Imagens em PDFs Escaneados (`core/browser-ocr.js`, `core/pdf-stream-decoder.js`, `extension/sidepanel.js`)**: Conexão da binarização adaptativa Otsu-lite e auto-deskew no Canvas para leitura de cupons térmicos e fotos com baixa iluminação no Tesseract WASM local. Extração nativa de streams de imagem JPEG (`/Filter /DCTDecode`) e FlateDecode diretamente de PDFs no navegador, viabilizando leitura de PDFs escaneados 100% offline sem utilitários do sistema operacional.
+- **Suíte TDD de Pipeline Óptico e Scanned PDF (`tests/core/offline-optical-pipeline.test.js`)**: 9 testes cobrindo extração de streams JPEG de PDF, binarização Otsu adaptativa, rotação planar arbitrária e resiliência a entradas corrompidas.
+- **ADR-034 & PLAN-026**: Formalização da arquitetura offline-first e matriz de rastreabilidade.
+
+### Added
 - **Autonomia de OCR Offscreen WASM Local & Hardening do Pacote Beta (`core/browser-ocr.js`, `extension/offscreen.html`, `scripts/build-extension.js`, `scripts/package-beta.js`)**: Inclusão de runtime Tesseract WASM e modelo treinado em português (`extension/vendor/`) para processamento ótico 100% autônomo e offline no navegador sem dependência de terminal ou servidores Node ativos.
 - **Higienização de Injeção DOM e Proteção de Abas do Sistema (`extension/sidepanel.js`, `extension/content.js`)**: Correção de erros de sintaxe de módulo clássico e interceptação amigável em URLs restritas (`chrome://`, `edge://`) orientando o usuário a abrir a página do CCHA.
 - **Aviso Visual de Conectividade Wi-Fi para Scanner P2P (`extension/sidepanel.html`)**: Inserção de card com instruções passo a passo e alerta explícito de que smartphone e computador devem residir na mesma rede local para transmissão P2P sem nuvem (100% LGPD).

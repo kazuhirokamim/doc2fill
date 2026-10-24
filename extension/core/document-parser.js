@@ -1,7 +1,8 @@
 // doc2fill - Document Text & Field Extractor Engine
 import { classifyDocumentType } from './classifier.js';
 import { extractLineItemsFromText } from './item-extractor.js';
-import { extractAllStreamsText, extractAllStreamsTextAsync, extractTextFromOperators } from './pdf-stream-decoder.js';
+import { extractAllStreamsText, extractAllStreamsTextAsync, extractTextFromOperators, extractFirstPdfImageAsDataUrl } from './pdf-stream-decoder.js';
+export { extractFirstPdfImageAsDataUrl };
 import { translateClinicalProcedure } from './clinical-translator.js';
 
 export function isPdfEncrypted(input) {

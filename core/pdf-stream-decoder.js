@@ -163,3 +163,88 @@ export async function extractAllStreamsTextAsync(bytes) {
   }
   return allExtractedChunks;
 }
+
+/**
+ * Converte um Uint8Array para string Base64 em ambientes Node.js ou Browser.
+ * @param {Uint8Array} bytes
+ * @returns {string}
+ */
+export function bytesToBase64(bytes) {
+  if (!bytes || bytes.length === 0) return '';
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(bytes).toString('base64');
+  }
+  if (typeof btoa === 'function') {
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  }
+  return '';
+}
+
+/**
+ * Inspeciona os objetos de um PDF em busca de streams de imagem rasterizada (/Subtype /Image).
+ * Extrai diretamente a primeira imagem (ex: DCTDecode / JPEG) como Data URL para processamento de OCR no client.
+ * Opera exclusivamente em memória (Zero Retenção).
+ * @param {Uint8Array|ArrayBuffer|string} input Buffer binário ou data URL do PDF
+ * @returns {string|null} Data URL (ex: data:image/jpeg;base64,...) ou null se não houver imagem
+ */
+export function extractFirstPdfImageAsDataUrl(input) {
+  if (!input) return null;
+  let bytes = null;
+  if (input instanceof Uint8Array) {
+    bytes = input;
+  } else if (input instanceof ArrayBuffer) {
+    bytes = new Uint8Array(input);
+  } else if (ArrayBuffer.isView(input)) {
+    bytes = new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+  } else if (typeof input === 'string') {
+    if (input.startsWith('data:')) {
+      const b64 = input.includes(',') ? input.split(',')[1] : input;
+      if (typeof Buffer !== 'undefined') {
+        bytes = Buffer.from(b64, 'base64');
+      } else if (typeof atob === 'function') {
+        const bin = atob(b64);
+        bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      }
+    }
+  }
+
+  if (!bytes || bytes.length === 0) return null;
+
+  const decoder = new TextDecoder('latin1');
+  const latin1Text = decoder.decode(bytes);
+
+  const imageStreamRegex = /<<([\s\S]*?\/Subtype\s*\/Image[\s\S]*?)>>\s*stream(?:\r\n|\n|\r)/gi;
+  let match;
+  while ((match = imageStreamRegex.exec(latin1Text)) !== null) {
+    const dictText = match[1];
+    const streamStart = match.index + match[0].length;
+    const endstreamIndex = latin1Text.indexOf('endstream', streamStart);
+    if (endstreamIndex === -1) continue;
+
+    let streamEnd = endstreamIndex;
+    while (streamEnd > streamStart && (bytes[streamEnd - 1] === 10 || bytes[streamEnd - 1] === 13)) {
+      streamEnd--;
+    }
+
+    if (streamEnd <= streamStart) continue;
+
+    const rawStreamBytes = bytes.subarray(streamStart, streamEnd);
+
+    // Se o filtro for DCTDecode (JPEG nativo)
+    if (/\/Filter\s*(?:\/DCTDecode|\[[\s/a-zA-Z0-9]*DCTDecode[\s/a-zA-Z0-9]*\])/i.test(dictText)) {
+      const b64 = bytesToBase64(rawStreamBytes);
+      if (b64) {
+        return `data:image/jpeg;base64,${b64}`;
+      }
+    }
+  }
+
+  return null;
+}
+

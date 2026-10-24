@@ -1,11 +1,16 @@
 // core/browser-ocr.js
-// Motor de Visão Computacional Client-Side (Browser Fallback com Auto-Rotação e Avaliação de Confiança)
+// Motor de Visão Computacional Client-Side (Browser Fallback com Auto-Rotação, Otsu e Avaliação de Confiança)
 import { cleanOcrText, processOcrText } from './ocr-engine.js';
 import {
   detectExifOrientation,
   getRotationDegreesFromOrientation,
-  rotateCanvasByDegrees
+  rotateCanvasByDegrees,
+  computeOtsuThreshold,
+  applyOtsuBinarizationToPixels,
+  estimateSkewAngleFromProjection,
+  calculateRotatedDimensions
 } from './image-preprocessor.js';
+import { extractFirstPdfImageAsDataUrl } from './pdf-stream-decoder.js';
 import { evaluateOcrConfidence } from './cloud-ocr-client.js';
 
 function base64ToUint8Array(base64Str) {
@@ -60,7 +65,7 @@ async function detectNativeBarcodes(imgElement) {
   }
 }
 
-export function upscaleAndEnhanceImageElement(imgEl, minTargetDim = 1600) {
+export function upscaleAndEnhanceImageElement(imgEl, minTargetDim = 1600, options = {}) {
   if (!imgEl) return null;
   const w = imgEl.naturalWidth || imgEl.width || 0;
   const h = imgEl.naturalHeight || imgEl.height || 0;
@@ -87,6 +92,7 @@ export function upscaleAndEnhanceImageElement(imgEl, minTargetDim = 1600) {
   }
 
   const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(imgEl, 0, 0, targetW, targetH);
@@ -94,16 +100,34 @@ export function upscaleAndEnhanceImageElement(imgEl, minTargetDim = 1600) {
   try {
     const imgData = ctx.getImageData(0, 0, targetW, targetH);
     const d = imgData.data;
-    const factor = (259 * (1.5 + 255)) / (255 * (259 - 1.5));
-    for (let i = 0; i < d.length; i += 4) {
-      const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-      const contrasted = factor * (gray - 128) + 128;
-      const clamped = contrasted > 255 ? 255 : (contrasted < 0 ? 0 : contrasted);
-      d[i] = clamped;
-      d[i + 1] = clamped;
-      d[i + 2] = clamped;
+
+    // 1. Aplica binarização adaptativa Otsu se habilitado
+    if (options.applyOtsu !== false) {
+      applyOtsuBinarizationToPixels(d);
+    } else {
+      const factor = (259 * (1.5 + 255)) / (255 * (259 - 1.5));
+      for (let i = 0; i < d.length; i += 4) {
+        const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+        const contrasted = factor * (gray - 128) + 128;
+        const clamped = contrasted > 255 ? 255 : (contrasted < 0 ? 0 : contrasted);
+        d[i] = clamped;
+        d[i + 1] = clamped;
+        d[i + 2] = clamped;
+      }
     }
     ctx.putImageData(imgData, 0, 0);
+
+    // 2. Aplica deskew se solicitado e dimensões viáveis
+    if (options.applyDeskew) {
+      const grayPixels = new Uint8Array(targetW * targetH);
+      for (let i = 0, j = 0; i < d.length; i += 4, j++) {
+        grayPixels[j] = d[i] < 128 ? 1 : 0; // 1 = texto escuro para variância de projeção
+      }
+      const skewAngle = estimateSkewAngleFromProjection(grayPixels, targetW, targetH, -12, 12, 1);
+      if (Math.abs(skewAngle) >= 1) {
+        canvas = rotateCanvasByDegrees(canvas, -skewAngle);
+      }
+    }
   } catch (_) {}
 
   return canvas;
@@ -114,20 +138,30 @@ export async function performBrowserClientOcr(base64Image, fileName = 'documento
     return { success: false, text: '', data: {}, source: 'invalid_input' };
   }
 
+  let effectiveImage = base64Image;
+
+  // Se a entrada for um PDF escaneado (data:application/pdf ou nome .pdf), tenta extrair imagem embutida
+  if (base64Image.startsWith('data:application/pdf') || base64Image.startsWith('%PDF-') || fileName.toLowerCase().endsWith('.pdf')) {
+    const extractedImg = extractFirstPdfImageAsDataUrl(base64Image);
+    if (extractedImg) {
+      effectiveImage = extractedImg;
+    }
+  }
+
   let combinedText = '';
   let sourceUsed = 'browser_heuristic';
-  let ocrTargetInput = base64Image;
+  let ocrTargetInput = effectiveImage;
 
-  const imgEl = await loadImageFromBase64(base64Image);
+  const imgEl = await loadImageFromBase64(effectiveImage);
   if (imgEl) {
     const barcodeText = await detectNativeBarcodes(imgEl);
     if (barcodeText) {
       combinedText += barcodeText + '\n';
       sourceUsed = 'chrome_barcode_detector';
     }
-    let upscaledCanvas = upscaleAndEnhanceImageElement(imgEl);
+    let upscaledCanvas = upscaleAndEnhanceImageElement(imgEl, 1600, { applyOtsu: true, applyDeskew: false });
     if (upscaledCanvas) {
-      const bytes = base64ToUint8Array(base64Image);
+      const bytes = base64ToUint8Array(effectiveImage);
       if (bytes) {
         const orientation = detectExifOrientation(bytes);
         const rotationDegrees = getRotationDegreesFromOrientation(orientation);

@@ -331,11 +331,10 @@ export function applyOtsuBinarizationToPixels(rgba) {
 export function rotateCanvasByDegrees(canvas, degrees) {
   if (!canvas || !degrees || degrees % 360 === 0) return canvas;
 
-  const deg = ((degrees % 360) + 360) % 360;
-  const rad = (deg * Math.PI) / 180;
-  const isSwap = deg === 90 || deg === 270;
-  const newW = isSwap ? canvas.height : canvas.width;
-  const newH = isSwap ? canvas.width : canvas.height;
+  const dims = calculateRotatedDimensions(canvas.width, canvas.height, degrees);
+  const newW = dims.width || canvas.width;
+  const newH = dims.height || canvas.height;
+  const rad = (degrees * Math.PI) / 180;
 
   let newCanvas;
   if (typeof OffscreenCanvas !== 'undefined') {
@@ -349,6 +348,7 @@ export function rotateCanvasByDegrees(canvas, degrees) {
   }
 
   const ctx = newCanvas.getContext('2d');
+  if (!ctx) return canvas;
   ctx.translate(newW / 2, newH / 2);
   ctx.rotate(rad);
   ctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);

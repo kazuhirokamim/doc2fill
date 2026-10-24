@@ -1,5 +1,5 @@
 // doc2fill - Sidepanel Controller (CCHA Honorários & Real File Parsing Edition)
-import { parseDocumentFields, extractTextFromPdfContentAsync, normalizeCanonicalDocumentFields, isPdfEncrypted } from './core/document-parser.js';
+import { parseDocumentFields, extractTextFromPdfContentAsync, normalizeCanonicalDocumentFields, isPdfEncrypted, extractFirstPdfImageAsDataUrl } from './core/document-parser.js';
 import { getRecentHistory, saveDocumentToHistory, clearHistory } from './core/history-store.js';
 import { performBrowserClientOcr } from './core/browser-ocr.js';
 import { evaluateOcrConfidence, performCloudVisionOcr } from './core/cloud-ocr-client.js';
@@ -411,7 +411,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!hasCore || !extractedText || extractedText.length < 50) {
         const b64 = await base64Promise;
-        const ocrJson = await requestOcrWithClientFallback(b64, file.name);
+        const pdfImage = extractFirstPdfImageAsDataUrl(buffer);
+        const ocrJson = await requestOcrWithClientFallback(pdfImage || b64, file.name);
         if (ocrJson && ocrJson.success) {
           if (ocrJson.text) extractedText = ocrJson.text;
           if (ocrJson.data) ocrStructuredData = ocrJson.data;
