@@ -39,7 +39,7 @@ No contexto de execução autônoma de OCR e visão computacional na extensão C
 - Resolução definitiva do bloqueio de OCR na extensão Chrome, garantindo extração local autônoma e offline sem necessidade de servidores Node ativos.
 - Captura precisa de valores em cupons fiscais térmicos, notas fiscais (NFS-e e DANFE), recibos profissionais, boletos e transferências PIX.
 - Preservação estrita dos 8 campos canônicos e da conformidade com LGPD (Zero Retenção).
-- 266 testes automatizados verdes garantindo regressão zero.
+- 266 testes automatizados verdes garantindo regressão zero com verificação red-to-green via tear-proof.
 
 ### Negativas
 - Requer inclusão do script Tesseract no sidepanel como fallback, aumentando ligeiramente a memória residente durante a sessão de OCR.

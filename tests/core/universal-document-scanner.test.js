@@ -1,3 +1,4 @@
+// @tear-proof issue-1
 // tests/core/universal-document-scanner.test.js
 // Suíte TDD - Motor de Varredura Universal de Documentos Fiscais & Resiliência OCR
 import { describe, it } from 'node:test';
