@@ -89,6 +89,11 @@ describe('doc2fill Browser Autonomy, Clinical Anti-Glosa Integration & Crypto Ch
     assert.ok(sidepanelHtml.includes('id="summary-cnpj-val"'), 'Deve conter summary-cnpj-val');
     assert.ok(sidepanelHtml.includes('id="summary-valor-val"'), 'Deve conter summary-valor-val');
 
+    // Valida header limpo (Wordmark isolado, sem CCHA/AGU, badge Beta simples)
+    assert.ok(sidepanelHtml.includes('icons/logo-wordmark.svg'), 'Header deve usar apenas a wordmark doc2fill');
+    assert.ok(!sidepanelHtml.includes('CCHA · AGU'), 'Header não deve conter CCHA · AGU');
+    assert.ok(sidepanelHtml.includes('>Beta</span>'), 'Badge deve exibir apenas Beta');
+
     // Valida orçamento de linhas per Regra #24
     const jsLines = sidepanelJs.split('\n').length;
     assert.ok(jsLines <= 700, `sidepanel.js deve ter no máximo 700 linhas (atual: ${jsLines})`);

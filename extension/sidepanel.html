@@ -9,17 +9,20 @@
   <link rel="stylesheet" href="toasts.css">
 </head>
 <body>
+  <!-- Header Principal com Wordmark Doc2fill (sem ícone squircle) -->
   <header class="app-header">
     <div class="brand-row">
       <div class="brand">
-        <img src="icons/logo-full.svg" alt="doc2fill" class="brand-logo-img" height="28" />
+        <img src="icons/logo-wordmark.svg" alt="doc2fill" class="brand-wordmark-img" height="24" />
       </div>
       <div class="user-tier">
-        <span class="badge-pill badge-ccha">CCHA · AGU</span>
         <button type="button" id="btn-open-settings" class="btn-icon-settings" title="Configurações e Licença" aria-label="Configurações">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
         </button>
-        <span class="badge-pill" id="badge-license-status" style="cursor: pointer;" title="Clique para gerenciar ou ativar licença">● Beta Ativo</span>
+        <span class="badge-pill badge-beta" id="badge-license-status" title="Status da Licença">Beta</span>
       </div>
     </div>
   </header>
@@ -35,49 +38,50 @@
       </div>
     </div>
 
-    <!-- Título da Seção Documento Detectado -->
-    <div class="detected-section-header">
-      <h2 class="detected-title">Documento detectado</h2>
-      <p class="detected-subtitle">Dados extraídos com sucesso!</p>
-    </div>
-
-    <!-- Card de Documento Detectado (Fidelidade Imagem 2) -->
-    <div class="doc-detected-card" id="doc-detected-card">
-      <div class="doc-icon-wrap">
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#4B5563" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-          <line x1="16" y1="13" x2="8" y2="13"></line>
-          <line x1="16" y1="17" x2="8" y2="17"></line>
-          <polyline points="10 9 9 9 8 9"></polyline>
-        </svg>
+    <!-- Card 1: Documento Detectado & Ação Principal -->
+    <section class="clean-card doc-hero-card" id="doc-detected-card">
+      <div class="card-title-group">
+        <h2 class="card-main-title">Documento detectado</h2>
+        <p class="card-main-subtitle">Dados extraídos com sucesso!</p>
       </div>
-      <div class="doc-meta-wrap">
-        <h3 class="doc-meta-title" id="summary-doc-title">Nota Fiscal (PDF)</h3>
-        <div class="doc-meta-detail font-numeric" id="summary-cnpj-row">
-          CNPJ: <span id="summary-cnpj-val">12.345.678/0001-90</span>
+
+      <div class="doc-summary-box">
+        <div class="doc-icon-wrap">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
         </div>
-        <div class="doc-meta-detail font-numeric" id="summary-valor-row">
-          Valor: <span id="summary-valor-val" class="highlight-val">R$ 1.250,00</span>
+        <div class="doc-meta-wrap">
+          <h3 class="doc-meta-title" id="summary-doc-title">Nota Fiscal (PDF)</h3>
+          <div class="doc-meta-detail" id="summary-cnpj-row">
+            CNPJ: <span id="summary-cnpj-val" class="font-numeric">12.345.678/0001-90</span>
+          </div>
+          <div class="doc-meta-detail" id="summary-valor-row">
+            Valor: <span id="summary-valor-val" class="highlight-val font-numeric">R$ 1.250,00</span>
+          </div>
+        </div>
+        <div class="doc-check-wrap" id="summary-check-wrap" title="Dados Extraídos e Validados">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
         </div>
       </div>
-      <div class="doc-check-wrap" id="summary-check-wrap" title="Dados Prontos">
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-      </div>
-    </div>
 
-    <!-- Botão de Ação Primária em Âmbar Solar -->
-    <button id="btn-autofill" class="btn-primary" disabled>
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-      <span>Preencher Formulário</span>
-    </button>
+      <!-- Botão de Ação Primária em Âmbar Solar -->
+      <button id="btn-autofill" class="btn-primary btn-autofill-action" disabled>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+        <span>Preencher Formulário</span>
+      </button>
+    </section>
 
-    <!-- Upload & Entrada de Documentos -->
+    <!-- Card 2: Upload & Entrada de Documentos (Tabs Segmentadas) -->
     <div class="segmented-tabs">
       <button class="tab-btn active" id="tab-file" data-tab="file">
-        <svg class="tab-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <svg class="tab-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
         PDF / Comprovante
       </button>
       <button class="tab-btn" id="tab-qr" data-tab="qr">
@@ -86,13 +90,14 @@
       </button>
     </div>
 
+    <!-- Painel 1: Drag & Drop Arquivo -->
     <section class="tab-pane active" id="pane-file">
       <div class="clean-card drop-zone" id="drop-zone">
         <div class="drop-icon-wrap" id="drop-icon-wrap">
-          <svg viewBox="0 0 48 48" width="34" height="34" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="8" y="6" width="32" height="36" rx="4" fill="rgba(245, 158, 11, 0.08)" stroke="#D1D5DB" stroke-width="1.8" />
-            <path d="M28 6V14C28 15.1 28.9 16 30 16H40" stroke="#D1D5DB" stroke-width="1.8" />
-            <path d="M24 22V34M24 22L19 27M24 22L29 27" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
           </svg>
         </div>
         <h4 class="drop-title" id="drop-title">Arraste outro Documento ou Requerimento</h4>
@@ -104,6 +109,7 @@
       </div>
     </section>
 
+    <!-- Painel 2: Conexão QR Mobile -->
     <section class="tab-pane" id="pane-qr">
       <div class="clean-card qr-card">
         <div class="card-header"><span class="card-eyebrow">Pareamento Direto P2P</span></div>
@@ -119,7 +125,7 @@
       </div>
     </section>
 
-    <!-- Conferência e Detalhes dos Campos -->
+    <!-- Card 3: Conferência dos 8 Campos (Edição e Inspeção) -->
     <section class="clean-card form-card">
       <div class="form-header-row">
         <div>
@@ -129,64 +135,61 @@
       </div>
 
       <!-- Banner de Qualidade OCR -->
-      <div id="ocr-quality-banner" class="clean-card" style="display: none; padding: 7px 10px; background: var(--brand-amber-light); border: 1px solid var(--brand-amber-border); justify-content: space-between; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span id="ocr-quality-icon" style="font-size: 13px;">🟡</span>
-          <span id="ocr-quality-text" style="font-size: 11px; color: var(--text-heading);">Leitura Local Parcial (Confiança 45%)</span>
+      <div id="ocr-quality-banner" class="clean-card ocr-banner" style="display: none;">
+        <div class="ocr-banner-left">
+          <span id="ocr-quality-icon">🟡</span>
+          <span id="ocr-quality-text">Leitura Local Parcial</span>
         </div>
-        <button type="button" id="btn-cloud-boost" class="btn-subtle-action" style="font-size: 10.5px; padding: 3px 8px; color: var(--brand-amber-hover); font-weight: 600;">
+        <button type="button" id="btn-cloud-boost" class="btn-subtle-action">
           ⚡ Turbinar com Nuvem
         </button>
       </div>
 
       <!-- Navegação de Lote -->
-      <div id="batch-carousel-container" class="clean-card hidden" style="padding: 8px 12px; background: var(--bg-surface-secondary); border: 1px solid var(--border-subtle);">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <button type="button" id="btn-batch-prev" class="btn-subtle-action" title="Documento anterior" style="padding: 2px 8px; font-size: 11px;">◀</button>
-          <div id="batch-counter-label" style="font-size: 11.5px; font-weight: 600; color: var(--text-heading); text-align: center; display: flex; align-items: center; gap: 6px;">
+      <div id="batch-carousel-container" class="clean-card batch-card hidden">
+        <div class="batch-row">
+          <button type="button" id="btn-batch-prev" class="btn-subtle-action" title="Documento anterior">◀</button>
+          <div id="batch-counter-label" class="batch-counter">
             <span>Lote: Nota <b id="batch-current-idx">1</b> de <b id="batch-total-count">1</b></span>
-            <span id="batch-status-badge" class="badge-status" style="font-size: 10px; padding: 2px 6px;">🟢 Pronto</span>
+            <span id="batch-status-badge" class="badge-status">🟢 Pronto</span>
           </div>
-          <button type="button" id="btn-batch-next" class="btn-subtle-action" title="Próximo documento" style="padding: 2px 8px; font-size: 11px;">▶</button>
+          <button type="button" id="btn-batch-next" class="btn-subtle-action" title="Próximo documento">▶</button>
         </div>
-        <div id="batch-progress-bar" style="height: 3px; background: var(--border-subtle); margin-top: 6px; border-radius: 2px; overflow: hidden;">
-          <div id="batch-progress-fill" style="width: 0%; height: 100%; background: var(--brand-amber-primary); transition: width 0.3s ease;"></div>
+        <div id="batch-progress-bar" class="batch-progress">
+          <div id="batch-progress-fill" class="batch-progress-fill"></div>
         </div>
       </div>
 
       <!-- Split-view Prévia -->
       <div class="split-view-container" id="document-preview-container" style="display:none;">
         <div class="split-view-header">
-          <span class="split-view-title">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            Conferência Visual
-          </span>
+          <span class="split-view-title">Prévia do Comprovante</span>
           <div class="zoom-controls">
-            <button type="button" class="zoom-btn active" id="btn-zoom-100" data-zoom="100">1x</button>
-            <button type="button" class="zoom-btn" id="btn-zoom-150" data-zoom="150">1.5x</button>
-            <button type="button" class="zoom-btn" id="btn-zoom-200" data-zoom="200">2x</button>
-            <button type="button" class="toggle-preview-btn" id="btn-toggle-preview" title="Ocultar/Expandir prévia">▲</button>
+            <button type="button" id="btn-zoom-100" class="btn-zoom">100%</button>
+            <button type="button" id="btn-zoom-150" class="btn-zoom">150%</button>
+            <button type="button" id="btn-zoom-200" class="btn-zoom">200%</button>
+            <button type="button" id="btn-toggle-preview" class="btn-zoom-close" title="Fechar Prévia">✕</button>
           </div>
         </div>
-        <div class="split-view-viewport" id="preview-viewport">
-          <img id="preview-doc-image" class="preview-doc-image zoom-100" alt="Prévia do comprovante">
+        <div class="preview-viewport" id="preview-viewport">
+          <img id="preview-doc-image" class="preview-doc-image" alt="Prévia visual do documento">
         </div>
       </div>
 
-      <div class="fields-container">
+      <!-- Grade dos Campos do Formulário -->
+      <div class="form-fields-grid">
         <div class="field-row">
           <div class="field-group flex-1">
             <label for="field-tipo-doc">Tipo do Documento</label>
-            <select id="field-tipo-doc">
-              <option value="Nota Fiscal de Serviços (NFS-e)" selected>Nota Fiscal de Serviços (NFS-e)</option>
-              <option value="Cupom Fiscal (NFC-e / SAT)">Cupom Fiscal (NFC-e / SAT)</option>
-              <option value="Recibo Profissional Liberal">Recibo Profissional Liberal</option>
-              <option value="Boleto / Comprovante Bancário">Boleto / Comprovante Bancário</option>
-              <option value="Fatura / Concessionária">Fatura / Concessionária</option>
-              <option value="Comprovante de Pagamento">Comprovante de Pagamento</option>
-              <option value="Guia Médica (TISS/TUSS)">Guia Médica (TISS/TUSS)</option>
-              <option value="Declaração">Declaração</option>
-              <option value="Outro Comprovante">Outro Comprovante</option>
+            <select id="field-tipo-doc" class="input-select">
+              <option value="nota_fiscal">Nota Fiscal de Serviços (NFS-e)</option>
+              <option value="danfe">DANFE / NF-e Mercantil</option>
+              <option value="cupom_fiscal">Cupom Fiscal / NFC-e</option>
+              <option value="recibo">Recibo de Pagamento Autônomo (RPA)</option>
+              <option value="certidao">Certidão Negativa de Débitos</option>
+              <option value="comprovante_pix">Comprovante de Transferência / PIX</option>
+              <option value="boleto">Boleto Bancário Liquidado</option>
+              <option value="fatura">Fatura / Duplicata Comercial</option>
             </select>
           </div>
           <div class="field-group flex-1">
@@ -219,14 +222,14 @@
         <div class="field-group">
           <div class="label-badge-row">
             <label for="field-descricao">Descritivo Resumido</label>
-            <span class="badge-anti-glosa" id="badge-anti-glosa" style="display:none;">CCHA Validado</span>
+            <span class="badge-anti-glosa" id="badge-anti-glosa" style="display:none;">Validado</span>
           </div>
           <textarea id="field-descricao" rows="2" placeholder="Síntese concisa do serviço prestado ou produto adquirido..." spellcheck="false"></textarea>
         </div>
 
         <div class="field-group">
           <label for="field-motivo">Motivo da Necessidade</label>
-          <textarea id="field-motivo" rows="2" placeholder="Justificativa formal ou fundamentação legal perante o CCHA..." spellcheck="false"></textarea>
+          <textarea id="field-motivo" rows="2" placeholder="Justificativa formal ou fundamentação do documento..." spellcheck="false"></textarea>
         </div>
 
         <div class="attachment-status-row" id="attachment-status-box" style="display:none;">
@@ -246,22 +249,22 @@
       </div>
     </section>
 
-    <!-- Histórico Local Recente -->
-    <section class="clean-card" id="history-card" style="padding: 12px 16px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:11.5px; font-weight:700; color:var(--text-heading); display:flex; align-items:center; gap:6px;">
+    <!-- Card 4: Histórico Local Recente -->
+    <section class="clean-card history-card" id="history-card">
+      <div class="history-header">
+        <span class="history-title">
           <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
           Histórico Local Recente (Máx. 10)
         </span>
-        <button type="button" id="btn-purge-history" class="btn-subtle-action" style="padding:3px 8px; font-size:10.5px;">Limpar</button>
+        <button type="button" id="btn-purge-history" class="btn-subtle-action">Limpar</button>
       </div>
-      <div id="history-list" style="margin-top:8px; display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto;">
-        <span style="font-size:11px; color:var(--text-muted);">Nenhum comprovante recente salvo na sessão.</span>
+      <div id="history-list" class="history-list">
+        <span class="empty-history-text">Nenhum comprovante recente salvo na sessão.</span>
       </div>
     </section>
   </main>
 
-  <!-- Rodapé Operacional com Navegação Secundária (Fidelidade Imagem 2) -->
+  <!-- Rodapé Operacional com Navegação Secundária -->
   <footer class="app-footer">
     <div class="footer-nav-row">
       <button type="button" class="footer-btn" id="btn-footer-history">
@@ -269,7 +272,7 @@
         Histórico
       </button>
       <button type="button" class="footer-btn" id="btn-footer-settings">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         Configurações
       </button>
       <a href="http://localhost:3333/#avaliacoes" target="_blank" class="footer-btn" id="btn-footer-help">
@@ -302,7 +305,7 @@
       <form class="license-form" id="license-form">
         <div class="license-form-group">
           <label class="license-label" for="license-email-input">E-mail Institucional / Vinculado</label>
-          <input type="email" id="license-email-input" class="license-input" placeholder="procurador@exemplo.com" required />
+          <input type="email" id="license-email-input" class="license-input" placeholder="usuario@exemplo.com" required />
         </div>
         <div class="license-form-group">
           <label class="license-label" for="license-key-input">Chave de Licença (Serial)</label>

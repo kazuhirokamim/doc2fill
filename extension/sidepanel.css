@@ -1,54 +1,59 @@
-   doc2fill — Warm Light Craft Modern Design System
-   Principles: White canvas (#FFFFFF), Subtle surface (#F9FAFB),
-   Charcoal typography (#111827 / #374151), Solar Amber CTAs (#F59E0B / #D97706),
-   Fine neutral borders (#E5E7EB), 4px spacing grid, and ergonomic clarity.
+/* ==========================================================================
+   doc2fill — Warm Light Craft Design System (Chrome Extension Sidepanel)
+   Principles: Soft light grey canvas (#F8F9FA) for box separation and layers,
+   Pure white cards (#FFFFFF) with subtle elevation, Charcoal typography,
+   Solar Amber CTAs (#F59E0B), 8px inputs, and ergonomic clarity.
    ========================================================================== */
+
 :root {
-  --bg-canvas: #FFFFFF;
-  --bg-surface: #F9FAFB;
+  --bg-canvas: #F8F9FA;
+  --bg-surface: #FFFFFF;
   --bg-surface-secondary: #F3F4F6;
-  --bg-input: #FFFFFF;
+  --bg-input: #F9FAFB;
   --bg-card: #FFFFFF;
   --bg-hover: #F3F4F6;
+
   --brand-amber-primary: #F59E0B;
   --brand-amber-hover: #D97706;
   --brand-amber-light: #FEF3C7;
   --brand-amber-border: #FCD34D;
+
   --text-heading: #111827;
   --text-body: #374151;
   --text-muted: #6B7280;
   --text-placeholder: #9CA3AF;
+
   --border-subtle: #E5E7EB;
   --border-strong: #D1D5DB;
   --border-card: #E5E7EB;
-  --border-focus: #D97706;
+  --border-focus: #F59E0B;
+
   --status-success: #059669;
   --status-success-bg: #ECFDF5;
   --status-success-border: #A7F3D0;
   --status-error: #DC2626;
   --status-warning: #B45309;
   --focus-ring: rgba(217, 119, 6, 0.25);
+
   --radius-sm: 6px;
   --radius-input: 8px;
   --radius-btn: 9px;
   --radius-card: 12px;
-  --radius-panel: 16px;
   --radius-full: 9999px;
-  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-card: 0 4px 12px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
-  --shadow-amber: 0 4px 14px rgba(245, 158, 11, 0.3);
-  --font-family: -apple-system, BlinkMacSystemFont, "Inter", "Geist Sans", "Segoe UI", Roboto, sans-serif;
-  --font-numeric: "JetBrains Mono", "Geist Mono", "SF Mono", Menlo, Consolas, monospace;
+
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-amber: 0 2px 8px rgba(245, 158, 11, 0.25);
+
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-numeric: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: var(--bg-surface);
+  background: var(--bg-canvas);
   color: var(--text-body);
   font-family: var(--font-family);
   min-width: 320px;
@@ -60,38 +65,31 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-   Header Minimalista — Warm Light Craft
+/* ==========================================================================
+   Header Minimalista com Wordmark (Sem ícone squircle)
    ========================================================================== */
 .app-header {
-  background: var(--bg-canvas);
+  background: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
   padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-.brand-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+.brand-row { display: flex; justify-content: space-between; align-items: center; }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.brand { display: flex; align-items: center; }
 
-.brand-logo-img {
-  height: 28px;
+.brand-wordmark-img {
+  height: 24px;
   width: auto;
   display: block;
   object-fit: contain;
 }
 
-.user-tier {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
+.user-tier { display: flex; gap: 8px; align-items: center; }
 
 .btn-icon-settings {
   background: transparent;
@@ -104,135 +102,116 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.18s ease;
 }
 
-.btn-icon-settings:hover {
-  background: var(--bg-surface-secondary);
-  color: var(--text-heading);
-  border-color: var(--border-strong);
-}
+.btn-icon-settings:hover { background: var(--bg-surface-secondary); color: var(--text-heading); border-color: var(--border-strong); }
 
-   Badges e Tags Discretas
-   ========================================================================== */
 .badge-pill {
   display: inline-flex;
   align-items: center;
-  font-size: 10.5px;
-  font-weight: 600;
-  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
   border-radius: var(--radius-full);
-  line-height: 1;
+  line-height: 1.2;
 }
 
-.badge-ccha {
-  background: var(--bg-surface-secondary);
-  color: var(--text-muted);
-  border: 1px solid var(--border-subtle);
-}
+.badge-beta { background: var(--brand-amber-light); color: var(--status-warning); border: 1px solid var(--brand-amber-border); }
 
-.badge-security {
-  background: var(--status-success-bg);
-  color: var(--status-success);
-  border: 1px solid var(--status-success-border);
-}
-
-.badge-status {
-  background: var(--brand-amber-light);
-  color: var(--brand-amber-hover);
-  border: 1px solid var(--brand-amber-border);
-}
-
-.badge-status.valid {
-  background: var(--status-success-bg);
-  color: var(--status-success);
-  border-color: var(--status-success-border);
-}
-
-.badge-anti-glosa {
-  font-size: 10px;
-  font-weight: 600;
-  background: var(--status-success-bg);
-  color: var(--status-success);
-  border: 1px solid var(--status-success-border);
-  padding: 2px 6px;
-  border-radius: var(--radius-full);
-}
-
-   Conteúdo Principal & Status Bar
+/* ==========================================================================
+   Layout Principal e Camadas de Cards
    ========================================================================== */
 .panel-content {
   flex: 1;
-  padding: 14px 16px;
+  padding: 12px 14px 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
+/* Status Bar Pill */
 .status-bar-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  margin-bottom: 2px;
 }
 
 .status-pill-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: var(--brand-amber-light);
-  color: var(--brand-amber-hover);
-  border: 1px solid var(--brand-amber-border);
-  padding: 4px 12px;
+  gap: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-full);
+  padding: 5px 12px;
   font-size: 11.5px;
   font-weight: 600;
-}
-
-.status-pill-wrap.is-ready {
-  background: var(--status-success-bg);
-  color: var(--status-success);
-  border-color: var(--status-success-border);
+  color: var(--text-heading);
+  box-shadow: var(--shadow-subtle);
 }
 
 .status-pulse-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: currentColor;
+  background: var(--status-success);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
+  display: inline-block;
 }
 
-   Card de Documento Detectado (Warm Light Craft Master Layout)
-   ========================================================================== */
-.detected-section-header { margin-top: 2px; margin-bottom: 2px; }
-
-.detected-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-heading);
-}
-
-.detected-subtitle { font-size: 12px; color: var(--text-muted); }
-
-.doc-detected-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
+/* Card Base Universal */
+.clean-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
-  padding: 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  padding: 16px;
+  position: relative;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.doc-detected-card:hover { border-color: var(--border-strong); }
+/* ==========================================================================
+   Card 1: Documento Detectado & Ação Primária (Warm Light Craft)
+   ========================================================================== */
+.doc-hero-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+}
+
+.card-title-group { margin-bottom: 10px; }
+
+.card-main-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.2px;
+}
+
+.card-main-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+.doc-summary-box {
+  background: var(--bg-surface-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
 
 .doc-icon-wrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -248,18 +227,11 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 3px;
 }
 
-.doc-meta-detail {
-  font-size: 11.5px;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
+.doc-meta-detail { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
 
-.doc-meta-detail span { color: var(--text-body); font-weight: 500; }
-
-.doc-meta-detail .highlight-val { color: var(--text-heading); font-weight: 700; }
+.highlight-val { font-weight: 700; color: var(--text-heading); }
 
 .doc-check-wrap {
   width: 24px;
@@ -267,403 +239,369 @@ body {
   border-radius: 50%;
   background: var(--status-success-bg);
   border: 1px solid var(--status-success-border);
+  color: var(--status-success);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-   Botões de Ação — Solar Amber Primário
-   ========================================================================== */
+/* Botão Primário Solar Amber */
 .btn-primary {
   background: var(--brand-amber-primary);
-  color: #FFFFFF;
-  border: none;
-  font-family: var(--font-family);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 11px 16px;
+  color: #111827;
+  border: 1px solid var(--brand-amber-border);
   border-radius: var(--radius-btn);
-  cursor: pointer;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
+  cursor: pointer;
   box-shadow: var(--shadow-amber);
-  transition: all 0.2s ease;
+  transition: all 0.16s ease;
+  user-select: none;
 }
 
-.btn-primary:hover:not(:disabled) { background: var(--brand-amber-hover); transform: translateY(-1px); }
+.btn-primary:hover:not(:disabled) {
+  background: var(--brand-amber-hover);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+}
 
-.btn-primary:active:not(:disabled) { transform: translateY(0); }
+.btn-primary:active:not(:disabled) { transform: scale(0.99); }
 
 .btn-primary:disabled {
   opacity: 0.55;
   cursor: not-allowed;
   box-shadow: none;
-  background: var(--border-strong);
-  color: var(--text-muted);
-}
-
-.btn-secondary {
-  background: var(--bg-canvas);
-  color: var(--text-heading);
-  border: 1px solid var(--border-strong);
-  font-family: var(--font-family);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 7px 12px;
-  border-radius: var(--radius-btn);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.15s;
-}
-
-.btn-secondary:hover { background: var(--bg-surface-secondary); border-color: var(--text-muted); }
-
-.btn-subtle-action {
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  font-family: var(--font-family);
-  font-size: 11px;
-  font-weight: 500;
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: all 0.15s;
-}
-
-.btn-subtle-action:hover {
   background: var(--bg-surface-secondary);
-  color: var(--text-heading);
-  border-color: var(--border-strong);
+  color: var(--text-muted);
+  border-color: var(--border-subtle);
 }
 
-   Segmented Tabs & Upload
+/* ==========================================================================
+   Tabs Segmentadas (Pill Switch)
    ========================================================================== */
 .segmented-tabs {
-  display: flex;
-  background: var(--bg-surface-secondary);
-  padding: 3px;
-  border-radius: var(--radius-card);
+  background: #ECEEF2;
   border: 1px solid var(--border-subtle);
-  gap: 2px;
+  border-radius: 9px;
+  padding: 3px;
+  display: flex;
+  gap: 3px;
 }
 
 .tab-btn {
   flex: 1;
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-family: var(--font-family);
-  font-size: 11.5px;
+  padding: 7px 12px;
+  border-radius: 7px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 7px 6px;
-  border-radius: 9px;
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: all 0.18s ease;
+  transition: all 0.15s ease;
 }
 
 .tab-btn:hover:not(.active) { color: var(--text-heading); }
 
 .tab-btn.active {
-  background: var(--bg-canvas);
+  background: var(--bg-surface);
   color: var(--text-heading);
-  box-shadow: var(--shadow-subtle);
-  border: 1px solid var(--border-subtle);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .tab-pane { display: none; }
 
 .tab-pane.active { display: block; }
 
-.clean-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
-  padding: 16px;
-}
-
+/* ==========================================================================
+   Área de Upload Drag & Drop
+   ========================================================================== */
 .drop-zone {
-  text-align: center;
-  padding: 22px 16px;
   border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-card);
+  padding: 22px 14px;
+  text-align: center;
   cursor: pointer;
   background: var(--bg-surface);
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
-.drop-zone:hover, .drop-zone.drag-over { border-color: var(--brand-amber-primary); background: var(--brand-amber-light); }
+.drop-zone:hover, .drop-zone.dragover { border-color: var(--brand-amber-primary); background: var(--brand-amber-light); }
 
-.drop-icon-wrap { margin-bottom: 8px; }
+.drop-icon-wrap {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 10px;
+  background: var(--brand-amber-light);
+  border: 1px solid var(--brand-amber-border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .drop-title {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-heading);
   margin-bottom: 3px;
 }
 
-.drop-subtitle {
-  font-size: 11.5px;
-  color: var(--text-muted);
-  margin-bottom: 12px;
-}
+.drop-subtitle { font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px; }
 
-   QR Code e Pareamento P2P
-   ========================================================================== */
-.qr-card { text-align: center; }
-
-.card-eyebrow {
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--brand-amber-hover);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 6px;
-}
-
-.qr-container {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-  background: #FFFFFF;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-card);
-  margin: 6px 0;
-  box-shadow: var(--shadow-subtle);
-}
-
-.qr-loading { font-size: 11.5px; color: var(--text-muted); }
-
-.qr-link-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.qr-url-text {
-  font-size: 11.5px;
-  color: var(--brand-amber-hover);
-  text-decoration: underline;
-  max-width: 170px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.qr-relay-status {
-  margin-top: 8px;
-  font-size: 11px;
-  color: var(--status-success);
-}
-
-.card-caption {
-  font-size: 11.5px;
-  color: var(--text-muted);
-  text-align: center;
-  margin-top: 8px;
-  line-height: 1.4;
-}
-
-   Campos do Formulário & Conferência
-   ========================================================================== */
-.form-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.form-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.section-title {
-  font-size: 13.5px;
-  font-weight: 700;
+.btn-secondary {
+  background: var(--bg-surface-secondary);
   color: var(--text-heading);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.section-subtitle { font-size: 11.5px; color: var(--text-muted); }
+.btn-secondary:hover { background: var(--bg-surface); border-color: var(--text-heading); }
 
-.fields-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+/* ==========================================================================
+   Card de Conferência dos 8 Campos (Edição e Inspeção)
+   ========================================================================== */
+.form-card { padding: 16px; }
+
+.form-header-row { margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle); }
+
+.section-title { font-size: 14px; font-weight: 700; color: var(--text-heading); }
+
+.section-subtitle { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
+
+.form-fields-grid { display: flex; flex-direction: column; gap: 10px; }
 
 .field-row { display: flex; gap: 10px; }
 
 .flex-1 { flex: 1; }
 
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+.field-group { display: flex; flex-direction: column; gap: 4px; }
 
 .field-group label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-body);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #4B5563;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-.label-badge-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-input, select, textarea {
+.field-group input,
+.field-group select,
+.field-group textarea {
   width: 100%;
   background: var(--bg-input);
   border: 1px solid var(--border-strong);
-  color: var(--text-heading);
-  font-family: var(--font-family);
+  border-radius: 7px;
+  padding: 8px 10px;
   font-size: 12.5px;
-  padding: 7px 10px;
-  border-radius: var(--radius-input);
-  outline: none;
-  transition: all 0.15s ease;
+  color: var(--text-heading);
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
 }
 
-input:focus, select:focus, textarea:focus { border-color: var(--brand-amber-hover); box-shadow: 0 0 0 3px var(--focus-ring); }
+.field-group input:focus,
+.field-group select:focus,
+.field-group textarea:focus {
+  background: #FFFFFF;
+  border-color: var(--brand-amber-primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  outline: none;
+}
 
-input::placeholder, textarea::placeholder { color: var(--text-placeholder); }
+.field-group textarea { resize: vertical; min-height: 52px; line-height: 1.4; }
 
-.font-numeric { font-family: var(--font-numeric); }
+.font-numeric { font-family: var(--font-numeric) !important; }
 
-.font-highlight { font-weight: 700; color: var(--text-heading); }
+.font-highlight { font-weight: 700; }
+
+.label-badge-row { display: flex; justify-content: space-between; align-items: center; }
+
+.badge-anti-glosa {
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--status-success-bg);
+  color: var(--status-success);
+  border: 1px solid var(--status-success-border);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
 
 .form-actions-toolbar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 4px;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
 }
 
-   Split-view Prévia e Zoom
-   ========================================================================== */
-.split-view-container {
+.btn-subtle-action {
+  background: transparent;
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-card);
-  overflow: hidden;
-  background: var(--bg-surface);
-  flex-direction: column;
-}
-
-.split-view-header {
-  background: var(--bg-canvas);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 6px 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.split-view-title {
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
   font-size: 11px;
   font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-subtle-action:hover { background: var(--bg-surface-secondary); color: var(--text-heading); border-color: var(--border-strong); }
+
+/* ==========================================================================
+   Histórico Local e Rodapé Operacional
+   ========================================================================== */
+.history-card { padding: 12px 14px; }
+
+.history-header { display: flex; justify-content: space-between; align-items: center; }
+
+.history-title {
+  font-size: 11.5px;
+  font-weight: 700;
   color: var(--text-heading);
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
-.zoom-controls {
+.history-list {
+  margin-top: 8px;
   display: flex;
-  gap: 3px;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 140px;
+  overflow-y: auto;
 }
 
-.zoom-btn, .toggle-preview-btn {
-  background: var(--bg-surface-secondary);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  cursor: pointer;
-}
+.empty-history-text { font-size: 11px; color: var(--text-muted); }
 
-.zoom-btn.active {
-  background: var(--brand-amber-primary);
-  color: #fff;
-  border-color: var(--brand-amber-primary);
-}
-
-.split-view-viewport {
-  max-height: 160px;
-  overflow: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-}
-
-.preview-doc-image {
-  max-width: 100%;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-subtle);
-}
-
-   Rodapé Operacional — Navegação Secundária (Imagem 2)
-   ========================================================================== */
 .app-footer {
-  margin-top: auto;
-  background: var(--bg-canvas);
+  background: var(--bg-surface);
   border-top: 1px solid var(--border-subtle);
   padding: 10px 16px;
+  position: sticky;
+  bottom: 0;
+  z-index: 40;
 }
 
-.footer-nav-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+.footer-nav-row { display: flex; align-items: center; justify-content: space-between; }
 
 .footer-btn {
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-family: var(--font-family);
   font-size: 11.5px;
-  font-weight: 500;
+  font-weight: 600;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  cursor: pointer;
-  transition: color 0.15s;
   text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 .footer-btn:hover { color: var(--text-heading); }
 
 .footer-zero-retention {
-  display: inline-flex;
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 10.5px;
+}
+
+/* OCR & Batch Cards */
+.ocr-banner {
+  padding: 8px 12px;
+  background: var(--brand-amber-light);
+  border: 1px solid var(--brand-amber-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.ocr-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-heading);
+  font-weight: 600;
+}
+
+.batch-card {
+  padding: 8px 12px;
+  background: var(--bg-surface-secondary);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 10px;
+}
+
+.batch-row { display: flex; justify-content: space-between; align-items: center; }
+
+.batch-counter {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.batch-progress {
+  height: 3px;
+  background: var(--border-subtle);
+  margin-top: 6px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.batch-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--brand-amber-primary);
+  transition: width 0.3s ease;
+}
+
+/* QR Code Card */
+.qr-card { text-align: center; padding: 18px 14px; }
+
+.qr-container { display: flex; justify-content: center; margin: 12px 0; }
+
+.card-caption {
+  font-size: 11.5px;
   color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 6px;
+}
+
+.qr-relay-status {
+  margin-top: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--brand-amber-hover);
 }
 
 .hidden { display: none !important; }

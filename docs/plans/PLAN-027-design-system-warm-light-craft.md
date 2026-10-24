@@ -154,3 +154,11 @@ Com base nas novas diretrizes de design de alta produtividade documental ("Warm 
 | REQ-003 | T3, T5, T6 | tests/landing-page-and-feedback.test.js |
 | REQ-004 | T2, T3, T6 | tests/landing-page-and-feedback.test.js |
 | REQ-005 | T2, T3, T4, T5, T6 | tests/landing-page-and-feedback.test.js |
+
+---
+
+## 9. Histórico de Refinamento Estético & Camadas Visuais (v1.1)
+- **Correção Crítica de Sintaxe CSS**: Restauração integral dos delimitadores de comentários `/* ... */` em `extension/sidepanel.css`, assegurando carregamento e renderização 100% livres de erros no Google Chrome.
+- **Camadas & Box Separation**: Definição de canvas em cinza suave (`--bg-canvas: #F8F9FA`), projetando cartões em branco puro (`#FFFFFF`) com bordas neutras finas (`#E5E7EB`) e sombras de elevação funcionais.
+- **Tipografia Nativa San-Serif**: Stack moderna (`system-ui`, `-apple-system`, `Segoe UI`, `Roboto`) eliminando qualquer fallback tipográfico indesejado.
+- **Cabeçalho Limpo**: Wordmark oficial exclusiva (`logo-wordmark.svg`), eliminação de tags residuais (`CCHA · AGU`) e simplificação do badge de status para `Beta`.
