@@ -159,7 +159,7 @@ export async function performBrowserClientOcr(base64Image, fileName = 'documento
       combinedText += barcodeText + '\n';
       sourceUsed = 'chrome_barcode_detector';
     }
-    let upscaledCanvas = upscaleAndEnhanceImageElement(imgEl, 1600, { applyOtsu: true, applyDeskew: false });
+    let upscaledCanvas = upscaleAndEnhanceImageElement(imgEl, 1800, { applyOtsu: false, applyDeskew: false });
     if (upscaledCanvas) {
       const bytes = base64ToUint8Array(effectiveImage);
       if (bytes) {
@@ -181,6 +181,7 @@ export async function performBrowserClientOcr(base64Image, fileName = 'documento
           workerPath: chrome.runtime.getURL('vendor/worker.min.js'),
           corePath: chrome.runtime.getURL('vendor/tesseract-core-simd-lstm.wasm.js'),
           langPath: chrome.runtime.getURL('vendor/'),
+          workerBlobURL: false,
           gzip: false
         });
         const ret = await worker.recognize(ocrTargetInput);
@@ -195,7 +196,9 @@ export async function performBrowserClientOcr(base64Image, fileName = 'documento
         combinedText += '\n' + cleanOcrText(ocrTextResult);
         sourceUsed = 'browser_tesseract_wasm';
       }
-    } catch (_) {}
+    } catch (err) {
+      console.warn('[doc2fill ocr] Erro no worker Tesseract WASM client-side:', err?.message || err);
+    }
   }
 
   const cleaned = cleanOcrText(combinedText);

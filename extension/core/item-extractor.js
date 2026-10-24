@@ -97,7 +97,7 @@ export function extractLineItemsFromText(text) {
     // Padrão 1 (Tabular Linha Única NFC-e):
     // Ex: "001 7891000100100 GASOLINA COMUM C 35,45 LT X 5,89 208,80"
     // ou "003 7891000300300 ADITIVO RADIADOR 2 UN X 25,50 51,00"
-    const patternSingle = /^(\d{1,4})\s+(?:(\d{7,14})\s+)?(.+?)\s+(\d+(?:[.,]\d+)?)\s*(UN|LT|KG|CX|PC|M|L)?\s*(?:X|\*|\@)?\s*(\d+[.,]\d{2})\s+(\d+[.,]\d{2})$/i;
+    const patternSingle = /^(\d{1,4})\s+(?:(\d{4,14})\s+)?(.+?)\s+(\d+(?:[.,]\d+)?)\s*(UN|LT|KG|CX|PC|M|L)?\s*(?:X|\*|\@)?\s*(\d+[.,]\d{2})\s*(?:[A-Z0-9]{1,6}\s+[A-Z0-9]?\s*)?(\d+[.,]\d{2})(?::)?$/i;
     const matchSingle = line.match(patternSingle);
 
     if (matchSingle) {
@@ -121,20 +121,20 @@ export function extractLineItemsFromText(text) {
       continue;
     }
 
-    // Padrão 2 (Duas Linhas - Supermercado / Farmácia):
+    // Padrão 2 (Duas Linhas - Supermercado / Farmácia / Cupom ECF):
     // Linha 1: "001 7896004701234 DIPIRONA MONOIDRATADA 500MG"
-    // Linha 2: "2 UN X 7,50 15,00"
-    const patternLine1 = /^(\d{1,4})\s+(\d{7,14})\s+(.+)$/;
+    // Linha 2: "2 UN X 7,50 15,00" ou "1,000Un x 89,90 T04 A 89,90"
+    const patternLine1 = /^(\d{1,4})\s+(?:(\d{4,14})\s+)?(.+)$/;
     const matchLine1 = line.match(patternLine1);
 
     if (matchLine1 && i + 1 < lines.length) {
       const nextLine = lines[i + 1];
-      const patternLine2 = /^(\d+(?:[.,]\d+)?)\s*(UN|LT|KG|CX|PC|M|L)?\s*(?:X|\*|\@)?\s*(\d+[.,]\d{2})\s+(\d+[.,]\d{2})$/i;
+      const patternLine2 = /^(\d+(?:[.,]\d+)?)\s*(UN|LT|KG|CX|PC|M|L)?\s*(?:X|\*|\@)?\s*(\d+[.,]\d{2})\s*(?:[A-Z0-9]{1,6}\s+[A-Z0-9]?\s*)?(\d+[.,]\d{2})(?::)?$/i;
       const matchLine2 = nextLine.match(patternLine2);
 
       if (matchLine2) {
         const idx = parseInt(matchLine1[1], 10);
-        const code = matchLine1[2];
+        const code = matchLine1[2] || '';
         const rawDesc = matchLine1[3];
         const qty = parseFloat(matchLine2[1].replace(',', '.'));
         const unit = (matchLine2[2] || 'UN').toUpperCase();

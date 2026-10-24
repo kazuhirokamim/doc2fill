@@ -204,6 +204,8 @@ export function parseDocumentFields(rawText = '', fileName = '') {
       }
     }
 
+    const utilityBrandMatch = text.match(/\b((?:ENEL|SABESP|CPFL|CEMIG|COPEL|LIGHT|CELESC|NEOENERGIA|EQUATORIAL|EDP|SANEPAR|COPASA|COMPESA|EMBASA|CORSAN|VIVO|CLARO|TIM|OI|EMBRATEL)\b[^\n\r]{0,40})/i);
+    const pixReceiverMatch = text.match(/(?:RECEBEDOR|FAVORECIDO)[: \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i);
     const servicePrestadorMatch = text.match(/(?:DADOS\s+DO\s+(?:PRESTADOR|TOMADOR)|NOME\s*\/?\s*RAZ[AÃ]O\s+SOCIAL)[: \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i);
     const retailBrandMatch = text.match(/^(?:LOJAS\s+[A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{2,30}|SUPERMERCADO\s+[A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{2,30})/im);
 
@@ -212,6 +214,8 @@ export function parseDocumentFields(rawText = '', fileName = '') {
       tomadorLine ||
       cnpjAdjacentMatch ||
       (pharmacyHeaderMatch ? pharmacyHeaderMatch[1].split(/[\n\r]/)[0].trim() : null) ||
+      (utilityBrandMatch ? utilityBrandMatch[1].trim() : null) ||
+      (pixReceiverMatch && !/^(?:cpf|cnpj|chave|valor|data)/i.test(pixReceiverMatch[1].trim()) ? pixReceiverMatch[1].trim() : null) ||
       (servicePrestadorMatch && !/^(?:n[uú]mero\s+da\s+nota|compet[eê]ncia)/i.test(servicePrestadorMatch[1].trim()) ? servicePrestadorMatch[1].trim() : null) ||
       (retailBrandMatch ? retailBrandMatch[0].trim() : null) ||
       text.match(/(?:Prestador(?:\s+de\s+Servi[cç]os)?|Emitente|Estabelecimento|Fornecedor|Benefici[aá]rio(?:\s*\/\s*Destinat[aá]rio)?|Destinat[aá]rio|Requerente|Nome)[: \t]*(?:Dr\.|Dra\.)?[ \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i)?.[1]?.trim() ||
@@ -291,7 +295,7 @@ export function parseDocumentFields(rawText = '', fileName = '') {
   }
 
   const dataMatch =
-    text.match(/(?:Data(?:\s+de\s+Emiss[aã]o|\s+da\s+Transa[cç][aã]o)?|\bEmiss[aã]o|\bCompet[eê]ncia)[:\s]*(\d{2})[\/\.](\d{2})[\/\.](\d{4})/i) ||
+    text.match(/(?:Data(?:\s+de\s+Emiss[aã]o|\s+da\s+Transa[cç][aã]o|\s+e\s+Hora)?|\bVencimento|\bEmiss[aã]o|\bCompet[eê]ncia|\bData)[:\s]*(\d{2})[\/\.](\d{2})[\/\.](\d{4})/i) ||
     text.match(/\b(\d{2})[\/\.](\d{2})[\/\.](\d{4})\b/);
   if (dataMatch) {
     data.data = `${dataMatch[3]}-${dataMatch[2]}-${dataMatch[1]}`;
@@ -301,8 +305,8 @@ export function parseDocumentFields(rawText = '', fileName = '') {
   }
 
   const valorMatch =
-    text.match(/(?:VALOR\s+TOTAL(?:\s+DA\s+NOTA|\s+DOS\s+SERVI[CÇ]OS|\s+R\$)?|VALOR\s+L[IÍ]QUIDO|VALOR\s+PAGO|VALOR\s+BRUTO|TOTAL(?:\s+R\$)?|VALOR)[^\d\n\r]*R?\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}|[0-9]+,[0-9]{2})/i) ||
-    text.match(/(?:VALOR\s+TOTAL(?:\s+DA\s+NOTA|\s+DOS\s+SERVI[CÇ]OS)?|TOTAL)[^\d]*?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i) ||
+    text.match(/(?:VALOR\s+TOTAL(?:\s+DA\s+NOTA|\s+DOS\s+SERVI[CÇ]OS|\s+R\$)?|TOTAL\s+A\s+PAGAR|VALOR\s+A\s+PAGAR|VALOR\s+COBRADO|VALOR\s+DO\s+DOCUMENTO|VALOR\s+L[IÍ]QUIDO|TOTAL\s+L[IÍ]QUIDO|VALOR\s+PAGO|VALOR\s+BRUTO|DINHEIRO|CART[AÃ]O(?:\s+DE\s+CR[EÉ]DITO|\s+DE\s+D[EÉ]BITO)?|TOTAL(?:\s+R\$)?|SUBTOTAL|VALOR)[^\d\n\r]*R?\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}|[0-9]+,[0-9]{2})/i) ||
+    text.match(/(?:VALOR\s+TOTAL(?:\s+DA\s+NOTA|\s+DOS\s+SERVI[CÇ]OS)?|TOTAL|A\s+PAGAR)[^\d]*?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i) ||
     text.match(/R\$\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i) ||
     text.match(/valor[:_\s]*R?\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}|[0-9]+,[0-9]{2})/i);
 
