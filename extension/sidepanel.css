@@ -87,6 +87,13 @@ body {
   gap: 10px;
 }
 
+.brand-logo-img {
+  height: 28px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
 .logo-symbol-wrap {
   width: 32px;
   height: 32px;

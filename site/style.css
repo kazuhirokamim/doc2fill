@@ -51,6 +51,7 @@ body {
   display: flex; align-items: center; gap: 12px;
   text-decoration: none; color: #fff; font-weight: 800; font-size: 21px;
 }
+.brand-logo-img { height: 34px; width: auto; display: block; object-fit: contain; }
 .brand-logo svg { width: 34px; height: 34px; }
 .brand-doc { color: #E2E8F0; }
 .brand-two { color: var(--brand-blue); }
