@@ -2,7 +2,7 @@
 numero: 35
 titulo: Adocao do Design System Canonico Warm Light Craft e Unificacao Visual
 data: 2026-10-24
-status: Proposto
+status: Implementado
 autores:
   - Kazuhiro
   - Tear Maestro

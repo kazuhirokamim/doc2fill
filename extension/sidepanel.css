@@ -1,50 +1,44 @@
-/* ==========================================================================
-   doc2fill — Obsidian & Flow Cyan Modern Design System (Tear & Noesis)
-   Principles: Obsidian canvas (#0A0D14), Bento surfaces (#111622),
-   Connection Blue CTAs (#0052FF), Flow Cyan accents (#00D2FF),
-   tactile pill controls, high-contrast typography and subtle micro-glows.
+   doc2fill — Warm Light Craft Modern Design System
+   Principles: White canvas (#FFFFFF), Subtle surface (#F9FAFB),
+   Charcoal typography (#111827 / #374151), Solar Amber CTAs (#F59E0B / #D97706),
+   Fine neutral borders (#E5E7EB), 4px spacing grid, and ergonomic clarity.
    ========================================================================== */
-
 :root {
-  --bg-app: #0A0D14;
-  --bg-card: #111622;
-  --bg-surface: #141A28;
-  --bg-input: #0D111A;
-  --bg-hover: #192234;
-  
-  --border-subtle: #1E293B;
-  --border-card: #222C3F;
-  --border-focus: #00D2FF;
-  
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --text-placeholder: #475569;
-  
-  --brand-blue: #0052FF;
-  --brand-blue-hover: #1A66FF;
-  --brand-cyan: #00D2FF;
-  --brand-gradient: linear-gradient(135deg, #0052FF 0%, #00D2FF 100%);
-  
-  --badge-cyan-bg: rgba(0, 210, 255, 0.08);
-  --badge-cyan-text: #00D2FF;
-  --badge-cyan-border: rgba(0, 210, 255, 0.25);
-  
-  --badge-green-bg: rgba(16, 185, 129, 0.1);
-  --badge-green-text: #34D399;
-  --badge-green-border: rgba(16, 185, 129, 0.3);
-  
+  --bg-canvas: #FFFFFF;
+  --bg-surface: #F9FAFB;
+  --bg-surface-secondary: #F3F4F6;
+  --bg-input: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-hover: #F3F4F6;
+  --brand-amber-primary: #F59E0B;
+  --brand-amber-hover: #D97706;
+  --brand-amber-light: #FEF3C7;
+  --brand-amber-border: #FCD34D;
+  --text-heading: #111827;
+  --text-body: #374151;
+  --text-muted: #6B7280;
+  --text-placeholder: #9CA3AF;
+  --border-subtle: #E5E7EB;
+  --border-strong: #D1D5DB;
+  --border-card: #E5E7EB;
+  --border-focus: #D97706;
+  --status-success: #059669;
+  --status-success-bg: #ECFDF5;
+  --status-success-border: #A7F3D0;
+  --status-error: #DC2626;
+  --status-warning: #B45309;
+  --focus-ring: rgba(217, 119, 6, 0.25);
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-input: 8px;
+  --radius-btn: 9px;
+  --radius-card: 12px;
+  --radius-panel: 16px;
   --radius-full: 9999px;
-  
-  --shadow-bento: 0 4px 20px -2px rgba(0, 0, 0, 0.4), 0 2px 6px -1px rgba(0, 0, 0, 0.2);
-  --shadow-glow: 0 0 20px rgba(0, 82, 255, 0.3);
-  --shadow-cyan-glow: 0 0 16px rgba(0, 210, 255, 0.25);
-  
-  --font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, sans-serif;
-  --font-numeric: "Outfit", "SF Mono", "Segoe UI Mono", Menlo, Consolas, monospace;
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 4px 12px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+  --shadow-amber: 0 4px 14px rgba(245, 158, 11, 0.3);
+  --font-family: -apple-system, BlinkMacSystemFont, "Inter", "Geist Sans", "Segoe UI", Roboto, sans-serif;
+  --font-numeric: "JetBrains Mono", "Geist Mono", "SF Mono", Menlo, Consolas, monospace;
 }
 
 * {
@@ -54,8 +48,8 @@
 }
 
 body {
-  background: var(--bg-app);
-  color: var(--text-primary);
+  background: var(--bg-surface);
+  color: var(--text-body);
   font-family: var(--font-family);
   min-width: 320px;
   font-size: 13px;
@@ -66,13 +60,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ==========================================================================
-   Header Minimalista — Obsidian Brand
+   Header Minimalista — Warm Light Craft
    ========================================================================== */
 .app-header {
-  background: var(--bg-card);
+  background: var(--bg-canvas);
   border-bottom: 1px solid var(--border-subtle);
-  padding: 12px 18px;
+  padding: 12px 16px;
 }
 
 .brand-row {
@@ -94,49 +87,32 @@ body {
   object-fit: contain;
 }
 
-.logo-symbol-wrap {
-  width: 32px;
-  height: 32px;
+.user-tier {
   display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.btn-icon-settings {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.brand-icon-svg {
-  width: 24px;
-  height: 24px;
+.btn-icon-settings:hover {
+  background: var(--bg-surface-secondary);
+  color: var(--text-heading);
+  border-color: var(--border-strong);
 }
 
-.brand-details {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.brand-title {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  display: flex;
-  align-items: center;
-}
-
-.brand-doc {
-  color: #FFFFFF;
-}
-
-.brand-two {
-  color: #0052FF;
-}
-
-.brand-fill {
-  color: #00D2FF;
-}
-
-/* ==========================================================================
    Badges e Tags Discretas
    ========================================================================== */
 .badge-pill {
@@ -144,57 +120,241 @@ body {
   align-items: center;
   font-size: 10.5px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: var(--radius-full);
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-}
-
-.badge-security {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
+  line-height: 1;
 }
 
 .badge-ccha {
-  background: var(--badge-cyan-bg);
-  color: var(--badge-cyan-text);
-  border: 1px solid var(--badge-cyan-border);
-}
-
-.badge-status {
-  background: var(--bg-surface);
+  background: var(--bg-surface-secondary);
   color: var(--text-muted);
   border: 1px solid var(--border-subtle);
 }
 
-.badge-status.valid {
-  background: var(--badge-green-bg);
-  color: var(--badge-green-text);
-  border: 1px solid var(--badge-green-border);
+.badge-security {
+  background: var(--status-success-bg);
+  color: var(--status-success);
+  border: 1px solid var(--status-success-border);
 }
 
-/* ==========================================================================
-   Conteúdo Principal e Whitespace Generoso
+.badge-status {
+  background: var(--brand-amber-light);
+  color: var(--brand-amber-hover);
+  border: 1px solid var(--brand-amber-border);
+}
+
+.badge-status.valid {
+  background: var(--status-success-bg);
+  color: var(--status-success);
+  border-color: var(--status-success-border);
+}
+
+.badge-anti-glosa {
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--status-success-bg);
+  color: var(--status-success);
+  border: 1px solid var(--status-success-border);
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+}
+
+   Conteúdo Principal & Status Bar
    ========================================================================== */
 .panel-content {
-  padding: 16px;
   flex: 1;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
-/* ==========================================================================
-   Segmented Tabs (Estilo Pill Tátil Dark)
+.status-bar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-pill-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--brand-amber-light);
+  color: var(--brand-amber-hover);
+  border: 1px solid var(--brand-amber-border);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.status-pill-wrap.is-ready {
+  background: var(--status-success-bg);
+  color: var(--status-success);
+  border-color: var(--status-success-border);
+}
+
+.status-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+   Card de Documento Detectado (Warm Light Craft Master Layout)
+   ========================================================================== */
+.detected-section-header { margin-top: 2px; margin-bottom: 2px; }
+
+.detected-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.detected-subtitle { font-size: 12px; color: var(--text-muted); }
+
+.doc-detected-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.doc-detected-card:hover { border-color: var(--border-strong); }
+
+.doc-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.doc-meta-wrap { flex: 1; min-width: 0; }
+
+.doc-meta-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+
+.doc-meta-detail {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.doc-meta-detail span { color: var(--text-body); font-weight: 500; }
+
+.doc-meta-detail .highlight-val { color: var(--text-heading); font-weight: 700; }
+
+.doc-check-wrap {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--status-success-bg);
+  border: 1px solid var(--status-success-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+   Botões de Ação — Solar Amber Primário
+   ========================================================================== */
+.btn-primary {
+  background: var(--brand-amber-primary);
+  color: #FFFFFF;
+  border: none;
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 11px 16px;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  box-shadow: var(--shadow-amber);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) { background: var(--brand-amber-hover); transform: translateY(-1px); }
+
+.btn-primary:active:not(:disabled) { transform: translateY(0); }
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  background: var(--border-strong);
+  color: var(--text-muted);
+}
+
+.btn-secondary {
+  background: var(--bg-canvas);
+  color: var(--text-heading);
+  border: 1px solid var(--border-strong);
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.btn-secondary:hover { background: var(--bg-surface-secondary); border-color: var(--text-muted); }
+
+.btn-subtle-action {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+
+.btn-subtle-action:hover {
+  background: var(--bg-surface-secondary);
+  color: var(--text-heading);
+  border-color: var(--border-strong);
+}
+
+   Segmented Tabs & Upload
    ========================================================================== */
 .segmented-tabs {
   display: flex;
-  background: var(--bg-card);
+  background: var(--bg-surface-secondary);
   padding: 3px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-card);
   border: 1px solid var(--border-subtle);
-  gap: 3px;
+  gap: 2px;
 }
 
 .tab-btn {
@@ -204,9 +364,9 @@ body {
   color: var(--text-muted);
   font-family: var(--font-family);
   font-size: 11.5px;
-  font-weight: 500;
-  padding: 8px 6px;
-  border-radius: calc(var(--radius-md) - 2px);
+  font-weight: 600;
+  padding: 7px 6px;
+  border-radius: 9px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -215,85 +375,45 @@ body {
   transition: all 0.18s ease;
 }
 
-.tab-btn:hover:not(.active) {
-  color: var(--text-primary);
-  background: var(--bg-hover);
-}
+.tab-btn:hover:not(.active) { color: var(--text-heading); }
 
 .tab-btn.active {
-  background: var(--bg-surface);
-  color: var(--brand-cyan);
-  font-weight: 600;
-  border: 1px solid var(--border-card);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  background: var(--bg-canvas);
+  color: var(--text-heading);
+  box-shadow: var(--shadow-subtle);
+  border: 1px solid var(--border-subtle);
 }
 
-.tab-pane {
-  display: none;
-}
+.tab-pane { display: none; }
 
-.tab-pane.active {
-  display: block;
-}
+.tab-pane.active { display: block; }
 
-/* ==========================================================================
-   Bento Cards Minimalistas
-   ========================================================================== */
 .clean-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-bento);
-  padding: 18px;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
 }
 
-.card-header {
-  margin-bottom: 8px;
-}
-
-.card-eyebrow {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--brand-cyan);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.card-caption {
-  font-size: 11.5px;
-  color: var(--text-muted);
-  text-align: center;
-  margin-top: 10px;
-  line-height: 1.4;
-}
-
-/* ==========================================================================
-   Bento Dropzone Táctil com Micro-Glow
-   ========================================================================== */
 .drop-zone {
   text-align: center;
-  padding: 24px 16px;
-  border: 1.5px dashed var(--border-card);
+  padding: 22px 16px;
+  border: 1.5px dashed var(--border-strong);
   cursor: pointer;
-  background: rgba(17, 22, 34, 0.7);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--bg-surface);
+  transition: all 0.2s;
 }
 
-.drop-zone:hover, .drop-zone.drag-over {
-  border-color: var(--brand-cyan);
-  background: rgba(0, 210, 255, 0.04);
-  box-shadow: var(--shadow-cyan-glow);
-}
+.drop-zone:hover, .drop-zone.drag-over { border-color: var(--brand-amber-primary); background: var(--brand-amber-light); }
 
-.drop-icon-wrap {
-  margin-bottom: 8px;
-}
+.drop-icon-wrap { margin-bottom: 8px; }
 
 .drop-title {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 3px;
 }
 
 .drop-subtitle {
@@ -302,11 +422,17 @@ body {
   margin-bottom: 12px;
 }
 
-/* ==========================================================================
    QR Code e Pareamento P2P
    ========================================================================== */
-.qr-card {
-  text-align: center;
+.qr-card { text-align: center; }
+
+.card-eyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--brand-amber-hover);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
 }
 
 .qr-container {
@@ -314,29 +440,27 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 14px;
+  padding: 12px;
   background: #FFFFFF;
-  border-radius: var(--radius-md);
-  margin: 8px 0;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  margin: 6px 0;
+  box-shadow: var(--shadow-subtle);
 }
 
-.qr-loading {
-  font-size: 11.5px;
-  color: #111827;
-}
+.qr-loading { font-size: 11.5px; color: var(--text-muted); }
 
 .qr-link-container {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .qr-url-text {
   font-size: 11.5px;
-  color: var(--brand-cyan);
+  color: var(--brand-amber-hover);
   text-decoration: underline;
   max-width: 170px;
   overflow: hidden;
@@ -345,349 +469,201 @@ body {
 }
 
 .qr-relay-status {
-  margin-top: 10px;
+  margin-top: 8px;
   font-size: 11px;
-  color: #34D399;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+  color: var(--status-success);
 }
 
-.pulse-dot {
-  color: #10B981;
-  animation: pulseDot 1.5s infinite;
-}
-
-@keyframes pulseDot {
-  0% { opacity: 0.3; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.1); }
-  100% { opacity: 0.3; transform: scale(0.9); }
-}
-
-/* ==========================================================================
-   Formulário e Inputs Obsidian
-   ========================================================================== */
-.form-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.section-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.015em;
-}
-
-.section-subtitle {
+.card-caption {
   font-size: 11.5px;
   color: var(--text-muted);
-  margin-top: 1px;
+  text-align: center;
+  margin-top: 8px;
+  line-height: 1.4;
 }
 
-.fields-container {
+   Campos do Formulário & Conferência
+   ========================================================================== */
+.form-card {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.field-group {
+.form-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.section-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.section-subtitle { font-size: 11.5px; color: var(--text-muted); }
+
+.fields-container {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-}
-
-.field-group label {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-.field-group input,
-.field-group textarea,
-.field-group select {
-  width: 100%;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 9px 12px;
-  color: var(--text-primary);
-  font-family: var(--font-family);
-  font-size: 12.5px;
-  outline: none;
-  transition: all 0.15s ease;
-}
-
-.field-group input::placeholder,
-.field-group textarea::placeholder {
-  color: var(--text-placeholder);
-}
-
-.field-group input:focus,
-.field-group textarea:focus,
-.field-group select:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 2px rgba(0, 210, 255, 0.15);
-}
-
-.field-row {
-  display: flex;
   gap: 10px;
 }
 
-.flex-1 {
-  flex: 1;
-}
+.field-row { display: flex; gap: 10px; }
 
-.font-numeric {
-  font-family: var(--font-numeric);
-}
+.flex-1 { flex: 1; }
 
-.font-highlight {
-  color: var(--brand-cyan) !important;
-  font-weight: 600;
-}
-
-/* ==========================================================================
-   Botões de Ação de Alta Conversão
-   ========================================================================== */
-.btn-primary {
-  width: 100%;
-  background: var(--brand-blue);
-  color: #FFFFFF;
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
-  font-family: var(--font-family);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
+.field-group {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 6px;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: var(--shadow-glow);
+  flex-direction: column;
+  gap: 4px;
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: var(--brand-blue-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 0 24px rgba(0, 82, 255, 0.5);
+.field-group label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-body);
 }
 
-.btn-primary:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.btn-primary:disabled {
-  background: var(--bg-surface);
-  color: var(--text-muted);
-  border: 1px solid var(--border-subtle);
-  cursor: not-allowed;
-  box-shadow: none;
-  opacity: 0.6;
-}
-
-.btn-secondary {
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 8px 14px;
-  font-family: var(--font-family);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.15s ease;
-}
-
-.btn-secondary:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-card);
-  color: var(--brand-cyan);
-}
-
-.btn-sm {
-  padding: 6px 12px;
-  font-size: 11.5px;
-}
-
-/* ==========================================================================
-   Componentes Anti-Glosa e Anexo
-   ========================================================================== */
 .label-badge-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 5px;
 }
 
-.label-badge-row label {
-  margin-bottom: 0;
+input, select, textarea {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  color: var(--text-heading);
+  font-family: var(--font-family);
+  font-size: 12.5px;
+  padding: 7px 10px;
+  border-radius: var(--radius-input);
+  outline: none;
+  transition: all 0.15s ease;
 }
 
-.badge-anti-glosa {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  background: var(--badge-green-bg);
-  color: var(--badge-green-text);
-  border: 1px solid var(--badge-green-border);
-}
+input:focus, select:focus, textarea:focus { border-color: var(--brand-amber-hover); box-shadow: 0 0 0 3px var(--focus-ring); }
 
-.attachment-status-row {
+input::placeholder, textarea::placeholder { color: var(--text-placeholder); }
+
+.font-numeric { font-family: var(--font-numeric); }
+
+.font-highlight { font-weight: 700; color: var(--text-heading); }
+
+.form-actions-toolbar {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  font-size: 11.5px;
-  color: var(--text-secondary);
+  padding-top: 4px;
 }
 
-/* ==========================================================================
-   Rodapé Sofisticado
-   ========================================================================== */
-.app-footer {
-  padding: 12px 16px;
-  text-align: center;
-  border-top: 1px solid var(--border-subtle);
-  background: var(--bg-card);
-}
-
-.footer-info {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.footer-info .dot {
-  color: var(--border-card);
-}
-
-/* ==========================================================================
-   Split-View Retrátil com Zoom & Toolbar de Edição (S2-T1 & S2-T2)
+   Split-view Prévia e Zoom
    ========================================================================== */
 .split-view-container {
-  background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 10px 12px;
-  margin-bottom: 12px;
-  display: flex;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--bg-surface);
   flex-direction: column;
-  gap: 8px;
 }
 
 .split-view-header {
+  background: var(--bg-canvas);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 6px 10px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
 }
 
 .split-view-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-heading);
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-secondary);
+  gap: 5px;
 }
 
 .zoom-controls {
   display: flex;
+  gap: 3px;
   align-items: center;
-  gap: 4px;
 }
 
 .zoom-btn, .toggle-preview-btn {
-  background: var(--bg-input);
+  background: var(--bg-surface-secondary);
   border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  border-radius: var(--radius-sm);
-  padding: 2px 7px;
-  font-size: 11px;
-  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.zoom-btn:hover, .toggle-preview-btn:hover {
-  border-color: var(--brand-cyan);
-  color: var(--text-primary);
 }
 
 .zoom-btn.active {
-  background: rgba(0, 210, 255, 0.12);
-  border-color: var(--brand-cyan);
-  color: var(--brand-cyan);
+  background: var(--brand-amber-primary);
+  color: #fff;
+  border-color: var(--brand-amber-primary);
 }
 
 .split-view-viewport {
-  max-height: 220px;
+  max-height: 160px;
   overflow: auto;
-  border-radius: var(--radius-sm);
-  background: #000000;
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: flex-start;
-  padding: 4px;
+  padding: 8px;
 }
 
 .preview-doc-image {
   max-width: 100%;
-  height: auto;
-  transition: transform 0.2s ease;
-  transform-origin: top center;
-}
-
-.preview-doc-image.zoom-100 { transform: scale(1); }
-.preview-doc-image.zoom-150 { transform: scale(1.5); }
-.preview-doc-image.zoom-200 { transform: scale(2); }
-
-.form-actions-toolbar {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.btn-subtle-action {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 7px 10px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  color: var(--text-secondary);
+  box-shadow: var(--shadow-subtle);
+}
+
+   Rodapé Operacional — Navegação Secundária (Imagem 2)
+   ========================================================================== */
+.app-footer {
+  margin-top: auto;
+  background: var(--bg-canvas);
+  border-top: 1px solid var(--border-subtle);
+  padding: 10px 16px;
+}
+
+.footer-nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-family);
   font-size: 11.5px;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s;
+  text-decoration: none;
 }
 
-.btn-subtle-action:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border-focus);
-  color: var(--text-primary);
+.footer-btn:hover { color: var(--text-heading); }
+
+.footer-zero-retention {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  color: var(--text-muted);
 }
+
+.hidden { display: none !important; }

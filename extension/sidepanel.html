@@ -14,9 +14,12 @@
       <div class="brand">
         <img src="icons/logo-full.svg" alt="doc2fill" class="brand-logo-img" height="28" />
       </div>
-      <div class="user-tier" style="display:flex; gap:6px; align-items:center;">
+      <div class="user-tier">
         <span class="badge-pill badge-ccha">CCHA · AGU</span>
-        <span class="badge-pill" id="badge-license-status" style="background: rgba(16, 185, 129, 0.12); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); cursor: pointer;" title="Clique para gerenciar ou ativar licença">● Beta Ativo</span>
+        <button type="button" id="btn-open-settings" class="btn-icon-settings" title="Configurações e Licença" aria-label="Configurações">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+        <span class="badge-pill" id="badge-license-status" style="cursor: pointer;" title="Clique para gerenciar ou ativar licença">● Beta Ativo</span>
       </div>
     </div>
   </header>
@@ -24,6 +27,54 @@
   <div id="toast-container" class="toast-container"></div>
 
   <main class="panel-content">
+    <!-- Status do Sistema (Pill Estilo Imagem 2) -->
+    <div class="status-bar-row">
+      <div class="status-pill-wrap" id="status-pill-wrap">
+        <span class="status-pulse-dot"></span>
+        <span id="validation-badge">Pronto para usar</span>
+      </div>
+    </div>
+
+    <!-- Título da Seção Documento Detectado -->
+    <div class="detected-section-header">
+      <h2 class="detected-title">Documento detectado</h2>
+      <p class="detected-subtitle">Dados extraídos com sucesso!</p>
+    </div>
+
+    <!-- Card de Documento Detectado (Fidelidade Imagem 2) -->
+    <div class="doc-detected-card" id="doc-detected-card">
+      <div class="doc-icon-wrap">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#4B5563" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+      </div>
+      <div class="doc-meta-wrap">
+        <h3 class="doc-meta-title" id="summary-doc-title">Nota Fiscal (PDF)</h3>
+        <div class="doc-meta-detail font-numeric" id="summary-cnpj-row">
+          CNPJ: <span id="summary-cnpj-val">12.345.678/0001-90</span>
+        </div>
+        <div class="doc-meta-detail font-numeric" id="summary-valor-row">
+          Valor: <span id="summary-valor-val" class="highlight-val">R$ 1.250,00</span>
+        </div>
+      </div>
+      <div class="doc-check-wrap" id="summary-check-wrap" title="Dados Prontos">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Botão de Ação Primária em Âmbar Solar -->
+    <button id="btn-autofill" class="btn-primary" disabled>
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+      <span>Preencher Formulário</span>
+    </button>
+
+    <!-- Upload & Entrada de Documentos -->
     <div class="segmented-tabs">
       <button class="tab-btn active" id="tab-file" data-tab="file">
         <svg class="tab-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -38,13 +89,13 @@
     <section class="tab-pane active" id="pane-file">
       <div class="clean-card drop-zone" id="drop-zone">
         <div class="drop-icon-wrap" id="drop-icon-wrap">
-          <svg viewBox="0 0 48 48" width="38" height="38" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="8" y="6" width="32" height="36" rx="4" fill="rgba(0, 82, 255, 0.08)" stroke="#2A3447" stroke-width="1.8" />
-            <path d="M28 6V14C28 15.1 28.9 16 30 16H40" stroke="#2A3447" stroke-width="1.8" />
-            <path d="M24 22V34M24 22L19 27M24 22L29 27" stroke="#00D2FF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          <svg viewBox="0 0 48 48" width="34" height="34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="6" width="32" height="36" rx="4" fill="rgba(245, 158, 11, 0.08)" stroke="#D1D5DB" stroke-width="1.8" />
+            <path d="M28 6V14C28 15.1 28.9 16 30 16H40" stroke="#D1D5DB" stroke-width="1.8" />
+            <path d="M24 22V34M24 22L19 27M24 22L29 27" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </div>
-        <h4 class="drop-title" id="drop-title">Arraste o Comprovante ou Requerimento</h4>
+        <h4 class="drop-title" id="drop-title">Arraste outro Documento ou Requerimento</h4>
         <p class="drop-subtitle" id="drop-subtitle">Compatível com PDF nativo, escaneado, PNG e JPEG</p>
         <button type="button" id="btn-select-file" class="btn-secondary btn-sm">
           <span>Selecionar Arquivo</span>
@@ -63,58 +114,51 @@
         </div>
         <p class="card-caption">Aponte a câmera do smartphone para o QR Code acima para enviar o comprovante escaneado.</p>
         <div id="qr-relay-status" class="qr-relay-status" style="display:none;">
-          <span class="pulse-dot">●</span> Aguardando captura do smartphone...
-        </div>
-
-        <div class="network-notice-box" style="margin-top: 14px; padding: 10px 12px; background: rgba(0, 82, 255, 0.06); border: 1px solid rgba(0, 210, 255, 0.25); border-radius: 6px; font-size: 11px; line-height: 1.45; color: var(--text-secondary); text-align: left;">
-          <strong style="color: var(--brand-cyan); display: flex; align-items: center; gap: 5px; margin-bottom: 4px;">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
-            Importante: Mesma Rede Wi-Fi
-          </strong>
-          <span>O smartphone e este computador devem estar conectados na <b>mesma rede Wi-Fi</b> para transferência direta P2P (100% LGPD sem nuvem). Se o celular estiver no 4G/5G, conecte-o ao Wi-Fi.</span>
+          <span>●</span> Aguardando captura do smartphone...
         </div>
       </div>
     </section>
 
+    <!-- Conferência e Detalhes dos Campos -->
     <section class="clean-card form-card">
       <div class="form-header-row">
         <div>
-          <h3 class="section-title">Dados Extraídos do Comprovante</h3>
-          <p class="section-subtitle">Conferência dos 8 campos essenciais para o CCHA</p>
+          <h3 class="section-title">Conferência dos 8 Campos</h3>
+          <p class="section-subtitle">Edição direta e validação anti-glosa</p>
         </div>
-        <span class="badge-pill badge-status" id="validation-badge">Aguardando dados</span>
       </div>
 
-      <!-- Banner de Confiança da Leitura e Cloud Boost Opt-in -->
-      <div id="ocr-quality-banner" class="clean-card" style="display: none; margin-bottom: 12px; padding: 7px 10px; background: rgba(255, 171, 0, 0.08); border: 1px solid rgba(255, 171, 0, 0.25); border-radius: 6px; justify-content: space-between; align-items: center;">
+      <!-- Banner de Qualidade OCR -->
+      <div id="ocr-quality-banner" class="clean-card" style="display: none; padding: 7px 10px; background: var(--brand-amber-light); border: 1px solid var(--brand-amber-border); justify-content: space-between; align-items: center;">
         <div style="display: flex; align-items: center; gap: 8px;">
           <span id="ocr-quality-icon" style="font-size: 13px;">🟡</span>
-          <span id="ocr-quality-text" style="font-size: 11px; color: var(--text-primary);">Leitura Local Parcial (Confiança 45%)</span>
+          <span id="ocr-quality-text" style="font-size: 11px; color: var(--text-heading);">Leitura Local Parcial (Confiança 45%)</span>
         </div>
-        <button type="button" id="btn-cloud-boost" class="btn-subtle-action" style="font-size: 10.5px; padding: 3px 8px; color: #00D2FF; font-weight: 600; border: 1px solid rgba(0, 210, 255, 0.3);">
+        <button type="button" id="btn-cloud-boost" class="btn-subtle-action" style="font-size: 10.5px; padding: 3px 8px; color: var(--brand-amber-hover); font-weight: 600;">
           ⚡ Turbinar com Nuvem
         </button>
       </div>
 
-      <!-- Widget de Navegação de Fila em Lote (Sprint A) -->
-      <div id="batch-carousel-container" class="clean-card hidden" style="margin-bottom: 12px; padding: 8px 12px; background: rgba(0, 82, 255, 0.06); border: 1px solid rgba(0, 210, 255, 0.25); border-radius: 6px;">
+      <!-- Navegação de Lote -->
+      <div id="batch-carousel-container" class="clean-card hidden" style="padding: 8px 12px; background: var(--bg-surface-secondary); border: 1px solid var(--border-subtle);">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <button type="button" id="btn-batch-prev" class="btn-subtle-action" title="Documento anterior" style="padding: 2px 8px; font-size: 11px;">◀</button>
-          <div id="batch-counter-label" style="font-size: 11.5px; font-weight: 600; color: var(--text-primary); text-align: center; display: flex; align-items: center; gap: 6px;">
+          <div id="batch-counter-label" style="font-size: 11.5px; font-weight: 600; color: var(--text-heading); text-align: center; display: flex; align-items: center; gap: 6px;">
             <span>Lote: Nota <b id="batch-current-idx">1</b> de <b id="batch-total-count">1</b></span>
             <span id="batch-status-badge" class="badge-status" style="font-size: 10px; padding: 2px 6px;">🟢 Pronto</span>
           </div>
           <button type="button" id="btn-batch-next" class="btn-subtle-action" title="Próximo documento" style="padding: 2px 8px; font-size: 11px;">▶</button>
         </div>
-        <div id="batch-progress-bar" style="height: 3px; background: rgba(255,255,255,0.08); margin-top: 6px; border-radius: 2px; overflow: hidden;">
-          <div id="batch-progress-fill" style="width: 0%; height: 100%; background: #00D2FF; transition: width 0.3s ease;"></div>
+        <div id="batch-progress-bar" style="height: 3px; background: var(--border-subtle); margin-top: 6px; border-radius: 2px; overflow: hidden;">
+          <div id="batch-progress-fill" style="width: 0%; height: 100%; background: var(--brand-amber-primary); transition: width 0.3s ease;"></div>
         </div>
       </div>
 
+      <!-- Split-view Prévia -->
       <div class="split-view-container" id="document-preview-container" style="display:none;">
         <div class="split-view-header">
           <span class="split-view-title">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#00D2FF" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
             Conferência Visual
           </span>
           <div class="zoom-controls">
@@ -186,7 +230,6 @@
         </div>
 
         <div class="attachment-status-row" id="attachment-status-box" style="display:none;">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#00D2FF" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
           <span class="attachment-text" id="attachment-text">Comprovante pronto para anexar</span>
         </div>
 
@@ -200,21 +243,17 @@
             Limpar Campos
           </button>
         </div>
-
-        <button id="btn-autofill" class="btn-primary" disabled>
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-          <span>Preencher Automaticamente no CCHA</span>
-        </button>
       </div>
     </section>
 
+    <!-- Histórico Local Recente -->
     <section class="clean-card" id="history-card" style="padding: 12px 16px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:11.5px; font-weight:600; color:var(--text-secondary); display:flex; align-items:center; gap:6px;">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#00D2FF" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span style="font-size:11.5px; font-weight:700; color:var(--text-heading); display:flex; align-items:center; gap:6px;">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
           Histórico Local Recente (Máx. 10)
         </span>
-        <button type="button" id="btn-purge-history" class="btn-subtle-action" style="flex:0; padding:3px 8px; font-size:10.5px;">Limpar</button>
+        <button type="button" id="btn-purge-history" class="btn-subtle-action" style="padding:3px 8px; font-size:10.5px;">Limpar</button>
       </div>
       <div id="history-list" style="margin-top:8px; display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto;">
         <span style="font-size:11px; color:var(--text-muted);">Nenhum comprovante recente salvo na sessão.</span>
@@ -222,20 +261,34 @@
     </section>
   </main>
 
+  <!-- Rodapé Operacional com Navegação Secundária (Fidelidade Imagem 2) -->
   <footer class="app-footer">
-    <div class="footer-info">
-      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#64748B" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-      <span>Zero Retenção</span>
-      <span class="dot">•</span>
-      <a href="http://localhost:3333/#avaliacoes" target="_blank" style="color:var(--brand-cyan); text-decoration:none; font-weight:600;">💬 Avaliar / Feedback</a>
+    <div class="footer-nav-row">
+      <button type="button" class="footer-btn" id="btn-footer-history">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        Histórico
+      </button>
+      <button type="button" class="footer-btn" id="btn-footer-settings">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        Configurações
+      </button>
+      <a href="http://localhost:3333/#avaliacoes" target="_blank" class="footer-btn" id="btn-footer-help">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        Ajuda
+      </a>
+      <div class="footer-zero-retention">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#6B7280" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <span>Zero Retenção</span>
+      </div>
     </div>
   </footer>
 
+  <!-- Modal de Licença Offline -->
   <div class="license-modal-backdrop hidden" id="license-modal-backdrop">
     <div class="license-card">
       <div class="license-header">
         <div class="license-title-wrap">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#00D2FF" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
           <span class="license-title">Gerenciar Licença Doc2Fill</span>
         </div>
         <button class="license-close-btn" id="btn-close-license-modal" title="Fechar modal">

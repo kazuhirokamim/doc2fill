@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import zlib from 'node:zlib';
 import { execSync } from 'node:child_process';
+import fs from 'node:fs';
 import { extractTextFromPdfContentAsync, parseDocumentFields } from '../../core/document-parser.js';
 import { performBrowserClientOcr } from '../../core/browser-ocr.js';
 
@@ -71,5 +72,25 @@ describe('doc2fill Browser Autonomy, Clinical Anti-Glosa Integration & Crypto Ch
     assert.doesNotThrow(() => {
       execSync('node -c extension/sidepanel.js extension/content.js', { encoding: 'utf-8' });
     });
+  });
+
+  it('Cenário 5 (Design System Integrity): sidepanel e tokens Warm Light Craft estão preservados', () => {
+    const sidepanelCss = fs.readFileSync('extension/sidepanel.css', 'utf-8');
+    const sidepanelHtml = fs.readFileSync('extension/sidepanel.html', 'utf-8');
+    const sidepanelJs = fs.readFileSync('extension/sidepanel.js', 'utf-8');
+
+    // Valida tokens oficiais da paleta Warm Light Craft
+    assert.ok(sidepanelCss.includes('--brand-amber-primary: #F59E0B;'), 'Deve declarar o âmbar primário oficial');
+    assert.ok(sidepanelCss.includes('--brand-amber-hover: #D97706;'), 'Deve declarar o âmbar hover oficial');
+    assert.ok(sidepanelCss.includes('--text-heading: #111827;'), 'Deve declarar carvão mineral para headings');
+
+    // Valida elementos do card Documento Detectado
+    assert.ok(sidepanelHtml.includes('id="summary-doc-title"'), 'Deve conter summary-doc-title');
+    assert.ok(sidepanelHtml.includes('id="summary-cnpj-val"'), 'Deve conter summary-cnpj-val');
+    assert.ok(sidepanelHtml.includes('id="summary-valor-val"'), 'Deve conter summary-valor-val');
+
+    // Valida orçamento de linhas per Regra #24
+    const jsLines = sidepanelJs.split('\n').length;
+    assert.ok(jsLines <= 700, `sidepanel.js deve ter no máximo 700 linhas (atual: ${jsLines})`);
   });
 });

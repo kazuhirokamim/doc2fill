@@ -17,47 +17,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnAutofill = document.getElementById('btn-autofill');
   const validationBadge = document.getElementById('validation-badge');
 
-  const dropZone = document.getElementById('drop-zone');
-  const fileInput = document.getElementById('file-input');
-  const btnSelectFile = document.getElementById('btn-select-file');
-  const dropTitle = document.getElementById('drop-title');
-  const dropSubtitle = document.getElementById('drop-subtitle');
-  const attachmentStatusBox = document.getElementById('attachment-status-box');
-  const attachmentText = document.getElementById('attachment-text');
+  const dropZone = document.getElementById('drop-zone'), fileInput = document.getElementById('file-input');
+  const btnSelectFile = document.getElementById('btn-select-file'), dropTitle = document.getElementById('drop-title'), dropSubtitle = document.getElementById('drop-subtitle');
+  const attachmentStatusBox = document.getElementById('attachment-status-box'), attachmentText = document.getElementById('attachment-text');
+  const qrBox = document.getElementById('qr-box'), qrLinkContainer = document.getElementById('qr-link-container'), qrDirectLink = document.getElementById('qr-direct-link');
+  const btnCopyLink = document.getElementById('btn-copy-link'), qrRelayStatus = document.getElementById('qr-relay-status');
 
-  const qrBox = document.getElementById('qr-box');
-  const qrLinkContainer = document.getElementById('qr-link-container');
-  const qrDirectLink = document.getElementById('qr-direct-link');
-  const btnCopyLink = document.getElementById('btn-copy-link');
-  const qrRelayStatus = document.getElementById('qr-relay-status');
+  const fTipoDoc = document.getElementById('field-tipo-doc'), fCnpj = document.getElementById('field-cnpj'), fRazao = document.getElementById('field-razao');
+  const fNumDoc = document.getElementById('field-num-doc'), fData = document.getElementById('field-data'), fValor = document.getElementById('field-valor');
+  const fDescricao = document.getElementById('field-descricao'), fMotivo = document.getElementById('field-motivo'), badgeAntiGlosa = document.getElementById('badge-anti-glosa');
 
-  const fTipoDoc = document.getElementById('field-tipo-doc');
-  const fCnpj = document.getElementById('field-cnpj');
-  const fRazao = document.getElementById('field-razao');
-  const fNumDoc = document.getElementById('field-num-doc');
-  const fData = document.getElementById('field-data');
-  const fValor = document.getElementById('field-valor');
-  const fDescricao = document.getElementById('field-descricao');
-  const fMotivo = document.getElementById('field-motivo');
-  const badgeAntiGlosa = document.getElementById('badge-anti-glosa');
-
-  const documentPreviewContainer = document.getElementById('document-preview-container');
-  const previewDocImage = document.getElementById('preview-doc-image');
-  const previewViewport = document.getElementById('preview-viewport');
-  const btnZoom100 = document.getElementById('btn-zoom-100');
-  const btnZoom150 = document.getElementById('btn-zoom-150');
-  const btnZoom200 = document.getElementById('btn-zoom-200');
-  const btnTogglePreview = document.getElementById('btn-toggle-preview');
-
-  const btnRestoreFields = document.getElementById('btn-restore-fields');
-  const btnClearFields = document.getElementById('btn-clear-fields');
-
-  const historyListEl = document.getElementById('history-list');
-  const btnPurgeHistory = document.getElementById('btn-purge-history');
-  const ocrQualityBanner = document.getElementById('ocr-quality-banner');
-  const ocrQualityIcon = document.getElementById('ocr-quality-icon');
-  const ocrQualityText = document.getElementById('ocr-quality-text');
-  const btnCloudBoost = document.getElementById('btn-cloud-boost');
+  const documentPreviewContainer = document.getElementById('document-preview-container'), previewDocImage = document.getElementById('preview-doc-image'), previewViewport = document.getElementById('preview-viewport');
+  const btnZoom100 = document.getElementById('btn-zoom-100'), btnZoom150 = document.getElementById('btn-zoom-150'), btnZoom200 = document.getElementById('btn-zoom-200'), btnTogglePreview = document.getElementById('btn-toggle-preview');
+  const btnRestoreFields = document.getElementById('btn-restore-fields'), btnClearFields = document.getElementById('btn-clear-fields');
+  const historyListEl = document.getElementById('history-list'), btnPurgeHistory = document.getElementById('btn-purge-history');
+  const ocrQualityBanner = document.getElementById('ocr-quality-banner'), ocrQualityIcon = document.getElementById('ocr-quality-icon'), ocrQualityText = document.getElementById('ocr-quality-text'), btnCloudBoost = document.getElementById('btn-cloud-boost');
 
   let activeSessionId = null;
   let relayPollInterval = null;
@@ -197,6 +171,14 @@ document.addEventListener('DOMContentLoaded', () => {
     validationBadge.textContent = '✓ 8 Campos Prontos';
     validationBadge.classList.add('valid');
     btnAutofill.disabled = false;
+
+    // Atualiza o resumo do card 'Documento detectado' (Warm Light Craft)
+    const sumDocTitle = document.getElementById('summary-doc-title');
+    const sumCnpjVal = document.getElementById('summary-cnpj-val');
+    const sumValorVal = document.getElementById('summary-valor-val');
+    if (sumDocTitle) sumDocTitle.textContent = data.tipo_documento || 'Nota Fiscal (PDF)';
+    if (sumCnpjVal) sumCnpjVal.textContent = data.cpf_cnpj_prestador || data.cnpj || '12.345.678/0001-90';
+    if (sumValorVal) sumValorVal.textContent = data.valor_documento ? `R$ ${data.valor_documento}` : 'R$ 0,00';
 
     // Atualiza o indicador de qualidade da leitura OCR (Híbrido)
     updateOcrQualityBadge(data);
@@ -676,10 +658,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (err) {
       showToast('Erro de conexão com a página. Recarregue a aba após atualizar a extensão.', 'error');
-      btnAutofill.innerHTML = '<span>⚡</span> Preencher Automaticamente no CCHA';
+      btnAutofill.innerHTML = '<span>⚡</span> Preencher Formulário';
       btnAutofill.disabled = false;
     }
   });
+
+  // Ações do rodapé e atalhos (Warm Light Craft)
+  const btnOpenSettings = document.getElementById('btn-open-settings');
+  const btnFooterSettings = document.getElementById('btn-footer-settings'), btnFooterHistory = document.getElementById('btn-footer-history'), badgeLicenseStatus = document.getElementById('badge-license-status');
+  const openSettings = () => { if (badgeLicenseStatus) badgeLicenseStatus.click(); };
+  if (btnOpenSettings) btnOpenSettings.addEventListener('click', openSettings);
+  if (btnFooterSettings) btnFooterSettings.addEventListener('click', openSettings);
+  if (btnFooterHistory) btnFooterHistory.addEventListener('click', () => document.getElementById('history-card')?.scrollIntoView({ behavior: 'smooth' }));
 
   window.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
