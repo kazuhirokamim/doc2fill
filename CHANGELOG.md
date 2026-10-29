@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- **Reconhecimento Semântico de Emitente no DANFE & Resiliência CCHA (`core/document-parser.js`, `core/date-normalizer.js`)**: Identificação estrutural do emitente pré-DANFE com recombinação de linhas adjacentes multilinhas (ex: `RAGASSISTORE VARIEDADES LTDA`), ancoragem do CNPJ do fornecedor aos dígitos 7-20 da Chave de Acesso SEFAZ, descarte do canhoto físico e blindagem contra transportadora e destinatário.
 - **Refinamento Semântico e Resiliência CCHA (`core/date-normalizer.js`, `core/document-parser.js`, `extension/sidepanel.html`)**: Normalizador determinístico de datas numéricas e datas escritas por extenso em língua portuguesa (`DD de Mês de YYYY`), higienização de canhoto DANFE mercantil, extração de valores em tabelas multilinhas de impostos sem prefixo R$ e descritivos/motivos simplificados anti-glosa para farmácias e consultas médicas conforme PLAN-029 / ADR-037.
 - **Suíte TDD de Regras CCHA (`tests/ccha-rules.test.js`)**: 12 cenários canônicos cobrindo normalização de datas, cupom térmico Drogasil, DANFE Ragassistore e DANFSe Campo Grande com marcação `@tear-proof`.
 

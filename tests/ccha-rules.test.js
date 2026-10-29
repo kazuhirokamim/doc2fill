@@ -115,6 +115,33 @@ MLB6624117486 150u Toalha Desidratada P/ Tratamentos Esteticos Descartavel Todo 
       assert.ok(!parsed.fornecedor.includes('OS PRODUTOS CONSTANTES'), 'Não deve conter sufixo do canhoto');
     });
 
+    it('Cenário 1.2 (Edge Case - Canhoto Destacado e Nome em Múltiplas Linhas no DANFE): extrai fornecedor pré-DANFE', () => {
+      // Simula canhoto destacado no picote e nome em 2 linhas na coluna do emitente
+      const danfeSemCanhoto = `
+NF-e Nº 000.098.919 SÉRIE 006
+Rua dos Crepis, 73, Nao consta - Vila Bela, Sao Paulo, SP - CEP: 03201053 Fone: 0000000000
+RAGASSISTORE
+VARIEDADES LTDA
+DANFE Documento Auxiliar da Nota Fiscal Eletrônica
+0: Entrada 1: Saída 1
+Nº 000.098.919 SÉRIE: 006
+CHAVE DE ACESSO
+3526 1037 2977 1100 0180 5500 6000 0989 1911 7836 4757
+INSCRIÇÃO ESTADUAL: 137706487116 CNPJ: 37.297.711/0001-80
+DESTINATÁRIO / REMETENTE
+Patricia Akemi Kamimura CNPJ/CPF: 001.687.471-46
+DATA DA EMISSÃO: 21/10/2026
+TRANSPORTADOR/VOLUME
+RAZÃO SOCIAL: Ebazar.com.br LTDA. CNPJ/CPF: 03.007.331/0001-41
+MLB6624117486 150u Toalha Desidratada 1 UN 39,87 39,87
+      `;
+      const parsed = parseDocumentFields(danfeSemCanhoto, 'danfe_sem_canhoto.pdf');
+      assert.equal(parsed.fornecedor, 'RAGASSISTORE VARIEDADES LTDA', 'Deve unificar RAGASSISTORE e VARIEDADES LTDA ignorando endereço e transportadora');
+      assert.notEqual(parsed.fornecedor, 'VARIEDADES LTDA', 'Não deve perder a primeira linha do nome');
+      assert.notEqual(parsed.fornecedor, 'Ebazar.com.br LTDA.', 'Não deve capturar a transportadora');
+      assert.equal(parsed.cpf_cnpj, '37.297.711/0001-80', 'CNPJ deve ser o do emitente, amarrado pela chave SEFAZ');
+    });
+
     it('Cenário 2 (Happy Path): extrai o valor total R$ 39,87 da tabela de impostos multilinhas', () => {
       const parsed = parseDocumentFields(rawOcrDanfeRagassistore, 'ragassistore.pdf');
       assert.equal(parsed.valor, 'R$ 39,87', 'Deve capturar o valor total da nota de R$ 39,87');

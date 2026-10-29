@@ -41,8 +41,10 @@ Em continuidade ao refinamento contínuo de extração com os procuradores do CC
    - Suporte nativo a formatos numéricos (`DD/MM/YYYY`, `DD-MM-YYYY`, `DD.MM.YYYY`, `YYYY-MM-DD`).
    - Reconhecimento e normalização determinística de datas escritas por extenso em língua portuguesa (ex: `09 de novembro de 2026`, `23 de out de 2026`, `São Paulo, 15 de Outubro de 2026`) convertendo de forma unificada para o padrão ISO `YYYY-MM-DD`.
    - Sobrescrita da estimativa `AAMM-01` da chave de acesso SEFAZ sempre que a data exata com dia for localizada no corpo do documento.
-2. **Higienização de Canhotos DANFE e Resiliência de Tabelas Multilinhas**:
-   - Tratamento automático do termo protocolar de recebimento (`RECEBEMOS DE ... LTDA OS PRODUTOS...`), isolando estritamente a Razão Social do fornecedor.
+2. **Reconhecimento Semântico do Emitente no DANFE e Resiliência de Tabelas Multilinhas**:
+   - Identificação estrutural do quadro do emitente que antecede o rótulo `DANFE` / `Documento Auxiliar da Nota Fiscal Eletrônica`, com **recombinação determinística de linhas adjacentes multilinhas** (ex: `RAGASSISTORE` na linha $n-1$ + `VARIEDADES LTDA` na linha $n$ $\longrightarrow$ `RAGASSISTORE VARIEDADES LTDA`).
+   - Ancoragem matemática do CNPJ do emitente aos dígitos 7 a 20 da Chave de Acesso SEFAZ (44 dígitos), blindando contra colisão com a transportadora (ex: `Ebazar.com.br LTDA.`) ou o tomador/destinatário.
+   - Descarte estrutural do canhoto de recebimento de mercadoria (protocolo físico destacável de entrega), garantindo que DANFEs com o canhoto cortado ou destacado no picote sejam lidos com 100% de exatidão.
    - Extração do valor total em tabelas de impostos multilinhas sem prefixo monetário (`R$`) com fallback para a discriminação dos itens da nota.
 3. **Descritivos e Motivos Padronizados Anti-Glosa CCHA**:
    - *Medicamentos e Insumos Farmacêuticos*: `Aquisição de medicamentos/insumos farmacêuticos recomendado por médico`.

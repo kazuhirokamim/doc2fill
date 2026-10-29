@@ -98,17 +98,19 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     data.tipo_documento = classified.label || 'Outro Comprovante';
   }
 
-  const cnpjMatch = text.match(/\b(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})\b/) ||
-                    text.match(/cnpj[^\d]*(\d{2}[\.\s]?\d{3}[\.\s]?\d{3}[\/\s]?\d{4}[-\s]?\d{2})/i) ||
-                    text.match(/cnpj[^\d]*(\d{14})\b/i);
-  if (cnpjMatch) {
-    const rawDigits = cnpjMatch[1].replace(/[^\d]/g, '');
-    if (rawDigits.length === 14) {
-      data.cnpj = rawDigits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-      data.cpf_cnpj = data.cnpj;
-    } else if (cnpjMatch[1].includes('/') && cnpjMatch[1].includes('-')) {
-      data.cnpj = cnpjMatch[1].trim();
-      data.cpf_cnpj = data.cnpj;
+  if (!data.cnpj) {
+    const cnpjMatch = text.match(/\b(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})\b/) ||
+                      text.match(/cnpj[^\d]*(\d{2}[\.\s]?\d{3}[\.\s]?\d{3}[\/\s]?\d{4}[-\s]?\d{2})/i) ||
+                      text.match(/cnpj[^\d]*(\d{14})\b/i);
+    if (cnpjMatch) {
+      const rawDigits = cnpjMatch[1].replace(/[^\d]/g, '');
+      if (rawDigits.length === 14) {
+        data.cnpj = rawDigits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+        data.cpf_cnpj = data.cnpj;
+      } else if (cnpjMatch[1].includes('/') && cnpjMatch[1].includes('-')) {
+        data.cnpj = cnpjMatch[1].trim();
+        data.cpf_cnpj = data.cnpj;
+      }
     }
   }
 
@@ -142,14 +144,41 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     return true;
   }
 
-  // 1. Prioriza Razão Social e Nomes Empresariais canônicos
+  // 1. Extração Semântica do Emitente no DANFE (NF-e Modelo 55 / 65)
+  const lines = text.split(/[\r\n]+/);
+  let danfeEmitente = null;
+  const danfeIdx = lines.findIndex(l => /\bDANFE\b|\bDocumento\s+Auxiliar\s+da\s+Nota\b/i.test(l));
+  if (danfeIdx > 0) {
+    const candidateLines = [];
+    for (let i = danfeIdx - 1; i >= 0 && candidateLines.length < 3; i--) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      if (/RECEBEMOS\s+DE|IDENTIFICA[CÇ][AÃ]O\s+E\s+ASSINATURA|DATA\s+DE\s+RECEBIMENTO/i.test(line)) break;
+      if (/^[-=_]{3,}$/.test(line)) continue;
+      if (/^(?:CNPJ|INSCRI[CÇ][AÃ]O|I\.?E\.?|ESTADUAL)[:\s]/i.test(line)) continue;
+      if (/^(?:Rua|Av|Avenida|Alameda|Travessa|Pra[cç]a|Rodovia|CEP|Fone|Telefone|Bairro|Vila|Munic[ií]pio|SP|RJ|MG|RS|PR|SC|MS|MT|GO|DF|BA|PE|CE|PA|AM|ES|RN|PB|AL|SE|PI|MA|TO|RO|AC|AP|RR)[,:\s]/i.test(line)) continue;
+      if (/\bCEP[:\s]*\d{5}[-\s]?\d{3}\b/i.test(line)) continue;
+      if (/(?:Fone|Tel)[:\s]*\d+/i.test(line)) continue;
+      if (/^D:\d{8}/i.test(line) || /OpenPDF|JasperReports|iText/i.test(line)) continue;
+      if (/^NF-?e\b/i.test(line) || /^S[EÉ]RIE\b/i.test(line)) continue;
+      if (/\b(?:FILIAL|LOJA)\b|\b\d+$/i.test(line)) continue;
+      candidateLines.unshift(line);
+    }
+    if (candidateLines.length > 0) {
+      const joined = candidateLines.join(' ').replace(/\s+/g, ' ').trim();
+      if (/\b(?:LTDA|S\/A|S\.A\.|S\.A|\bSA\b(?![IÍa-z])|EIRELI|EPP|ME|VARIEDADES|COM[EÉ]RCIO|DISTRIBUIDORA|SERVI[CÇ]OS)\b/i.test(joined)) {
+        danfeEmitente = joined;
+      }
+    }
+  }
+
+  // 2. Prioriza Razão Social e Nomes Empresariais canônicos
   const razaoMatch = text.match(/(?:Raz[aã]o\s+Social|Nome\s+Empresarial|Nome\s+Fantasia)[: \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i);
   let explicitRazao = null;
 
   if (razaoMatch) {
     const rawMatch = razaoMatch[1].trim();
     if (/(?:CNPJ|INSCRI[CÇ][AÃ]O|ESTADUAL|DATA|ENDERE[CÇ]O|BAIRRO)/i.test(rawMatch)) {
-      const lines = text.split(/[\r\n]+/);
       for (let i = 0; i < lines.length; i++) {
         if (/Raz[aã]o\s+Social/i.test(lines[i]) && i + 1 < lines.length) {
           const next = lines[i + 1].trim();
@@ -165,24 +194,34 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     }
   }
 
-  if (explicitRazao) {
+  if (danfeEmitente) {
+    data.fornecedor = danfeEmitente;
+  } else if (explicitRazao) {
     data.fornecedor = explicitRazao;
   } else {
     let corporateSuffixMatch = null;
-    const lines = text.split(/[\r\n]+/);
+    let canhotoFallback = null;
+    let inTransportadorBlock = false;
     for (const rawLine of lines) {
       let line = rawLine.trim();
       if (!line) continue;
+      if (/TRANSPORTADOR\s*\/?\s*VOLUMES/i.test(line)) inTransportadorBlock = true;
+      if (/DADOS\s+DO\s+PRODUTO|C[AÁ]LCULO\s+DO\s+ISSQN/i.test(line)) inTransportadorBlock = false;
+      if (inTransportadorBlock) continue;
       if (/^(?:CNPJ|INSCRI[CÇ][AÃ]O|ESTADUAL|ENDERE[CÇ]O|BAIRRO|MUNIC[IÍ]PIO|VALOR|TOTAL|C[AÁ]LCULO|DOCUMENTO|PROTOCOLO|N[UÚ]MERO|DATA|—|\d\s*[-:]\s*SA[IÍ]DA|\d\s*[-:]\s*ENTRADA|ENTRADA|SA[IÍ]DA)/i.test(line)) continue;
-      if (/^RECEBEMOS\s+DE\s+/i.test(line)) {
-        line = line.replace(/^RECEBEMOS\s+DE\s+/i, '').replace(/\s+(?:OS\s+PRODUTOS|CONSTANTES|DA\s+NOTA).*$/i, '').trim();
+      if (/RECEBEMOS\s+DE\s+/i.test(line)) {
+        const cleanCanhoto = line.replace(/^RECEBEMOS\s+DE\s+/i, '').replace(/\s+(?:OS\s+PRODUTOS|CONSTANTES|DA\s+NOTA).*$/i, '').trim();
+        if (cleanCanhoto.length >= 3 && !canhotoFallback) canhotoFallback = cleanCanhoto;
+        continue;
       }
-      const corpMatch = line.match(/\b([A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s,\.\-]{3,60}\s+(?:LTDA|S\/A|S\.A\.|S\.A|\bSA\b(?![IÍa-z])|EIRELI|EPP|ME))\b/i);
+      if (/IDENTIFICA[CÇ][AÃ]O\s+E\s+ASSINATURA/i.test(line)) continue;
+      if (/\b(?:UN|UNID|CX|KG|PCT|L)\b\s+\d+/i.test(line) || /^MLB\d+/i.test(line)) continue;
+
+      const cleanLineForCorp = line.replace(/\s+(?:CNPJ|INSCRI[CÇ][AÃ]O|I\.?E\.?)[:\s].*$/i, '').replace(/[-=_\s]{3,}$/, '').trim();
+      const corpMatch = cleanLineForCorp.match(/\b([A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s,\.\-]{3,60}\s+(?:LTDA|S\/A|S\.A\.|S\.A|\bSA\b(?![IÍa-z])|EIRELI|EPP|ME))\b/i);
       if (corpMatch) {
         let cleanCorp = corpMatch[1].trim();
-        if (/^RECEBEMOS\s+DE\s+/i.test(cleanCorp)) {
-          cleanCorp = cleanCorp.replace(/^RECEBEMOS\s+DE\s+/i, '').replace(/\s+(?:OS\s+PRODUTOS|CONSTANTES|DA\s+NOTA).*$/i, '').trim();
-        }
+        cleanCorp = cleanCorp.replace(/\s+(?:CNPJ|INSCRI[CÇ][AÃ]O|I\.?E\.?)[:\s].*$/i, '').trim();
         if (!/^(?:\d\s*[-:]\s*SA|SA[IÍ]DA|ENTRADA)/i.test(cleanCorp)) {
           corporateSuffixMatch = cleanCorp;
           break;
@@ -191,7 +230,7 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     }
 
     let cnpjAdjacentMatch = null;
-    const cnpjLine = text.match(/cnpj[^\n\r\d]*[\d\.\s\/-]{14,24}[ \t]+([A-ZÁÉÍÓÚÂÊÔÃÕ][A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{2,50}\b(?:LTDA|S\/A|ME|EPP)?)/i);
+    const cnpjLine = text.match(/(?:^|[\r\n])[^\r\n]*cnpj[^\d\r\n]*[\d\.\/-]{14,20}[ \t]+([A-ZÁÉÍÓÚÂÊÔÃÕ][A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{2,50}\b(?:LTDA|S\/A|ME|EPP)?)/i);
     if (cnpjLine) {
       const candidate = cnpjLine[1].split(/[\n\r]/)[0].trim();
       if (!/^(?:extrato|chave|consumidor|valor|data|itens|via|cupom|nota|destinatario|prestador)/i.test(candidate) || candidate.includes('LTDA')) {
@@ -238,13 +277,15 @@ export function parseDocumentFields(rawText = '', fileName = '') {
       (utilityBrandMatch ? utilityBrandMatch[1].trim() : null) ||
       (servicePrestadorMatch && !/^(?:n[uú]mero\s+da\s+nota|compet[eê]ncia)/i.test(servicePrestadorMatch[1].trim()) ? servicePrestadorMatch[1].trim() : null) ||
       (retailBrandMatch ? retailBrandMatch[0].trim() : null) ||
-      corporateSuffixMatch;
+      corporateSuffixMatch ||
+      canhotoFallback;
 
     if (candidateSupplier) {
       let val = candidateSupplier.split(/[\n\r]/)[0].trim();
       val = val.replace(/^RECEBEMOS\s+DE\s+/i, '').replace(/\s+(?:OS\s+PRODUTOS|CONSTANTES|DA\s+NOTA).*$/i, '').trim();
       val = val.replace(/^de\s+servi[cç]os\s*/i, '').replace(/^—\s*=\s*/, '').trim();
       val = val.replace(/^(?:Dr\.|Dra\.|Dr|Dra)\s+/i, '').trim();
+      val = val.replace(/\s+(?:CNPJ|INSCRI[CÇ][AÃ]O|I\.?E\.?)[:\s].*$/i, '').replace(/[-=_\s]{3,}$/, '').trim();
       if (val && val.length >= 2 && !/^(?:era|cnpj|inscricao|dados)/i.test(val)) {
         data.fornecedor = val;
       }
