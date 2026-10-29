@@ -1,7 +1,7 @@
 # PLAN-029: Refinamento de Extração Semântica, Datas por Extenso e Resiliência CCHA
 
-- **status:** Em Elaboração
-- **rev:** 2227998
+- **status:** Ratificado
+- **rev:** da47792
 - **autor:** Kazuhiro & Tear Maestro
 - **data:** 28/10/2026
 - **tearform:** respostas/029.md

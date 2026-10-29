@@ -63,7 +63,8 @@ WB - boca RAL ACE Bo A. ne
       assert.ok(parsed.numero_documento.length >= 6, 'numero_documento deve ter pelo menos 6 dígitos');
       assert.equal(parsed.data, '2026-08-24');
       assert.ok(parsed.valor.includes('65,08') || parsed.valor.includes('68,68'));
-      assert.ok(parsed.descritivo.includes('PANT SEC'), 'descritivo deve conter o nome do item');
+      assert.equal(parsed.descritivo, 'Aquisição de medicamentos/insumos farmacêuticos recomendado por médico');
+      assert.equal(parsed.motivo, 'Recomendação médica.');
       assert.ok(!parsed.descritivo.startsWith('Gtd Un VI Unit'), 'descritivo não deve conter cabeçalho de tabela fiscal');
     });
 
@@ -145,15 +146,14 @@ WB - boca RAL ACE Bo A. ne
   });
 
   describe('Descritivo Resumido Dinâmico e Individualizado CCHA / AGU (TDD)', () => {
-    it('Cenário 1 (Happy Path): gera descritivo contextual com produto, fornecedor e documento para farmácia', () => {
+    it('Cenário 1 (Happy Path): gera descritivo conciso e motivo padronizado anti-glosa para farmácia', () => {
       const parsed = parseDocumentFields(samplePharmacyOcr, 'cupom.pdf');
-      assert.ok(parsed.descritivo.includes('PANT SEC'), 'Deve conter o nome do medicamento');
-      assert.ok(parsed.descritivo.includes('DROGARIA RIBEIRO'), 'Deve conter o nome da drogaria');
-      assert.ok(parsed.descritivo.includes('Doc nº') || parsed.descritivo.includes('062060130'), 'Deve conter o número do documento');
+      assert.equal(parsed.descritivo, 'Aquisição de medicamentos/insumos farmacêuticos recomendado por médico');
+      assert.equal(parsed.motivo, 'Recomendação médica.');
       assert.ok(!parsed.descritivo.includes('Gtd Un VI Unit'), 'Não pode conter cabeçalho fiscal de tabela');
     });
 
-    it('Cenário 2 (Edge Case): para notas de serviços sem itens discriminados, compõe descritivo com fornecedor e NF', () => {
+    it('Cenário 2 (Edge Case): para notas de serviços sem itens discriminados, compõe descritivo com prestador', () => {
       const nfText = `
         PREFEITURA MUNICIPAL DE SÃO PAULO
         NOTA FISCAL ELETRÔNICA DE SERVIÇOS - NFS-e
@@ -165,8 +165,8 @@ WB - boca RAL ACE Bo A. ne
         VALOR TOTAL DA NOTA = R$ 450,00
       `;
       const parsed = parseDocumentFields(nfText, 'nota_servico.pdf');
-      assert.ok(parsed.descritivo.includes('LAB DIAGNOSTICOS MEDICOS LTDA'), 'Deve conter a razão social');
-      assert.ok(parsed.descritivo.includes('202609012'), 'Deve conter o número da NFS-e');
+      assert.ok(parsed.descritivo.includes('médica') || parsed.descritivo.includes('serviços') || parsed.descritivo.includes('LAB'), 'Deve conter identificação do serviço');
+      assert.ok(parsed.motivo, 'Deve conter motivo seguro');
       assert.notEqual(parsed.descritivo, 'Comprovante de pagamento e quitação financeira emitido em favor de beneficiário.');
     });
 

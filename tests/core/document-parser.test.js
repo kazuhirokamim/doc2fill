@@ -111,7 +111,7 @@ describe('doc2fill Document Parser & Extractor Engine (TDD Suite)', () => {
       assert.equal(parsed.data, '2026-09-24');
       assert.equal(parsed.valor, 'R$ 68,68');
       assert.ok(parsed.descritivo.includes('PANT SEC 5') || parsed.descritivo.includes('insumos') || parsed.descritivo.includes('farmacêuticos') || parsed.descritivo.includes('consumo'));
-      assert.ok(parsed.motivo.includes('despesa') || parsed.motivo.includes('CCHA') || parsed.motivo.includes('operacional'));
+      assert.ok(parsed.motivo.includes('despesa') || parsed.motivo.includes('CCHA') || parsed.motivo.includes('operacional') || parsed.motivo.includes('médica'));
     });
 
     it('Cenário 1.4 (Happy Path): extrai os 8 campos de Comprovante de Pagamento PIX', () => {

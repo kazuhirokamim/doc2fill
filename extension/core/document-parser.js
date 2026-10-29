@@ -4,6 +4,7 @@ import { extractLineItemsFromText } from './item-extractor.js';
 import { extractAllStreamsText, extractAllStreamsTextAsync, extractTextFromOperators, extractFirstPdfImageAsDataUrl } from './pdf-stream-decoder.js';
 export { extractFirstPdfImageAsDataUrl };
 import { translateClinicalProcedure } from './clinical-translator.js';
+import { normalizeDateText } from './date-normalizer.js';
 
 export function isPdfEncrypted(input) {
   if (!input) return false;
@@ -170,13 +171,22 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     let corporateSuffixMatch = null;
     const lines = text.split(/[\r\n]+/);
     for (const rawLine of lines) {
-      const line = rawLine.trim();
+      let line = rawLine.trim();
       if (!line) continue;
-      if (/^(?:CNPJ|INSCRI[CÇ][AÃ]O|ESTADUAL|ENDERE[CÇ]O|BAIRRO|MUNIC[IÍ]PIO|VALOR|TOTAL|C[AÁ]LCULO|DOCUMENTO|PROTOCOLO|N[UÚ]MERO|DATA|—)/i.test(line)) continue;
-      const corpMatch = line.match(/\b([A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s,\.\-]{3,60}\s+(?:LTDA|S\/A|S\.A\.|EIRELI|EPP|ME))\b/i);
+      if (/^(?:CNPJ|INSCRI[CÇ][AÃ]O|ESTADUAL|ENDERE[CÇ]O|BAIRRO|MUNIC[IÍ]PIO|VALOR|TOTAL|C[AÁ]LCULO|DOCUMENTO|PROTOCOLO|N[UÚ]MERO|DATA|—|\d\s*[-:]\s*SA[IÍ]DA|\d\s*[-:]\s*ENTRADA|ENTRADA|SA[IÍ]DA)/i.test(line)) continue;
+      if (/^RECEBEMOS\s+DE\s+/i.test(line)) {
+        line = line.replace(/^RECEBEMOS\s+DE\s+/i, '').replace(/\s+(?:OS\s+PRODUTOS|CONSTANTES|DA\s+NOTA).*$/i, '').trim();
+      }
+      const corpMatch = line.match(/\b([A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s,\.\-]{3,60}\s+(?:LTDA|S\/A|S\.A\.|S\.A|\bSA\b(?![IÍa-z])|EIRELI|EPP|ME))\b/i);
       if (corpMatch) {
-        corporateSuffixMatch = corpMatch[1].trim();
-        break;
+        let cleanCorp = corpMatch[1].trim();
+        if (/^RECEBEMOS\s+DE\s+/i.test(cleanCorp)) {
+          cleanCorp = cleanCorp.replace(/^RECEBEMOS\s+DE\s+/i, '').replace(/\s+(?:OS\s+PRODUTOS|CONSTANTES|DA\s+NOTA).*$/i, '').trim();
+        }
+        if (!/^(?:\d\s*[-:]\s*SA|SA[IÍ]DA|ENTRADA)/i.test(cleanCorp)) {
+          corporateSuffixMatch = cleanCorp;
+          break;
+        }
       }
     }
 
@@ -206,24 +216,35 @@ export function parseDocumentFields(rawText = '', fileName = '') {
 
     const utilityBrandMatch = text.match(/\b((?:ENEL|SABESP|CPFL|CEMIG|COPEL|LIGHT|CELESC|NEOENERGIA|EQUATORIAL|EDP|SANEPAR|COPASA|COMPESA|EMBASA|CORSAN|VIVO|CLARO|TIM|OI|EMBRATEL)\b[^\n\r]{0,40})/i);
     const pixReceiverMatch = text.match(/(?:RECEBEDOR|FAVORECIDO)[: \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i);
+    const boletoCedenteMatch = text.match(/(?:BENEFICI[AÁ]RIO|CEDENTE|SACADOR)[: \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i);
     const servicePrestadorMatch = text.match(/(?:DADOS\s+DO\s+(?:PRESTADOR|TOMADOR)|NOME\s*\/?\s*RAZ[AÃ]O\s+SOCIAL)[: \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i);
     const retailBrandMatch = text.match(/^(?:LOJAS\s+[A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{2,30}|SUPERMERCADO\s+[A-ZÁÉÍÓÚÂÊÔÃÕ0-9\s]{2,30})/im);
 
+    const labeledSupplierMatch =
+      text.match(/(?:Prestador(?:\s+de\s+Servi[cç]os)?|Emitente|Estabelecimento|Fornecedor|Benefici[aá]rio(?:\s*\/\s*Destinat[aá]rio)?|Destinat[aá]rio|Requerente|Nome)[: \t]*(?:Dr\.|Dra\.)?[ \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i)?.[1]?.trim() ||
+      text.match(/(?:Dr\.|Dra\.)[ \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+(?:[ \t]+[A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+)+)/)?.[1]?.trim();
+
+    const isBank = corporateSuffixMatch && /^(?:BANCO\b|BANCO\s+|CAIXA\s+ECONOMICA)/i.test(corporateSuffixMatch);
+
     const candidateSupplier =
-      corporateSuffixMatch ||
+      (pixReceiverMatch && !/^(?:cpf|cnpj|chave|valor|data)/i.test(pixReceiverMatch[1].trim()) ? pixReceiverMatch[1].trim() : null) ||
+      (boletoCedenteMatch && !/^(?:cpf|cnpj|chave|valor|data)/i.test(boletoCedenteMatch[1].trim()) ? boletoCedenteMatch[1].trim() : null) ||
+      (isBank && labeledSupplierMatch ? labeledSupplierMatch : null) ||
+      (!isBank ? corporateSuffixMatch : null) ||
+      labeledSupplierMatch ||
       tomadorLine ||
       cnpjAdjacentMatch ||
       (pharmacyHeaderMatch ? pharmacyHeaderMatch[1].split(/[\n\r]/)[0].trim() : null) ||
       (utilityBrandMatch ? utilityBrandMatch[1].trim() : null) ||
-      (pixReceiverMatch && !/^(?:cpf|cnpj|chave|valor|data)/i.test(pixReceiverMatch[1].trim()) ? pixReceiverMatch[1].trim() : null) ||
       (servicePrestadorMatch && !/^(?:n[uú]mero\s+da\s+nota|compet[eê]ncia)/i.test(servicePrestadorMatch[1].trim()) ? servicePrestadorMatch[1].trim() : null) ||
       (retailBrandMatch ? retailBrandMatch[0].trim() : null) ||
-      text.match(/(?:Prestador(?:\s+de\s+Servi[cç]os)?|Emitente|Estabelecimento|Fornecedor|Benefici[aá]rio(?:\s*\/\s*Destinat[aá]rio)?|Destinat[aá]rio|Requerente|Nome)[: \t]*(?:Dr\.|Dra\.)?[ \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ0-9][^\n\r,;]{2,60})/i)?.[1]?.trim() ||
-      text.match(/(?:Dr\.|Dra\.)[ \t]*([A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+(?:[ \t]+[A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+)+)/)?.[1]?.trim();
+      corporateSuffixMatch;
 
     if (candidateSupplier) {
       let val = candidateSupplier.split(/[\n\r]/)[0].trim();
+      val = val.replace(/^RECEBEMOS\s+DE\s+/i, '').replace(/\s+(?:OS\s+PRODUTOS|CONSTANTES|DA\s+NOTA).*$/i, '').trim();
       val = val.replace(/^de\s+servi[cç]os\s*/i, '').replace(/^—\s*=\s*/, '').trim();
+      val = val.replace(/^(?:Dr\.|Dra\.|Dr|Dra)\s+/i, '').trim();
       if (val && val.length >= 2 && !/^(?:era|cnpj|inscricao|dados)/i.test(val)) {
         data.fornecedor = val;
       }
@@ -294,21 +315,56 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     }
   }
 
-  const dataMatch =
-    text.match(/(?:Data(?:\s+de\s+Emiss[aã]o|\s+da\s+Transa[cç][aã]o|\s+e\s+Hora)?|\bVencimento|\bEmiss[aã]o|\bCompet[eê]ncia|\bData)[:\s]*(\d{2})[\/\.](\d{2})[\/\.](\d{4})/i) ||
-    text.match(/\b(\d{2})[\/\.](\d{2})[\/\.](\d{4})\b/);
-  if (dataMatch) {
-    data.data = `${dataMatch[3]}-${dataMatch[2]}-${dataMatch[1]}`;
-  } else {
+  const normalizedDate = normalizeDateText(text);
+  if (normalizedDate) {
+    data.data = normalizedDate;
+  } else if (!data.data) {
     const isoDateMatch = text.match(/\b(\d{4}-\d{2}-\d{2})\b/);
     if (isoDateMatch) data.data = isoDateMatch[1];
   }
 
-  const valorMatch =
-    text.match(/(?:VALOR\s+TOTAL(?:\s+DA\s+NOTA|\s+DOS\s+SERVI[CÇ]OS|\s+R\$)?|TOTAL\s+A\s+PAGAR|VALOR\s+A\s+PAGAR|VALOR\s+COBRADO|VALOR\s+DO\s+DOCUMENTO|VALOR\s+L[IÍ]QUIDO|TOTAL\s+L[IÍ]QUIDO|VALOR\s+PAGO|VALOR\s+BRUTO|DINHEIRO|CART[AÃ]O(?:\s+DE\s+CR[EÉ]DITO|\s+DE\s+D[EÉ]BITO)?|TOTAL(?:\s+R\$)?|SUBTOTAL|VALOR)[^\d\n\r]*R?\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}|[0-9]+,[0-9]{2})/i) ||
-    text.match(/(?:VALOR\s+TOTAL(?:\s+DA\s+NOTA|\s+DOS\s+SERVI[CÇ]OS)?|TOTAL|A\s+PAGAR)[^\d]*?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i) ||
-    text.match(/R\$\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i) ||
-    text.match(/valor[:_\s]*R?\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}|[0-9]+,[0-9]{2})/i);
+  let valorMatch = null;
+
+  // 1. Prioridade no DANFE: Tabela multilinhas de cálculo do imposto (VALOR TOTAL DA NOTA -> linha de valores)
+  if (/VALOR\s+TOTAL\s+DA\s+NOTA/i.test(text)) {
+    const lines = text.split(/[\r\n]+/);
+    for (let i = 0; i < lines.length; i++) {
+      if (/VALOR\s+TOTAL\s+DA\s+NOTA/i.test(lines[i])) {
+        for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+          const nums = lines[j].match(/\b([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})\b/g);
+          if (nums && nums.length > 0) {
+            const lastVal = nums[nums.length - 1];
+            if (lastVal && lastVal !== '0,00') {
+              valorMatch = [null, lastVal];
+              break;
+            }
+          }
+        }
+      }
+      if (valorMatch) break;
+    }
+  }
+
+  // 2. Extração Padrão com rótulos monetários explícitos
+  if (!valorMatch) {
+    const candidateMatch =
+      text.match(/(?:VALOR\s+TOTAL(?:\s+DA\s+NOTA|\s+DOS\s+SERVI[CÇ]OS|\s+R\$)?|TOTAL\s+A\s+PAGAR|VALOR\s+A\s+PAGAR|VALOR\s+COBRADO|VALOR\s+DO\s+DOCUMENTO|VALOR\s+L[IÍ]QUIDO|TOTAL\s+L[IÍ]QUIDO|VALOR\s+PAGO|VALOR\s+BRUTO|DINHEIRO|CART[AÃ]O(?:\s+DE\s+CR[EÉ]DITO|\s+DE\s+D[EÉ]BITO)?|TOTAL(?:\s+R\$)?|SUBTOTAL)[^\d\n\r]*R?\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}|[0-9]+,[0-9]{2})/i) ||
+      text.match(/(?:VALOR\s+TOTAL(?:\s+DA\s+NOTA|\s+DOS\s+SERVI[CÇ]OS)?|TOTAL|A\s+PAGAR)[^\d]*?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i) ||
+      text.match(/R\$\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i) ||
+      text.match(/valor[:_\s]*R?\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}|[0-9]+,[0-9]{2})/i);
+
+    if (candidateMatch && candidateMatch[1] !== '0,00') {
+      valorMatch = candidateMatch;
+    }
+  }
+
+  // 3. Fallback: Tabela de produtos do DANFE (ex: MLB6624117486 ... 39,87 39,87)
+  if (!valorMatch) {
+    const itemMatch = text.match(/\b([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})\s+([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})\b/);
+    if (itemMatch && itemMatch[2]) {
+      valorMatch = [null, itemMatch[2]];
+    }
+  }
 
   if (valorMatch) data.valor = `R$ ${valorMatch[1].trim()}`;
 
@@ -344,56 +400,50 @@ export function parseDocumentFields(rawText = '', fileName = '') {
     data.motivo = clinicalMatch.motivoNecessidade;
     data.natureza = clinicalMatch.natureza;
   } else {
-    if (extractedItem) {
-      if (/drogaria|farm[aá]cia|medicamento|rem[eé]dio|posologia|comprimido|c[aá]psula|unid|droga/i.test(text) || (data.fornecedor && /drogaria|farm[aá]cia/i.test(data.fornecedor))) {
-        data.descritivo = `Aquisição de medicamentos/insumos farmacêuticos (${extractedItem}) - ${data.fornecedor || 'Drogaria'}${data.numero_documento ? ' (Doc nº ' + data.numero_documento + ')' : ''}.`;
-      } else if (data.tipo_documento.includes('Nota Fiscal')) {
-        data.descritivo = `Prestação de serviços / produtos (${extractedItem}) - ${data.fornecedor || 'Fornecedor'}${data.numero_documento ? ' (NF nº ' + data.numero_documento + ')' : ''}.`;
+    if (/drogaria|farm[aá]cia|medicamento|rem[eé]dio|posologia|comprimido|c[aá]psula|unid|droga/i.test(text) || (data.fornecedor && /drogaria|farm[aá]cia/i.test(data.fornecedor))) {
+      data.descritivo = 'Aquisição de medicamentos/insumos farmacêuticos recomendado por médico';
+      data.motivo = 'Recomendação médica.';
+    } else if (/consulta|pediatr|m[eé]dic|ambulatori|tiss|tuss|sadt|cl[ií]nica/i.test(text)) {
+      data.descritivo = 'Consulta médica ambulatorial';
+      data.motivo = 'Recomendação médica.';
+    } else if (extractedItem) {
+      if (data.tipo_documento.includes('Nota Fiscal')) {
+        data.descritivo = `Prestação de serviços / produtos (${extractedItem}) - ${data.fornecedor || 'Fornecedor'}.`;
       } else {
-        data.descritivo = `Aquisição de insumo operacional (${extractedItem}) junto a ${data.fornecedor || 'fornecedor'}${data.numero_documento ? ' (Doc nº ' + data.numero_documento + ')' : ''}.`;
+        data.descritivo = `Aquisição de insumo operacional (${extractedItem}) junto a ${data.fornecedor || 'fornecedor'}.`;
       }
+      data.motivo = 'Prestação de contas e comprovação de despesa operacional necessária ao exercício funcional.';
     } else {
       if (/honorarios|sucumbencia/i.test(text)) {
         data.descritivo = `Honorários advocatícios sucumbenciais devidos perante o CCHA em decorrência de atuação judicial${data.processo ? ' no Processo ' + data.processo : ''}.`;
-      } else if (/drogaria|farm[aá]cia|medicamento|rem[eé]dio|posologia|comprimido|c[aá]psula|unid|droga/i.test(text) || (data.fornecedor && /drogaria|farm[aá]cia/i.test(data.fornecedor))) {
-        data.descritivo = `Aquisição de medicamentos e insumos farmacêuticos de pronto pagamento junto a ${data.fornecedor || 'fornecedor'}${data.numero_documento ? ' (Doc nº ' + data.numero_documento + ')' : ''}.`;
-      } else if (/tiss|tuss|sadt|medica/i.test(text)) {
-        data.descritivo = `Assistência médica e procedimentos de saúde com comprovação diagnóstica junto a ${data.fornecedor || 'prestador'}${data.numero_documento ? ' (Doc nº ' + data.numero_documento + ')' : ''}.`;
+        data.motivo = 'Art. 29 a 36 da Lei nº 13.327/2016 e deliberações do CCHA. Preenchimento de requisitos de elegibilidade e rateio de honorários sucumbenciais.';
       } else if (data.tipo_documento.includes('Nota Fiscal')) {
-        data.descritivo = `Prestação de serviços técnicos/operacionais discriminados em Nota Fiscal emitida por ${data.fornecedor || 'prestador'}${data.numero_documento ? ' (NF nº ' + data.numero_documento + ')' : ''}.`;
+        data.descritivo = `Prestação de serviços técnicos/operacionais discriminados em Nota Fiscal emitida por ${data.fornecedor || 'prestador'}.`;
+        data.motivo = 'Prestação de contas e comprovação de despesa operacional necessária ao exercício funcional.';
       } else if (data.tipo_documento.includes('Cupom Fiscal')) {
-        data.descritivo = `Aquisição de insumos operacionais e materiais de consumo junto a ${data.fornecedor || 'fornecedor'}${data.numero_documento ? ' (Cupom nº ' + data.numero_documento + ')' : ''}.`;
+        data.descritivo = `Aquisição de insumos operacionais e materiais de consumo junto a ${data.fornecedor || 'fornecedor'}.`;
+        data.motivo = 'Comprovação de despesa miúda e aquisição de insumos de pronto pagamento vinculados à atividade funcional.';
       } else if (data.tipo_documento.includes('Recibo')) {
-        data.descritivo = `Recibo comprobatório de serviços prestados emitido por ${data.fornecedor || 'prestador'}${data.numero_documento ? ' (Recibo nº ' + data.numero_documento + ')' : ''}.`;
+        data.descritivo = `Recibo comprobatório de serviços prestados emitido por ${data.fornecedor || 'prestador'}.`;
+        data.motivo = 'Comprovação de despesa de pronto pagamento e prestação de contas funcional.';
       } else if (data.tipo_documento.includes('Boleto')) {
         data.descritivo = `Quitação de obrigação bancária e títulos devidos em favor de ${data.fornecedor || 'beneficiário'}${data.valor ? ' no valor de ' + data.valor : ''}.`;
+        data.motivo = 'Comprovação de quitação tempestiva de obrigação legal e despesa autorizada vinculada ao CCHA.';
       } else if (data.tipo_documento.includes('Fatura')) {
-        data.descritivo = `Despesas de consumo e faturas de serviços continuados essenciais junto a ${data.fornecedor || 'concessionária'}${data.numero_documento ? ' (Fatura nº ' + data.numero_documento + ')' : ''}.`;
+        data.descritivo = `Despesas de consumo e faturas de serviços continuados essenciais junto a ${data.fornecedor || 'concessionária'}.`;
+        data.motivo = 'Prestação de contas e comprovação de despesa operacional necessária ao exercício funcional.';
       } else if (data.tipo_documento.includes('Declaração')) {
         data.descritivo = `Declaração comprobatória de regularidade documental e ateste de serviços emitida por ${data.fornecedor || 'declarante'}.`;
+        data.motivo = 'Atesto formal e declaração comprobatória de regularidade documental para instrução do requerimento.';
       } else if (fileName) {
         data.descritivo = `Comprovação documental de despesa operacional: ${fileName}${data.fornecedor ? ' (' + data.fornecedor + ')' : ''}.`;
+        data.motivo = 'Prestação de contas e comprovação de despesa operacional necessária ao exercício funcional.';
       } else {
         data.descritivo = 'Comprovação documental de serviços e atos administrativos perante o CCHA.';
+        data.motivo = 'Prestação de contas e comprovação de despesa operacional necessária ao exercício funcional.';
       }
     }
     data.descricao = data.descritivo;
-
-    if (/honorarios|sucumbencia|rateio/i.test(text)) {
-      data.motivo = 'Art. 29 a 36 da Lei nº 13.327/2016 e deliberações do CCHA. Preenchimento de requisitos de elegibilidade e rateio de honorários sucumbenciais.';
-    } else if (/drogaria|farm[aá]cia|medicamento/i.test(text) || (data.fornecedor && /drogaria|farm[aá]cia/i.test(data.fornecedor))) {
-      data.motivo = 'Comprovação de despesa miúda e aquisição de insumos farmacêuticos de pronto pagamento vinculados à atividade funcional perante o CCHA.';
-    } else if (/tiss|tuss|sadt|medica|saude/i.test(text)) {
-      data.motivo = 'Comprovação de despesa de assistência à saúde e atendimento médico/hospitalar para fins de ressarcimento funcional perante o CCHA.';
-    } else if (/cupom|suprimentos|miuda/i.test(text)) {
-      data.motivo = 'Comprovação de despesa miúda e aquisição de insumos de pronto pagamento vinculados à atividade funcional perante o CCHA.';
-    } else if (/comprovante|pix|ted|transferencia/i.test(text)) {
-      data.motivo = 'Comprovação de quitação tempestiva de obrigação legal e despesa autorizada vinculada ao CCHA.';
-    } else if (/declaracao/i.test(text)) {
-      data.motivo = 'Atesto formal e declaração comprobatória de regularidade documental para instrução do requerimento CCHA.';
-    } else {
-      data.motivo = 'Prestação de contas e comprovação de despesa operacional necessária ao exercício funcional perante o CCHA / AGU.';
-    }
   }
 
   const procMatch = text.match(/\b(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})\b/) ||
