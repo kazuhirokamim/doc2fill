@@ -34,6 +34,24 @@ O módulo `core/classifier.js` categoriza os documentos nos seguintes tipos padr
 
 ---
 
+## ⚡ Refinamento Semântico e Resiliência CCHA (PLAN-029 / ADR-037)
+
+Em continuidade ao refinamento contínuo de extração com os procuradores do CCHA:
+1. **Normalização de Datas Numéricas e por Extenso (`core/date-normalizer.js`)**:
+   - Suporte nativo a formatos numéricos (`DD/MM/YYYY`, `DD-MM-YYYY`, `DD.MM.YYYY`, `YYYY-MM-DD`).
+   - Reconhecimento e normalização determinística de datas escritas por extenso em língua portuguesa (ex: `09 de novembro de 2026`, `23 de out de 2026`, `São Paulo, 15 de Outubro de 2026`) convertendo de forma unificada para o padrão ISO `YYYY-MM-DD`.
+   - Sobrescrita da estimativa `AAMM-01` da chave de acesso SEFAZ sempre que a data exata com dia for localizada no corpo do documento.
+2. **Higienização de Canhotos DANFE e Resiliência de Tabelas Multilinhas**:
+   - Tratamento automático do termo protocolar de recebimento (`RECEBEMOS DE ... LTDA OS PRODUTOS...`), isolando estritamente a Razão Social do fornecedor.
+   - Extração do valor total em tabelas de impostos multilinhas sem prefixo monetário (`R$`) com fallback para a discriminação dos itens da nota.
+3. **Descritivos e Motivos Padronizados Anti-Glosa CCHA**:
+   - *Medicamentos e Insumos Farmacêuticos*: `Aquisição de medicamentos/insumos farmacêuticos recomendado por médico`.
+   - *Consultas e Serviços Médicos*: `Consulta médica ambulatorial` com identificação do prestador no fornecedor.
+   - *Motivo da Necessidade*: Simplificação objetiva e direta para `Recomendação médica.`, eliminando prolixidade burocrática.
+   - *Número do Documento*: Classificado como campo facultativo no Sidepanel, sem compor o texto do descritivo.
+
+---
+
 ## 🔍 Os 8 Campos Essenciais Extraídos
 
 O módulo `core/document-parser.js` extrai e normaliza os dados nas seguintes propriedades:
