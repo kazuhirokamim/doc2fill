@@ -1,4 +1,3 @@
-// @tear-proof issue-1
 // tests/autofill-forensic.test.js
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';

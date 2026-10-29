@@ -1,4 +1,3 @@
-// @tear-proof issue-1
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { extractTextFromPdfContent, parseDocumentFields } from '../../core/document-parser.js';

@@ -1,7 +1,7 @@
 # Motor de Classificação Documental e Sidebar Focada (8 Campos CCHA)
 
 > Documentação viva referente à expansão de tipos de documentos suportados e à simplificação focada da interface lateral (Sidepanel) para os procuradores do CCHA (Conselho Curador dos Honorários Advocatícios).
-> Referência Arquitetural: [ADR-009](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/docs/adr/ADR-009-document-parser-and-focused-sidebar.md) e [PLAN-005](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/docs/plans/PLAN-005-document-types-expansion-and-sidebar-simplification.md).
+> Referência Arquitetural: [ADR-009](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/docs/adr/ADR-009-document-parser-and-focused-sidebar.md), [ADR-037](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/docs/adr/ADR-037-extracao-semantica-resiliente-e-simplificacao-ccha.md) e [PLAN-029](file:///Users/user/.gemini/antigravity/scratch/kazuhiro/doc2fill/docs/plans/PLAN-029-refinamento-extracao-e-resiliencia-ccha.md).
 
 ---
 
