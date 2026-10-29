@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Added
+- **Refinamento Semântico e Resiliência CCHA (`core/date-normalizer.js`, `core/document-parser.js`, `extension/sidepanel.html`)**: Normalizador determinístico de datas numéricas e datas escritas por extenso em língua portuguesa (`DD de Mês de YYYY`), higienização de canhoto DANFE mercantil, extração de valores em tabelas multilinhas de impostos sem prefixo R$ e descritivos/motivos simplificados anti-glosa para farmácias e consultas médicas conforme PLAN-029 / ADR-037.
+- **Suíte TDD de Regras CCHA (`tests/ccha-rules.test.js`)**: 12 cenários canônicos cobrindo normalização de datas, cupom térmico Drogasil, DANFE Ragassistore e DANFSe Campo Grande com marcação `@tear-proof`.
+
+### Added
 - **Pipeline Óptico Autônomo e Extração Client-Side de Imagens em PDFs Escaneados (`core/browser-ocr.js`, `core/pdf-stream-decoder.js`, `extension/sidepanel.js`)**: Conexão da binarização adaptativa Otsu-lite e auto-deskew no Canvas para leitura de cupons térmicos e fotos com baixa iluminação no Tesseract WASM local. Extração nativa de streams de imagem JPEG (`/Filter /DCTDecode`) e FlateDecode diretamente de PDFs no navegador, viabilizando leitura de PDFs escaneados 100% offline sem utilitários do sistema operacional.
 - **Suíte TDD de Pipeline Óptico e Scanned PDF (`tests/core/offline-optical-pipeline.test.js`)**: 9 testes cobrindo extração de streams JPEG de PDF, binarização Otsu adaptativa, rotação planar arbitrária e resiliência a entradas corrompidas.
 - **ADR-034 & PLAN-026**: Formalização da arquitetura offline-first e matriz de rastreabilidade.

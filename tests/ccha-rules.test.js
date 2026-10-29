@@ -1,3 +1,4 @@
+// @tear-proof issue-1-ccha-refinement
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeDateText } from '../core/date-normalizer.js';
